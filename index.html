@@ -12,40 +12,141 @@
       background: #0f0f0f;
       color: #f0ece4;
       min-height: 100vh;
+      display: flex;
     }
 
-    header {
-      padding: 32px 48px 24px;
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #111;
+      border-right: 1px solid #2a2a2a;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 28px;
       border-bottom: 1px solid #2a2a2a;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo h1 {
+      font-size: 0.9rem;
+      font-weight: normal;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #c9a96e;
+    }
+
+    .sidebar-logo .sub {
+      font-size: 0.7rem;
+      color: #444;
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-section {
+      padding: 8px 0;
+    }
+
+    .nav-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #444;
+      padding: 8px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      font-size: 0.85rem;
+      color: #888;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      color: #f0ece4;
+      background: #1a1a1a;
+    }
+
+    .nav-item.active {
+      color: #c9a96e;
+      border-left-color: #c9a96e;
+      background: #1a1510;
+    }
+
+    .nav-item .icon {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 16px 20px;
+      border-top: 1px solid #2a2a2a;
+      font-size: 0.72rem;
+      color: #444;
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      padding: 24px 40px;
+      border-bottom: 1px solid #1e1e1e;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    header h1 {
-      font-size: 1.4rem;
+    .topbar h2 {
+      font-size: 1.1rem;
       font-weight: normal;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #c9a96e;
+      letter-spacing: 0.05em;
+      color: #f0ece4;
     }
 
     .date {
-      font-size: 0.85rem;
-      color: #666;
-      letter-spacing: 0.05em;
+      font-size: 0.8rem;
+      color: #555;
     }
 
+    .content {
+      padding: 36px 40px;
+      flex: 1;
+    }
+
+    /* CENTRO DI COMANDO */
     .comando {
-      margin: 40px 48px 0;
       background: #161616;
       border: 1px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 28px 32px;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
     }
 
-    .comando h2 {
-      font-size: 0.7rem;
+    .comando-label {
+      font-size: 0.65rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: #c9a96e;
@@ -60,34 +161,35 @@
 
     .oggi-item {
       background: #1e1e1e;
-      border: 1px solid #333;
+      border: 1px solid #2a2a2a;
       border-radius: 8px;
       padding: 12px 18px;
       font-size: 0.9rem;
       color: #ccc;
+      min-width: 140px;
     }
 
     .oggi-item span {
       display: block;
-      font-size: 0.7rem;
-      color: #666;
+      font-size: 0.65rem;
+      color: #555;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
+    /* GRIGLIA SEZIONI */
     .sezioni {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      padding: 32px 48px 48px;
+      gap: 16px;
     }
 
     .sezione {
       background: #161616;
       border: 1px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 28px;
+      border-radius: 10px;
+      padding: 22px;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
       text-decoration: none;
@@ -100,124 +202,166 @@
       background: #1a1a1a;
     }
 
-    .sezione-icon {
-      font-size: 1.6rem;
-      margin-bottom: 14px;
-    }
+    .sezione-icon { font-size: 1.4rem; margin-bottom: 12px; }
 
     .sezione h3 {
-      font-size: 1rem;
+      font-size: 0.85rem;
       font-weight: normal;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #f0ece4;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .sezione p {
-      font-size: 0.82rem;
-      color: #666;
+      font-size: 0.78rem;
+      color: #555;
       line-height: 1.5;
     }
 
-    .sezione .badge {
+    .badge {
       display: inline-block;
-      margin-top: 14px;
-      background: #2a2a2a;
+      margin-top: 12px;
+      background: #1e1e1e;
       color: #c9a96e;
-      font-size: 0.7rem;
-      padding: 4px 10px;
+      font-size: 0.65rem;
+      padding: 3px 8px;
       border-radius: 20px;
       letter-spacing: 0.08em;
+      border: 1px solid #333;
     }
 
     @media (max-width: 900px) {
-      .sezioni { grid-template-columns: repeat(2, 1fr); padding: 24px; }
-      header { padding: 24px; }
-      .comando { margin: 24px 24px 0; }
-    }
-
-    @media (max-width: 600px) {
-      .sezioni { grid-template-columns: 1fr; }
+      .sezioni { grid-template-columns: repeat(2, 1fr); }
+      .sidebar { width: 180px; min-width: 180px; }
+      .main { margin-left: 180px; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Maiker Hub</h1>
-    <div class="date" id="dataOggi"></div>
-  </header>
-
-  <div class="comando">
-    <h2>Centro di Comando</h2>
-    <div class="oggi">
-      <div class="oggi-item"><span>Clienti attivi</span>—</div>
-      <div class="oggi-item"><span>Proprietà in gestione</span>—</div>
-      <div class="oggi-item"><span>Follow-up da fare</span>—</div>
-      <div class="oggi-item"><span>Prossimo evento</span>—</div>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Maiker Hub</h1>
+      <div class="sub">Centro operativo</div>
     </div>
-  </div>
 
-  <div class="sezioni">
+    <nav class="nav-section">
+      <div class="nav-label">Principale</div>
+      <a class="nav-item active" href="#">
+        <span class="icon">⌂</span> Centro di comando
+      </a>
+    </nav>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">👤</div>
-      <h3>Clienti</h3>
-      <p>Proprietari, acquirenti e potenziali. Stato di ogni relazione.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+    <nav class="nav-section">
+      <div class="nav-label">Lavoro</div>
+      <a class="nav-item" href="#">
+        <span class="icon">👤</span> Clienti
+      </a>
+      <a class="nav-item" href="#">
+        <span class="icon">🏡</span> Proprietà
+      </a>
+      <a class="nav-item" href="#">
+        <span class="icon">🔍</span> Ricerca Immobili
+      </a>
+    </nav>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">🏡</div>
-      <h3>Proprietà</h3>
-      <p>Immobili in gestione, schede, documenti e stato.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+    <nav class="nav-section">
+      <div class="nav-label">Contenuti</div>
+      <a class="nav-item" href="#">
+        <span class="icon">📸</span> Social
+      </a>
+      <a class="nav-item" href="#">
+        <span class="icon">🌿</span> Fonti
+      </a>
+    </nav>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">🔍</div>
-      <h3>Ricerca Immobili</h3>
-      <p>Scouting, portali, matching con acquirenti.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+    <nav class="nav-section">
+      <div class="nav-label">Operativo</div>
+      <a class="nav-item" href="#">
+        <span class="icon">📅</span> Attività
+      </a>
+      <a class="nav-item" href="#">
+        <span class="icon">🤖</span> Agenti
+      </a>
+    </nav>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">📸</div>
-      <h3>Social</h3>
-      <p>Piano editoriale, contenuti in produzione e pubblicati.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+    <div class="sidebar-bottom" id="dataOggi"></div>
+  </aside>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">📅</div>
-      <h3>Attività</h3>
-      <p>Calendario, mail, todo e journal quotidiano.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+  <main class="main">
+    <div class="topbar">
+      <h2>Centro di Comando</h2>
+      <div class="date" id="dataEstesa"></div>
+    </div>
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">🌿</div>
-      <h3>Fonti</h3>
-      <p>Portali immobiliari, scouting e risorse di ricerca.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+    <div class="content">
 
-    <a class="sezione" href="#">
-      <div class="sezione-icon">🤖</div>
-      <h3>Agenti</h3>
-      <p>Chi fa cosa, stato delle automazioni e supervisore.</p>
-      <span class="badge">In costruzione</span>
-    </a>
+      <div class="comando">
+        <div class="comando-label">Oggi</div>
+        <div class="oggi">
+          <div class="oggi-item"><span>Clienti attivi</span>—</div>
+          <div class="oggi-item"><span>Proprietà in gestione</span>—</div>
+          <div class="oggi-item"><span>Follow-up da fare</span>—</div>
+          <div class="oggi-item"><span>Prossimo evento</span>—</div>
+        </div>
+      </div>
 
-  </div>
+      <div class="sezioni">
+        <a class="sezione" href="#">
+          <div class="sezione-icon">👤</div>
+          <h3>Clienti</h3>
+          <p>Proprietari, acquirenti e potenziali.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">🏡</div>
+          <h3>Proprietà</h3>
+          <p>Immobili in gestione, schede e documenti.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">🔍</div>
+          <h3>Ricerca Immobili</h3>
+          <p>Scouting, portali, matching acquirenti.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">📸</div>
+          <h3>Social</h3>
+          <p>Piano editoriale e contenuti.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">📅</div>
+          <h3>Attività</h3>
+          <p>Calendario, mail, todo e journal.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">🌿</div>
+          <h3>Fonti</h3>
+          <p>Portali e risorse di ricerca.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+        <a class="sezione" href="#">
+          <div class="sezione-icon">🤖</div>
+          <h3>Agenti</h3>
+          <p>Automazioni e supervisore.</p>
+          <span class="badge">In costruzione</span>
+        </a>
+      </div>
+
+    </div>
+  </main>
 
   <script>
     const d = new Date();
     const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
     const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-    document.getElementById('dataOggi').textContent =
-      giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
+    const str = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
+    document.getElementById('dataOggi').textContent = str;
+    document.getElementById('dataEstesa').textContent = str + ' ' + d.getFullYear();
   </script>
 
 </body>
