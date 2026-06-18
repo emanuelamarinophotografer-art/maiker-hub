@@ -176,7 +176,7 @@
           <div class="oggi-item"><span>Proprietà in gestione</span>—</div>
           <div class="oggi-item"><span>Follow-up da fare</span>—</div>
           <div class="oggi-item"><span>Prossimo evento</span>—</div>
-          <div class="oggi-item urgente"><span>Priorità aperte</span><span id="contPriorita">—</span></div>
+          <div class="oggi-item" style="border-color:#4a9e6b;"><span style="color:#4a9e6b;">Vendite chiuse</span><span id="contVendite">—</span></div>
         </div>
       </div>
 
@@ -281,10 +281,13 @@
     document.getElementById('dataOggi').textContent = str;
     document.getElementById('dataEstesa').textContent = str + ' ' + d.getFullYear();
 
-    // PRIORITÀ contatore
+    // PRIORITÀ
     const priorita = JSON.parse(localStorage.getItem('priorita') || '[]');
     const aperte = priorita.filter(i => !i.fatto);
-    document.getElementById('contPriorita').textContent = aperte.length || '—';
+
+    // VENDITE contatore
+    const venditeCount = JSON.parse(localStorage.getItem('vendite') || '[]').length;
+    document.getElementById('contVendite').textContent = venditeCount || '—';
 
     // VENDITE
     const vendite = JSON.parse(localStorage.getItem('vendite') || '[]');
