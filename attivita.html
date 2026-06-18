@@ -36,6 +36,42 @@
       cursor: pointer; font-size: 0.9rem; padding: 2px 6px;
     }
     .btn-elimina:hover { color: var(--danger); }
+
+    /* METRICHE */
+    .metriche-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; }
+    .metriche-gruppo { margin-bottom: 20px; }
+    .metriche-gruppo-label { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
+    .metriche-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metrica-item label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+    .metrica-item input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 10px; font-size: 1rem; font-family: inherit;
+      font-weight: 600; color: var(--text); outline: none; text-align: center;
+    }
+    .metrica-item input:focus { border-color: var(--accent); }
+    .metriche-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
+
+    .storico-settimana {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 10px;
+    }
+    .storico-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .storico-data { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    .storico-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .storico-val { text-align: center; }
+    .storico-val span { display: block; font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .storico-val strong { font-size: 1.1rem; color: var(--text); }
+    .storico-val strong.zero { color: var(--text-faint); }
+    .btn-del-storico { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.8rem; }
+    .btn-del-storico:hover { color: var(--danger); }
+
+    .totale-mese {
+      background: var(--accent-bg); border: 1px solid var(--accent); border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 10px;
+    }
+    .totale-mese-label { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
+
+    @media (max-width: 900px) { .metriche-row { grid-template-columns: repeat(2, 1fr); } .storico-grid { grid-template-columns: repeat(2, 1fr); } }
   </style>
 </head>
 <body>
@@ -153,6 +189,88 @@
         </div>
       </div>
 
+      <!-- 7. METRICHE SETTIMANALI -->
+      <div class="blocco">
+        <div class="blocco-header">Metriche settimanali</div>
+
+        <div class="metriche-form">
+
+          <div class="metriche-gruppo">
+            <div class="metriche-gruppo-label">Transazioni & Incarichi</div>
+            <div class="metriche-row">
+              <div class="metrica-item">
+                <label>Transazioni chiuse</label>
+                <input type="number" min="0" id="m_transazioni" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Incarichi esclusiva</label>
+                <input type="number" min="0" id="m_incarichi_e" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Incarichi non esclusiva</label>
+                <input type="number" min="0" id="m_incarichi_ne" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Valutazioni</label>
+                <input type="number" min="0" id="m_valutazioni" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="metriche-gruppo">
+            <div class="metriche-gruppo-label">Visite & Appuntamenti</div>
+            <div class="metriche-row">
+              <div class="metrica-item">
+                <label>Appuntamenti di visita</label>
+                <input type="number" min="0" id="m_visita" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Coll. interna</label>
+                <input type="number" min="0" id="m_coll_int" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Coll. esterna</label>
+                <input type="number" min="0" id="m_coll_ext" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>App. per incarico</label>
+                <input type="number" min="0" id="m_x_incarico" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="metriche-gruppo">
+            <div class="metriche-gruppo-label">Contatti & Altro</div>
+            <div class="metriche-row">
+              <div class="metrica-item">
+                <label>Contatti presi</label>
+                <input type="number" min="0" id="m_contatti" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Telefonate fatte</label>
+                <input type="number" min="0" id="m_telefonate" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Ribassi</label>
+                <input type="number" min="0" id="m_ribassi" placeholder="0" />
+              </div>
+              <div class="metrica-item">
+                <label>Proposte ritirate</label>
+                <input type="number" min="0" id="m_proposte_rit" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="metriche-actions">
+            <button class="btn-aggiungi" onclick="salvaMetriche()">💾 Salva settimana</button>
+          </div>
+
+        </div>
+
+        <!-- STORICO -->
+        <div id="storicoMetriche" style="margin-top: 20px;"></div>
+
+      </div>
 
     </div>
   </main>
@@ -237,6 +355,68 @@
     });
 
     renderPriorita();
+
+    // METRICHE
+    const campi = ['transazioni','incarichi_e','incarichi_ne','valutazioni','visita','coll_int','coll_ext','x_incarico','contatti','telefonate','ribassi','proposte_rit'];
+    const etichette = {
+      transazioni: 'Transazioni', incarichi_e: 'Inc. E.', incarichi_ne: 'Inc. N.E.',
+      valutazioni: 'Valutazioni', visita: 'Visite', coll_int: 'Coll. Int.',
+      coll_ext: 'Coll. Ext.', x_incarico: 'App. Incarico', contatti: 'Contatti',
+      telefonate: 'Telefonate', ribassi: 'Ribassi', proposte_rit: 'Prop. Ritirate'
+    };
+
+    function caricaMetriche() { return JSON.parse(localStorage.getItem('metriche') || '[]'); }
+    function salvaMetricheStorage(lista) { localStorage.setItem('metriche', JSON.stringify(lista)); }
+
+    function salvaMetriche() {
+      const record = { data: new Date().toLocaleDateString('it-IT'), ts: Date.now() };
+      campi.forEach(c => { record[c] = parseInt(document.getElementById('m_' + c).value) || 0; });
+      const lista = caricaMetriche();
+      lista.unshift(record);
+      salvaMetricheStorage(lista);
+      campi.forEach(c => { document.getElementById('m_' + c).value = ''; });
+      renderMetriche();
+    }
+
+    function eliminaMetrica(ts) {
+      salvaMetricheStorage(caricaMetriche().filter(r => r.ts !== ts));
+      renderMetriche();
+    }
+
+    function renderMetriche() {
+      const lista = caricaMetriche();
+      const el = document.getElementById('storicoMetriche');
+      if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna settimana registrata.</div>'; return; }
+
+      // Totale mese corrente
+      const meseCorrente = new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+      const totali = {};
+      campi.forEach(c => totali[c] = 0);
+      lista.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
+
+      let html = `<div class="totale-mese">
+        <div class="totale-mese-label">Totale mese — ${meseCorrente}</div>
+        <div class="storico-grid">
+          ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${totali[c] === 0 ? 'zero' : ''}">${totali[c]}</strong></div>`).join('')}
+        </div>
+      </div>`;
+
+      html += lista.map(r => `
+        <div class="storico-settimana">
+          <div class="storico-header">
+            <div class="storico-data">Settimana del ${r.data}</div>
+            <button class="btn-del-storico" onclick="eliminaMetrica(${r.ts})">✕ elimina</button>
+          </div>
+          <div class="storico-grid">
+            ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0) === 0 ? 'zero' : ''}">${r[c]||0}</strong></div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      el.innerHTML = html;
+    }
+
+    renderMetriche();
   </script>
 
 </body>
