@@ -239,7 +239,7 @@
 
       el.innerHTML = lista.map(c => `
         <div class="cliente-card">
-          <div class="cliente-nome">${c.nome}</div>
+          <a class="cliente-nome" href="cliente.html?id=${c.id}" style="text-decoration:none;color:inherit;display:block">${c.nome}</a>
           <div class="cliente-contatti">
             ${c.tel ? '<span>📞 ' + c.tel + '</span>' : ''}
             ${c.email ? '<span>✉️ ' + c.email + '</span>' : ''}
