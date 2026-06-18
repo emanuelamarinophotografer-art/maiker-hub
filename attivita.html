@@ -49,7 +49,10 @@
       font-weight: 600; color: var(--text); outline: none; text-align: center;
     }
     .metrica-item input:focus { border-color: var(--accent); }
-    .metriche-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
+    .metriche-actions { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .metriche-autosave { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+    .btn-chiudi { background: #4a9e6b; color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .btn-chiudi:hover { opacity: 0.85; }
 
     .storico-settimana {
       background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
@@ -271,7 +274,8 @@
           </div>
 
           <div class="metriche-actions">
-            <button class="btn-aggiungi" onclick="salvaMetriche()">💾 Salva settimana</button>
+            <span class="metriche-autosave" id="autosaveMsg"></span>
+            <button class="btn-chiudi" onclick="chiudiSettimana()">✓ Chiudi settimana</button>
           </div>
 
         </div>
@@ -375,34 +379,66 @@
       telefonate: 'Telefonate', ribassi: 'Ribassi', proposte_rit: 'Prop. Ritirate'
     };
 
-    function caricaMetriche() { return JSON.parse(localStorage.getItem('metriche') || '[]'); }
-    function salvaMetricheStorage(lista) { localStorage.setItem('metriche', JSON.stringify(lista)); }
+    function caricaCorrente() { return JSON.parse(localStorage.getItem('metrica_corrente') || '{}'); }
+    function salvaCorrente(r) { localStorage.setItem('metrica_corrente', JSON.stringify(r)); }
+    function caricaStorico() { return JSON.parse(localStorage.getItem('metriche_storico') || '[]'); }
+    function salvaStorico(lista) { localStorage.setItem('metriche_storico', JSON.stringify(lista)); }
 
-    function salvaMetriche() {
-      const record = { data: new Date().toLocaleDateString('it-IT'), ts: Date.now() };
-      campi.forEach(c => { record[c] = parseInt(document.getElementById('m_' + c).value) || 0; });
-      const lista = caricaMetriche();
-      lista.unshift(record);
-      salvaMetricheStorage(lista);
+    // Carica settimana corrente nei campi
+    function caricaCampi() {
+      const r = caricaCorrente();
+      campi.forEach(c => {
+        const el = document.getElementById('m_' + c);
+        if (el) el.value = r[c] || '';
+      });
+    }
+
+    // Autosave al cambio di ogni campo
+    function autosave() {
+      const r = caricaCorrente();
+      campi.forEach(c => { r[c] = parseInt(document.getElementById('m_' + c).value) || 0; });
+      if (!r.dataInizio) r.dataInizio = new Date().toLocaleDateString('it-IT');
+      salvaCorrente(r);
+      const msg = document.getElementById('autosaveMsg');
+      msg.textContent = 'Salvato ' + new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+      renderMetriche();
+    }
+
+    campi.forEach(c => {
+      const el = document.getElementById('m_' + c);
+      if (el) el.addEventListener('input', autosave);
+    });
+
+    function chiudiSettimana() {
+      const r = caricaCorrente();
+      if (!r.dataInizio) { alert('Nessun dato da chiudere.'); return; }
+      r.dataFine = new Date().toLocaleDateString('it-IT');
+      r.ts = Date.now();
+      const storico = caricaStorico();
+      storico.unshift(r);
+      salvaStorico(storico);
+      salvaCorrente({});
       campi.forEach(c => { document.getElementById('m_' + c).value = ''; });
+      document.getElementById('autosaveMsg').textContent = 'Settimana chiusa ✓';
       renderMetriche();
     }
 
     function eliminaMetrica(ts) {
-      salvaMetricheStorage(caricaMetriche().filter(r => r.ts !== ts));
+      salvaStorico(caricaStorico().filter(r => r.ts !== ts));
       renderMetriche();
     }
 
     function renderMetriche() {
-      const lista = caricaMetriche();
+      const corrente = caricaCorrente();
+      const storico = caricaStorico();
       const el = document.getElementById('storicoMetriche');
-      if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna settimana registrata.</div>'; return; }
 
-      // Totale mese corrente
+      // Totali mese = corrente + storico
       const meseCorrente = new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
       const totali = {};
       campi.forEach(c => totali[c] = 0);
-      lista.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
+      campi.forEach(c => { totali[c] += corrente[c] || 0; });
+      storico.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
 
       const incarichi_tot = (totali.incarichi_e || 0) + (totali.incarichi_ne || 0);
       const goalBars = [
@@ -433,21 +469,26 @@
         <div class="goal-bars">${barre}</div>
       </div>`;
 
-      html += lista.map(r => `
-        <div class="storico-settimana">
-          <div class="storico-header">
-            <div class="storico-data">Settimana del ${r.data}</div>
-            <button class="btn-del-storico" onclick="eliminaMetrica(${r.ts})">✕ elimina</button>
+      if (storico.length > 0) {
+        html += storico.map(r => `
+          <div class="storico-settimana">
+            <div class="storico-header">
+              <div class="storico-data">${r.dataInizio} → ${r.dataFine || r.dataInizio}</div>
+              <button class="btn-del-storico" onclick="eliminaMetrica(${r.ts})">✕ elimina</button>
+            </div>
+            <div class="storico-grid">
+              ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0) === 0 ? 'zero' : ''}">${r[c]||0}</strong></div>`).join('')}
+            </div>
           </div>
-          <div class="storico-grid">
-            ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0) === 0 ? 'zero' : ''}">${r[c]||0}</strong></div>`).join('')}
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else if (!corrente.dataInizio) {
+        html += '<div class="placeholder" style="margin-top:12px">Nessuna settimana chiusa ancora.</div>';
+      }
 
       el.innerHTML = html;
     }
 
+    caricaCampi();
     renderMetriche();
   </script>
 
