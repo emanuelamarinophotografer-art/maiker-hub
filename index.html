@@ -10,15 +10,102 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 24px 28px;
-      margin-bottom: 32px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
     }
     .comando-label {
       font-size: 0.67rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    /* LAYOUT PRINCIPALE */
+    .centro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .col-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+
+    .col-card-title {
+      font-size: 0.67rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
       margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    /* AGENDA */
+    .agenda-input-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
+    .agenda-input {
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px; font-size: 0.88rem;
+      font-family: inherit; font-weight: 500; color: var(--text); outline: none;
+    }
+    .agenda-input:focus { border-color: var(--accent); }
+    .agenda-time {
+      width: 80px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 8px; font-size: 0.88rem;
+      font-family: inherit; color: var(--text); outline: none;
+    }
+    .btn-sm { background: var(--accent); color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .btn-sm:hover { opacity: 0.85; }
+
+    .agenda-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+    }
+    .agenda-item:last-child { border-bottom: none; }
+    .agenda-ora { font-size: 0.78rem; color: var(--accent); font-weight: 600; min-width: 40px; }
+    .agenda-testo { flex: 1; font-size: 0.88rem; color: var(--text); }
+    .agenda-del { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.8rem; }
+    .agenda-del:hover { color: var(--danger); }
+
+    /* PRIORITÀ RECAP */
+    .priorita-recap-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .priorita-recap-item:last-child { border-bottom: none; }
+    .dot-p { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .priorita-recap-testo { font-size: 0.88rem; color: var(--text); }
+
+    /* METRICHE GRAFICO */
+    .goal-bars-home { display: flex; flex-direction: column; gap: 14px; }
+    .goal-bar-item { }
+    .goal-bar-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
+    .goal-bar-nome { font-weight: 600; color: var(--text); }
+    .goal-bar-num { color: var(--text-muted); }
+    .goal-bar-track { background: var(--border); border-radius: 20px; height: 10px; overflow: hidden; }
+    .goal-bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width 0.4s; }
+    .goal-bar-fill.raggiunto { background: #4a9e6b; }
+
+    .metriche-numeri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .metrica-mini { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; }
+    .metrica-mini span { display: block; font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .metrica-mini strong { font-size: 1.2rem; color: var(--text); }
+    .metrica-mini strong.zero { color: var(--text-faint); }
+
+    /* SEZIONI */
+    .sezioni {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      .centro-grid { grid-template-columns: 1fr; }
+      .sezioni { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -81,17 +168,55 @@
 
     <div class="content">
 
+      <!-- CONTATORI -->
       <div class="comando">
-        <div class="comando-label">Oggi</div>
+        <div class="comando-label">Panoramica</div>
         <div class="oggi">
           <div class="oggi-item"><span>Clienti attivi</span>—</div>
           <div class="oggi-item"><span>Proprietà in gestione</span>—</div>
           <div class="oggi-item"><span>Follow-up da fare</span>—</div>
           <div class="oggi-item"><span>Prossimo evento</span>—</div>
-          <div class="oggi-item urgente"><span>Priorità</span><span id="contPriorita">—</span></div>
+          <div class="oggi-item urgente"><span>Priorità aperte</span><span id="contPriorita">—</span></div>
         </div>
       </div>
 
+      <!-- GRIGLIA PRINCIPALE: AGENDA + METRICHE -->
+      <div class="centro-grid">
+
+        <!-- SINISTRA: AGENDA OGGI -->
+        <div>
+          <div class="col-card" style="margin-bottom:16px;">
+            <div class="col-card-title">📅 Agenda di oggi</div>
+            <div class="agenda-input-wrap">
+              <input class="agenda-time" type="time" id="ag_ora" />
+              <input class="agenda-input" type="text" id="ag_testo" placeholder="Aggiungi appuntamento…" />
+              <button class="btn-sm" onclick="aggiungiAgenda()">+</button>
+            </div>
+            <div id="listaAgenda"><div class="placeholder">Nessun appuntamento oggi.</div></div>
+          </div>
+
+          <!-- PRIORITÀ -->
+          <div class="col-card">
+            <div class="col-card-title">🔴 Priorità aperte</div>
+            <div id="recapPriorita"><div class="placeholder">Nessuna priorità.</div></div>
+            <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ad Attività</a>
+          </div>
+        </div>
+
+        <!-- DESTRA: METRICHE SETTIMANA -->
+        <div>
+          <div class="col-card">
+            <div class="col-card-title">📊 Metriche — mese corrente</div>
+            <div class="metriche-numeri" id="metricheNumeri"></div>
+            <div class="goal-bars-home" id="goalBarsHome"></div>
+            <a href="attivita.html" style="display:block;margin-top:16px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai alle metriche complete</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SEZIONI -->
+      <div class="blocco-header" style="margin-bottom:12px;">Sezioni</div>
       <div class="sezioni">
         <a class="sezione" href="#">
           <div class="sezione-icon">👤</div>
@@ -147,9 +272,101 @@
     document.getElementById('dataOggi').textContent = str;
     document.getElementById('dataEstesa').textContent = str + ' ' + d.getFullYear();
 
+    // PRIORITÀ
     const priorita = JSON.parse(localStorage.getItem('priorita') || '[]');
-    const aperte = priorita.filter(i => !i.fatto).length;
-    document.getElementById('contPriorita').textContent = aperte || '—';
+    const aperte = priorita.filter(i => !i.fatto);
+    document.getElementById('contPriorita').textContent = aperte.length || '—';
+    const recapEl = document.getElementById('recapPriorita');
+    if (aperte.length === 0) {
+      recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
+    } else {
+      recapEl.innerHTML = aperte.slice(0, 6).map(p => `
+        <div class="priorita-recap-item">
+          <div class="dot-p"></div>
+          <div class="priorita-recap-testo">${p.testo}</div>
+        </div>
+      `).join('');
+    }
+
+    // AGENDA
+    function caricaAgenda() {
+      const key = 'agenda_' + d.toDateString();
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+    function salvaAgenda(lista) {
+      localStorage.setItem('agenda_' + d.toDateString(), JSON.stringify(lista));
+    }
+    function aggiungiAgenda() {
+      const ora = document.getElementById('ag_ora').value;
+      const testo = document.getElementById('ag_testo').value.trim();
+      if (!testo) return;
+      const lista = caricaAgenda();
+      lista.push({ id: Date.now(), ora, testo });
+      lista.sort((a, b) => a.ora.localeCompare(b.ora));
+      salvaAgenda(lista);
+      document.getElementById('ag_testo').value = '';
+      renderAgenda();
+    }
+    function eliminaAgenda(id) {
+      salvaAgenda(caricaAgenda().filter(i => i.id !== id));
+      renderAgenda();
+    }
+    function renderAgenda() {
+      const lista = caricaAgenda();
+      const el = document.getElementById('listaAgenda');
+      if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessun appuntamento oggi.</div>'; return; }
+      el.innerHTML = lista.map(i => `
+        <div class="agenda-item">
+          <div class="agenda-ora">${i.ora || '—'}</div>
+          <div class="agenda-testo">${i.testo}</div>
+          <button class="agenda-del" onclick="eliminaAgenda(${i.id})">✕</button>
+        </div>
+      `).join('');
+    }
+    document.getElementById('ag_testo').addEventListener('keydown', e => { if (e.key === 'Enter') aggiungiAgenda(); });
+    renderAgenda();
+
+    // METRICHE
+    const campi = ['transazioni','incarichi_e','incarichi_ne','valutazioni','visita','coll_int','coll_ext','x_incarico','contatti','telefonate','ribassi','proposte_rit'];
+    const etichette = { transazioni:'Transazioni', incarichi_e:'Inc. E.', incarichi_ne:'Inc. N.E.', valutazioni:'Valutazioni', visita:'Visite', coll_int:'Coll. Int.', coll_ext:'Coll. Ext.', x_incarico:'App. Inc.', contatti:'Contatti', telefonate:'Telefonate', ribassi:'Ribassi', proposte_rit:'Prop. Rit.' };
+    const goal = { contatti: 16, incarichi: 2, transazioni: 1 };
+
+    const corrente = JSON.parse(localStorage.getItem('metrica_corrente') || '{}');
+    const storico = JSON.parse(localStorage.getItem('metriche_storico') || '[]');
+    const totali = {};
+    campi.forEach(c => totali[c] = 0);
+    campi.forEach(c => { totali[c] += corrente[c] || 0; });
+    storico.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
+
+    // Numeri chiave
+    const numeriChiave = ['transazioni','contatti','incarichi_e','incarichi_ne','visita','valutazioni'];
+    document.getElementById('metricheNumeri').innerHTML = numeriChiave.map(c => `
+      <div class="metrica-mini">
+        <span>${etichette[c]}</span>
+        <strong class="${totali[c]===0?'zero':''}">${totali[c]}</strong>
+      </div>
+    `).join('');
+
+    // Barre goal
+    const incarichi_tot = (totali.incarichi_e||0) + (totali.incarichi_ne||0);
+    const goalBars = [
+      { nome: 'Contatti', valore: totali.contatti, goal: goal.contatti },
+      { nome: 'Incarichi', valore: incarichi_tot, goal: goal.incarichi },
+      { nome: 'Transazioni', valore: totali.transazioni, goal: goal.transazioni },
+    ];
+    document.getElementById('goalBarsHome').innerHTML = goalBars.map(g => {
+      const perc = Math.min(Math.round((g.valore / g.goal) * 100), 100);
+      const raggiunto = g.valore >= g.goal;
+      return `<div class="goal-bar-item">
+        <div class="goal-bar-header">
+          <span class="goal-bar-nome">${g.nome}</span>
+          <span class="goal-bar-num">${g.valore} / ${g.goal} ${raggiunto ? '✓' : ''}</span>
+        </div>
+        <div class="goal-bar-track">
+          <div class="goal-bar-fill ${raggiunto?'raggiunto':''}" style="width:${perc}%"></div>
+        </div>
+      </div>`;
+    }).join('');
   </script>
 
 </body>
