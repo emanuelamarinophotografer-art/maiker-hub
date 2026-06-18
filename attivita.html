@@ -5,6 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ework — Attività</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .priorita-input-wrap { display: flex; gap: 10px; margin-bottom: 12px; }
+    .priorita-input {
+      flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.92rem;
+      font-family: inherit; font-weight: 500; color: var(--text); outline: none;
+    }
+    .priorita-input:focus { border-color: var(--accent); }
+    .btn-aggiungi {
+      background: var(--accent); color: white; border: none; border-radius: 8px;
+      padding: 10px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .btn-aggiungi:hover { opacity: 0.85; }
+    .priorita-item {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+    }
+    .priorita-item.fatto { opacity: 0.4; }
+    .priorita-item.fatto .item-testo { text-decoration: line-through; }
+    .checkbox {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+      cursor: pointer; flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 0.65rem; background: var(--bg);
+    }
+    .checkbox.checked { background: var(--accent); border-color: var(--accent); color: white; }
+    .item-testo { flex: 1; font-size: 0.92rem; color: var(--text); }
+    .btn-elimina {
+      background: none; border: none; color: var(--text-faint);
+      cursor: pointer; font-size: 0.9rem; padding: 2px 6px;
+    }
+    .btn-elimina:hover { color: var(--danger); }
+  </style>
 </head>
 <body>
 
@@ -23,9 +55,6 @@
 
     <nav class="nav-section">
       <div class="nav-label">Operativo</div>
-      <a class="nav-item" href="priorita.html">
-        <span class="icon">🔴</span> Priorità
-      </a>
       <a class="nav-item active" href="attivita.html">
         <span class="icon">📅</span> Attività
       </a>
@@ -74,14 +103,6 @@
         <div class="settimana-wrap"><div class="settimana" id="settimana"></div></div>
       </div>
 
-      <!-- CONTATORI -->
-      <div class="oggi" style="margin-bottom: 28px;">
-        <div class="oggi-item"><span>Da fare oggi</span>—</div>
-        <div class="oggi-item"><span>Da rispondere</span>—</div>
-        <div class="oggi-item"><span>Follow-up</span>—</div>
-        <div class="oggi-item urgente"><span>Priorità</span>—</div>
-      </div>
-
       <!-- 2. DA FARE OGGI -->
       <div class="blocco">
         <div class="blocco-header">Da fare oggi <span class="count">0</span></div>
@@ -98,24 +119,20 @@
         </div>
       </div>
 
-      <div class="due-col">
-
-        <!-- 4. DA RICORDARE -->
-        <div class="blocco">
-          <div class="blocco-header">Da ricordare</div>
-          <div class="lista">
-            <div class="placeholder">Note veloci per la settimana.</div>
-          </div>
+      <!-- 4. DA RICORDARE -->
+      <div class="blocco">
+        <div class="blocco-header">Da ricordare</div>
+        <div class="lista">
+          <div class="placeholder">Note veloci per la settimana.</div>
         </div>
+      </div>
 
-        <!-- 5. RECAP FOLLOW-UP -->
-        <div class="blocco">
-          <div class="blocco-header">Recap follow-up</div>
-          <div class="lista">
-            <div class="placeholder">Nessun follow-up in sospeso.</div>
-          </div>
+      <!-- 5. RECAP FOLLOW-UP -->
+      <div class="blocco">
+        <div class="blocco-header">Recap follow-up</div>
+        <div class="lista">
+          <div class="placeholder">Nessun follow-up in sospeso.</div>
         </div>
-
       </div>
 
       <!-- 6. AZIONI SCHEDULATE -->
@@ -124,6 +141,16 @@
         <div class="lista">
           <div class="placeholder">Nessuna azione pianificata.</div>
         </div>
+      </div>
+
+      <!-- 7. PRIORITÀ -->
+      <div class="blocco">
+        <div class="blocco-header">Priorità <span class="count" id="contPriorita">0</span></div>
+        <div class="priorita-input-wrap">
+          <input class="priorita-input" id="nuovaVoce" type="text" placeholder="Aggiungi una priorità…" />
+          <button class="btn-aggiungi" onclick="aggiungi()">+ Aggiungi</button>
+        </div>
+        <div id="listaPriorita"></div>
       </div>
 
     </div>
@@ -157,6 +184,58 @@
       `;
       settimana.appendChild(div);
     }
+
+    // PRIORITÀ
+    function carica() { return JSON.parse(localStorage.getItem('priorita') || '[]'); }
+    function salva(lista) { localStorage.setItem('priorita', JSON.stringify(lista)); }
+
+    function aggiungi() {
+      const input = document.getElementById('nuovaVoce');
+      const testo = input.value.trim();
+      if (!testo) return;
+      const lista = carica();
+      lista.unshift({ id: Date.now(), testo, fatto: false });
+      salva(lista);
+      input.value = '';
+      renderPriorita();
+    }
+
+    function toggle(id) {
+      const lista = carica();
+      const item = lista.find(i => i.id === id);
+      if (item) item.fatto = !item.fatto;
+      salva(lista);
+      renderPriorita();
+    }
+
+    function elimina(id) {
+      salva(carica().filter(i => i.id !== id));
+      renderPriorita();
+    }
+
+    function renderPriorita() {
+      const lista = carica();
+      const aperte = lista.filter(i => !i.fatto).length;
+      document.getElementById('contPriorita').textContent = aperte;
+      const el = document.getElementById('listaPriorita');
+      if (lista.length === 0) {
+        el.innerHTML = '<div class="placeholder">Nessuna priorità.</div>';
+        return;
+      }
+      el.innerHTML = lista.map(item => `
+        <div class="priorita-item ${item.fatto ? 'fatto' : ''}">
+          <div class="checkbox ${item.fatto ? 'checked' : ''}" onclick="toggle(${item.id})">${item.fatto ? '✓' : ''}</div>
+          <div class="item-testo">${item.testo}</div>
+          <button class="btn-elimina" onclick="elimina(${item.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('nuovaVoce').addEventListener('keydown', e => {
+      if (e.key === 'Enter') aggiungi();
+    });
+
+    renderPriorita();
   </script>
 
 </body>
