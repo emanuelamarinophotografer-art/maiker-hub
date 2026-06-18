@@ -282,20 +282,6 @@
     const venditeCount = JSON.parse(localStorage.getItem('vendite') || '[]').length;
     document.getElementById('contVendite').textContent = venditeCount || '—';
 
-    // VENDITE
-    const vendite = JSON.parse(localStorage.getItem('vendite') || '[]');
-    const recapVendite = document.getElementById('recapVendite');
-    if (vendite.length === 0) {
-      recapVendite.innerHTML = '<div class="placeholder">Nessuna vendita registrata.</div>';
-    } else {
-      recapVendite.innerHTML = vendite.slice(0, 5).map(v => `
-        <div class="priorita-recap-item">
-          <div class="dot-p" style="background:#4a9e6b"></div>
-          <div class="priorita-recap-testo" style="flex:1">${v.immobile}</div>
-          <div style="font-size:0.78rem;color:var(--text-muted)">${v.data}</div>
-        </div>
-      `).join('');
-    }
 
     // PRIORITÀ
     const recapEl = document.getElementById('recapPriorita');
