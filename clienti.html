@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ework — Clienti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* TAB */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 6px; width: fit-content; }
+    .tab { padding: 8px 24px; border-radius: 7px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; background: none; font-family: inherit; color: var(--text-muted); transition: all 0.15s; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab:hover:not(.active) { background: var(--bg); }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+    .search-input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; font-family: inherit; font-weight: 500; color: var(--text); outline: none; }
+    .search-input:focus { border-color: var(--accent); }
+    .btn-nuovo { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-nuovo:hover { opacity: 0.85; }
+
+    /* FILTRO STATO */
+    .filtri-stato { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filtro-stato { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-family: inherit; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .filtro-stato.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* GRIGLIA CLIENTI */
+    .clienti-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+    /* CARD CLIENTE */
+    .cliente-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
+    .cliente-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .cliente-nome { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .cliente-contatti { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; display: flex; flex-direction: column; gap: 2px; }
+    .cliente-stato { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 10px; }
+    .cliente-info { font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+    .cliente-info span { display: block; margin-bottom: 2px; }
+    .cliente-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .btn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+    .btn-card:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-card-del:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* STATI COLORI */
+    .stato-potenziale { background: #e8f4fd; color: #2980b9; }
+    .stato-incarico { background: #fef9e7; color: #d4a017; }
+    .stato-trattativa { background: #fdf2e9; color: #e67e22; }
+    .stato-venduto, .stato-chiuso { background: #eafaf1; color: #27ae60; }
+    .stato-annullato, .stato-perso { background: #fdedec; color: #c0392b; }
+    .stato-nuovo { background: #f0f0f0; color: #555; }
+    .stato-visita { background: #e8f8f5; color: #1a8a72; }
+    .stato-proposta { background: #f5eef8; color: #8e44ad; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg-card); border-radius: 12px; padding: 28px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .form-input, .form-select, .form-textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 0.9rem; font-family: inherit; font-weight: 500; color: var(--text); outline: none; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea { resize: vertical; min-height: 70px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-annulla { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; color: var(--text-muted); }
+    .btn-salva { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+
+    @media (max-width: 900px) { .clienti-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .clienti-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html"><h1>Ework</h1></a>
+      <div class="sub">Centro operativo</div>
+    </div>
+    <nav class="nav-section">
+      <div class="nav-label">Principale</div>
+      <a class="nav-item" href="index.html"><span class="icon">🎯</span> Centro di comando</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-label">Operativo</div>
+      <a class="nav-item" href="attivita.html"><span class="icon">📅</span> Attività</a>
+      <a class="nav-item" href="#"><span class="icon">🤖</span> Agenti</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-label">Lavoro</div>
+      <a class="nav-item active" href="clienti.html"><span class="icon">👤</span> Clienti</a>
+      <a class="nav-item" href="#"><span class="icon">🏡</span> Proprietà</a>
+      <a class="nav-item" href="#"><span class="icon">🔍</span> Ricerca Immobili</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-label">Contenuti</div>
+      <a class="nav-item" href="#"><span class="icon">📸</span> Social</a>
+      <a class="nav-item" href="#"><span class="icon">🌿</span> Fonti</a>
+    </nav>
+    <div class="sidebar-bottom" id="dataOggi"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h2>Clienti</h2>
+      <div class="date" id="dataEstesa"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- TAB -->
+      <div class="tabs">
+        <button class="tab active" onclick="cambiaTipo('proprietari', this)">Proprietari</button>
+        <button class="tab" onclick="cambiaTipo('acquirenti', this)">Acquirenti</button>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <input class="search-input" type="text" id="searchInput" placeholder="Cerca per nome…" oninput="renderClienti()" />
+        <button class="btn-nuovo" onclick="apriModal()">+ Nuovo cliente</button>
+      </div>
+
+      <!-- FILTRI STATO -->
+      <div class="filtri-stato" id="filtriStato"></div>
+
+      <!-- GRIGLIA -->
+      <div class="clienti-grid" id="clientiGrid"></div>
+
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3 id="modalTitolo">Nuovo Cliente</h3>
+      <input type="hidden" id="editId" />
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Nome e Cognome</label>
+          <input class="form-input" type="text" id="f_nome" placeholder="Es. Marco Rossi" />
+        </div>
+        <div class="form-group">
+          <label>Telefono</label>
+          <input class="form-input" type="tel" id="f_tel" placeholder="+39 333 000000" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-input" type="email" id="f_email" placeholder="email@esempio.it" />
+        </div>
+        <div class="form-group">
+          <label>Stato</label>
+          <select class="form-select" id="f_stato"></select>
+        </div>
+        <div class="form-group" id="wrap_immobile">
+          <label>Immobile collegato</label>
+          <input class="form-input" type="text" id="f_immobile" placeholder="Es. Rustico Magliano" />
+        </div>
+        <div class="form-group" id="wrap_budget" style="display:none">
+          <label>Budget</label>
+          <input class="form-input" type="text" id="f_budget" placeholder="Es. 250.000 €" />
+        </div>
+        <div class="form-group" id="wrap_zona" style="display:none">
+          <label>Zona cercata</label>
+          <input class="form-input" type="text" id="f_zona" placeholder="Es. Magliano, Manciano" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Note</label>
+          <textarea class="form-textarea" id="f_note" placeholder="Informazioni utili…"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-annulla" onclick="chiudiModal()">Annulla</button>
+        <button class="btn-salva" onclick="salvaCliente()">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const d = new Date();
+    const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+    const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
+    document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
+
+    const statiProprietari = ['Potenziale','Incarico preso','In trattativa','Venduto','Annullato'];
+    const statiAcquirenti = ['Nuovo contatto','Visita fatta','Proposta','Chiuso','Perso'];
+    const classeStato = { 'Potenziale':'stato-potenziale','Incarico preso':'stato-incarico','In trattativa':'stato-trattativa','Venduto':'stato-venduto','Annullato':'stato-annullato','Nuovo contatto':'stato-nuovo','Visita fatta':'stato-visita','Proposta':'stato-proposta','Chiuso':'stato-chiuso','Perso':'stato-perso' };
+
+    let tipoAttivo = 'proprietari';
+    let filtroStato = 'Tutti';
+
+    function carica() { return JSON.parse(localStorage.getItem('clienti') || '[]'); }
+    function salvaStorage(lista) { localStorage.setItem('clienti', JSON.stringify(lista)); }
+
+    function cambiaTipo(tipo, btn) {
+      tipoAttivo = tipo;
+      filtroStato = 'Tutti';
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('searchInput').value = '';
+      // Mostra/nascondi campi modal
+      renderFiltri();
+      renderClienti();
+    }
+
+    function renderFiltri() {
+      const stati = tipoAttivo === 'proprietari' ? statiProprietari : statiAcquirenti;
+      const lista = carica().filter(c => c.tipo === tipoAttivo);
+      const el = document.getElementById('filtriStato');
+      el.innerHTML = ['Tutti', ...stati].map(s => {
+        const count = s === 'Tutti' ? lista.length : lista.filter(c => c.stato === s).length;
+        return `<button class="filtro-stato ${filtroStato === s ? 'active' : ''}" onclick="setFiltro('${s}', this)">${s} (${count})</button>`;
+      }).join('');
+    }
+
+    function setFiltro(stato, btn) {
+      filtroStato = stato;
+      document.querySelectorAll('.filtro-stato').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderClienti();
+    }
+
+    function renderClienti() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      let lista = carica().filter(c => c.tipo === tipoAttivo);
+      if (filtroStato !== 'Tutti') lista = lista.filter(c => c.stato === filtroStato);
+      if (search) lista = lista.filter(c => c.nome.toLowerCase().includes(search));
+
+      const el = document.getElementById('clientiGrid');
+      if (lista.length === 0) {
+        el.innerHTML = '<div class="placeholder" style="grid-column:1/-1">Nessun cliente trovato.</div>';
+        return;
+      }
+
+      el.innerHTML = lista.map(c => `
+        <div class="cliente-card">
+          <div class="cliente-nome">${c.nome}</div>
+          <div class="cliente-contatti">
+            ${c.tel ? '<span>📞 ' + c.tel + '</span>' : ''}
+            ${c.email ? '<span>✉️ ' + c.email + '</span>' : ''}
+          </div>
+          <span class="cliente-stato ${classeStato[c.stato] || ''}">${c.stato}</span>
+          <div class="cliente-info">
+            ${c.immobile ? '<span>🏡 ' + c.immobile + '</span>' : ''}
+            ${c.budget ? '<span>💰 ' + c.budget + '</span>' : ''}
+            ${c.zona ? '<span>📍 ' + c.zona + '</span>' : ''}
+            ${c.note ? '<span>📝 ' + c.note + '</span>' : ''}
+          </div>
+          <div class="cliente-actions">
+            <button class="btn-card" onclick="modificaCliente(${c.id})">✏️ Modifica</button>
+            <button class="btn-card btn-card-del" onclick="eliminaCliente(${c.id})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function apriModal(tipo) {
+      document.getElementById('modalTitolo').textContent = 'Nuovo Cliente';
+      document.getElementById('editId').value = '';
+      document.getElementById('f_nome').value = '';
+      document.getElementById('f_tel').value = '';
+      document.getElementById('f_email').value = '';
+      document.getElementById('f_note').value = '';
+      document.getElementById('f_immobile').value = '';
+      document.getElementById('f_budget').value = '';
+      document.getElementById('f_zona').value = '';
+      aggiornaSelect();
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function aggiornaSelect() {
+      const stati = tipoAttivo === 'proprietari' ? statiProprietari : statiAcquirenti;
+      document.getElementById('f_stato').innerHTML = stati.map(s => `<option>${s}</option>`).join('');
+      document.getElementById('wrap_immobile').style.display = tipoAttivo === 'proprietari' ? '' : 'none';
+      document.getElementById('wrap_budget').style.display = tipoAttivo === 'acquirenti' ? '' : 'none';
+      document.getElementById('wrap_zona').style.display = tipoAttivo === 'acquirenti' ? '' : 'none';
+    }
+
+    function chiudiModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function salvaCliente() {
+      const nome = document.getElementById('f_nome').value.trim();
+      if (!nome) { alert('Inserisci il nome.'); return; }
+      const lista = carica();
+      const editId = parseInt(document.getElementById('editId').value);
+      const record = {
+        id: editId || Date.now(),
+        tipo: tipoAttivo,
+        nome,
+        tel: document.getElementById('f_tel').value.trim(),
+        email: document.getElementById('f_email').value.trim(),
+        stato: document.getElementById('f_stato').value,
+        note: document.getElementById('f_note').value.trim(),
+        immobile: document.getElementById('f_immobile').value.trim(),
+        budget: document.getElementById('f_budget').value.trim(),
+        zona: document.getElementById('f_zona').value.trim(),
+        aggiornato: new Date().toLocaleDateString('it-IT'),
+      };
+      if (editId) {
+        const idx = lista.findIndex(c => c.id === editId);
+        if (idx >= 0) lista[idx] = record;
+      } else {
+        lista.unshift(record);
+      }
+      salvaStorage(lista);
+      chiudiModal();
+      renderFiltri();
+      renderClienti();
+    }
+
+    function modificaCliente(id) {
+      const c = carica().find(c => c.id === id);
+      if (!c) return;
+      document.getElementById('modalTitolo').textContent = 'Modifica Cliente';
+      document.getElementById('editId').value = c.id;
+      document.getElementById('f_nome').value = c.nome;
+      document.getElementById('f_tel').value = c.tel || '';
+      document.getElementById('f_email').value = c.email || '';
+      document.getElementById('f_note').value = c.note || '';
+      document.getElementById('f_immobile').value = c.immobile || '';
+      document.getElementById('f_budget').value = c.budget || '';
+      document.getElementById('f_zona').value = c.zona || '';
+      aggiornaSelect();
+      document.getElementById('f_stato').value = c.stato;
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function eliminaCliente(id) {
+      if (!confirm('Eliminare questo cliente?')) return;
+      salvaStorage(carica().filter(c => c.id !== id));
+      renderFiltri();
+      renderClienti();
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('modalOverlay')) chiudiModal();
+    });
+
+    renderFiltri();
+    renderClienti();
+  </script>
+
+</body>
+</html>
