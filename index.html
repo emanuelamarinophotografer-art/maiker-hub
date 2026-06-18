@@ -193,13 +193,14 @@
               <button class="btn-sm" onclick="aggiungiAgenda()">+</button>
             </div>
             <div id="listaAgenda"><div class="placeholder">Nessun appuntamento oggi.</div></div>
+            <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ad Attività</a>
           </div>
 
-          <!-- PRIORITÀ -->
+          <!-- VENDITE -->
           <div class="col-card">
-            <div class="col-card-title">🔴 Priorità aperte</div>
-            <div id="recapPriorita"><div class="placeholder">Nessuna priorità.</div></div>
-            <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ad Attività</a>
+            <div class="col-card-title">💰 Vendite chiuse</div>
+            <div id="recapVendite"><div class="placeholder">Nessuna vendita registrata.</div></div>
+            <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai alle metriche</a>
           </div>
         </div>
 
@@ -272,18 +273,22 @@
     document.getElementById('dataOggi').textContent = str;
     document.getElementById('dataEstesa').textContent = str + ' ' + d.getFullYear();
 
-    // PRIORITÀ
+    // PRIORITÀ contatore
     const priorita = JSON.parse(localStorage.getItem('priorita') || '[]');
     const aperte = priorita.filter(i => !i.fatto);
     document.getElementById('contPriorita').textContent = aperte.length || '—';
-    const recapEl = document.getElementById('recapPriorita');
-    if (aperte.length === 0) {
-      recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
+
+    // VENDITE
+    const vendite = JSON.parse(localStorage.getItem('vendite') || '[]');
+    const recapVendite = document.getElementById('recapVendite');
+    if (vendite.length === 0) {
+      recapVendite.innerHTML = '<div class="placeholder">Nessuna vendita registrata.</div>';
     } else {
-      recapEl.innerHTML = aperte.slice(0, 6).map(p => `
+      recapVendite.innerHTML = vendite.slice(0, 5).map(v => `
         <div class="priorita-recap-item">
-          <div class="dot-p"></div>
-          <div class="priorita-recap-testo">${p.testo}</div>
+          <div class="dot-p" style="background:#4a9e6b"></div>
+          <div class="priorita-recap-testo" style="flex:1">${v.immobile}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${v.data}</div>
         </div>
       `).join('');
     }
