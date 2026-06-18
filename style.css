@@ -211,9 +211,9 @@ body {
 
 /* OGGI (centro di comando) */
 .oggi {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .oggi-item {
