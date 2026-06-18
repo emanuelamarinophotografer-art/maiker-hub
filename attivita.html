@@ -71,6 +71,15 @@
     }
     .totale-mese-label { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
 
+    .goal-bars { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .goal-bar-item { }
+    .goal-bar-header { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 5px; }
+    .goal-bar-nome { font-weight: 600; color: var(--text); }
+    .goal-bar-num { color: var(--text-muted); }
+    .goal-bar-track { background: var(--border); border-radius: 20px; height: 10px; overflow: hidden; }
+    .goal-bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width 0.4s; }
+    .goal-bar-fill.raggiunto { background: #4a9e6b; }
+
     @media (max-width: 900px) { .metriche-row { grid-template-columns: repeat(2, 1fr); } .storico-grid { grid-template-columns: repeat(2, 1fr); } }
   </style>
 </head>
@@ -357,6 +366,7 @@
     renderPriorita();
 
     // METRICHE
+    const goal = { contatti: 16, incarichi: 2, transazioni: 1 };
     const campi = ['transazioni','incarichi_e','incarichi_ne','valutazioni','visita','coll_int','coll_ext','x_incarico','contatti','telefonate','ribassi','proposte_rit'];
     const etichette = {
       transazioni: 'Transazioni', incarichi_e: 'Inc. E.', incarichi_ne: 'Inc. N.E.',
@@ -394,11 +404,33 @@
       campi.forEach(c => totali[c] = 0);
       lista.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
 
+      const incarichi_tot = (totali.incarichi_e || 0) + (totali.incarichi_ne || 0);
+      const goalBars = [
+        { nome: 'Contatti', valore: totali.contatti, goal: goal.contatti },
+        { nome: 'Incarichi (E. + N.E.)', valore: incarichi_tot, goal: goal.incarichi },
+        { nome: 'Transazioni', valore: totali.transazioni, goal: goal.transazioni },
+      ];
+
+      const barre = goalBars.map(g => {
+        const perc = Math.min(Math.round((g.valore / g.goal) * 100), 100);
+        const raggiunto = g.valore >= g.goal;
+        return `<div class="goal-bar-item">
+          <div class="goal-bar-header">
+            <span class="goal-bar-nome">${g.nome}</span>
+            <span class="goal-bar-num">${g.valore} / ${g.goal} ${raggiunto ? '✓' : ''}</span>
+          </div>
+          <div class="goal-bar-track">
+            <div class="goal-bar-fill ${raggiunto ? 'raggiunto' : ''}" style="width: ${perc}%"></div>
+          </div>
+        </div>`;
+      }).join('');
+
       let html = `<div class="totale-mese">
         <div class="totale-mese-label">Totale mese — ${meseCorrente}</div>
         <div class="storico-grid">
           ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${totali[c] === 0 ? 'zero' : ''}">${totali[c]}</strong></div>`).join('')}
         </div>
+        <div class="goal-bars">${barre}</div>
       </div>`;
 
       html += lista.map(r => `
