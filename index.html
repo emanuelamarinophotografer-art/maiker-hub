@@ -227,6 +227,26 @@
 
       </div>
 
+      <!-- OSSERVATORIO -->
+      <div class="blocco-header" style="margin-bottom:12px;margin-top:20px;">🔭 Osservatorio acquisizioni</div>
+      <div class="centro-grid" style="margin-bottom:24px;">
+
+        <!-- TOP 3 RICERCA -->
+        <div class="col-card">
+          <div class="col-card-title">🏆 Top 3 da acquisire</div>
+          <div id="top3Ricerca"><div class="placeholder">Nessuna scheda in Ricerca Immobili.</div></div>
+          <a href="ricerca.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai a Ricerca Immobili</a>
+        </div>
+
+        <!-- RADAR DA VALUTARE -->
+        <div class="col-card">
+          <div class="col-card-title">📡 Radar — annunci interessanti</div>
+          <div id="radarInteressanti"><div class="placeholder">Nessun annuncio interessante nel Radar.</div></div>
+          <a href="radar.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai al Radar Lunedì</a>
+        </div>
+
+      </div>
+
       <!-- SEZIONI -->
       <div class="blocco-header" style="margin-bottom:12px;">Sezioni</div>
       <div class="sezioni">
@@ -370,6 +390,49 @@
     campi.forEach(c => totali[c] = 0);
     campi.forEach(c => { totali[c] += corrente[c] || 0; });
     storico.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
+
+    // OSSERVATORIO — TOP 3 RICERCA
+    const ricercaImmobili = JSON.parse(localStorage.getItem('ricerca_immobili') || '[]');
+    const top3 = ricercaImmobili
+      .filter(s => s.stato_scheda !== 'incarico' && s.stato_scheda !== 'archiviato')
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .slice(0, 3);
+    const top3El = document.getElementById('top3Ricerca');
+    if (top3.length === 0) {
+      top3El.innerHTML = '<div class="placeholder">Nessuna scheda in Ricerca Immobili.</div>';
+    } else {
+      top3El.innerHTML = top3.map((s, i) => {
+        const vc = (s.score||0) >= 72 ? '#27ae60' : (s.score||0) >= 45 ? '#b7860b' : '#c0392b';
+        const em = (s.score||0) >= 72 ? '🟢' : (s.score||0) >= 45 ? '🟡' : '🔴';
+        return `<div class="priorita-recap-item" style="align-items:center">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-faint);width:16px">${i+1}.</div>
+          <div style="flex:1">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--text)">${s.nome}</div>
+            <div style="font-size:0.72rem;color:var(--text-muted)">${s.comuneLabel||''} · ${s.tipoLabel||''}</div>
+          </div>
+          <div style="font-size:0.78rem;font-weight:700;color:${vc}">${em} ${s.score||0}/100</div>
+        </div>`;
+      }).join('');
+    }
+
+    // OSSERVATORIO — RADAR INTERESSANTI
+    const radarAnnunci = JSON.parse(localStorage.getItem('radar_annunci') || '[]');
+    const interessanti = radarAnnunci.filter(a => a.stato === 'interessante');
+    const radarEl = document.getElementById('radarInteressanti');
+    if (interessanti.length === 0) {
+      radarEl.innerHTML = '<div class="placeholder">Nessun annuncio interessante nel Radar.</div>';
+    } else {
+      radarEl.innerHTML = interessanti.slice(0, 5).map(a => `
+        <div class="priorita-recap-item">
+          <div style="font-size:0.9rem">📡</div>
+          <div style="flex:1">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--text)">${a.url ? `<a href="${a.url}" target="_blank" style="color:inherit;text-decoration:none">${a.titolo}</a>` : a.titolo}</div>
+            <div style="font-size:0.72rem;color:var(--text-muted)">${a.comune||''} ${a.prezzo ? '· ' + a.prezzo : ''}</div>
+          </div>
+          <a href="valutazione.html" style="font-size:0.72rem;color:var(--accent);text-decoration:none;font-weight:600">🧮 Valuta</a>
+        </div>
+      `).join('');
+    }
 
     // Numeri chiave
     const numeriChiave = ['transazioni','contatti','incarichi_e','incarichi_ne','visita','valutazioni'];
