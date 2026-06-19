@@ -227,18 +227,18 @@
           <div class="sezione">
             <div class="sezione-titolo">Plus dell'immobile</div>
             <div class="plus-grid" id="plusGrid">
-              <label class="plus-item" onclick="togglePlus(this,'giardino')"><input type="checkbox" value="giardino"> 🌿 Giardino / Parco</label>
-              <label class="plus-item on" onclick="togglePlus(this,'piscina')"><input type="checkbox" value="piscina"> 🏊 Piscina</label>
-              <label class="plus-item" onclick="togglePlus(this,'pannelli')"><input type="checkbox" value="pannelli"> ☀️ Pannelli fotovoltaici</label>
-              <label class="plus-item" onclick="togglePlus(this,'pompa')"><input type="checkbox" value="pompa"> 🌡️ Pompa di calore</label>
-              <label class="plus-item" onclick="togglePlus(this,'pozzo')"><input type="checkbox" value="pozzo"> 💧 Pozzo / Cisterna</label>
-              <label class="plus-item" onclick="togglePlus(this,'irrigazione')"><input type="checkbox" value="irrigazione"> 🚿 Impianto irrigazione</label>
-              <label class="plus-item" onclick="togglePlus(this,'cappotto')"><input type="checkbox" value="cappotto"> 🧱 Cappotto termico</label>
-              <label class="plus-item" onclick="togglePlus(this,'infissi')"><input type="checkbox" value="infissi"> 🪟 Infissi nuovi</label>
-              <label class="plus-item" onclick="togglePlus(this,'pavimento')"><input type="checkbox" value="pavimento"> 🔆 Riscaldamento a pavimento</label>
-              <label class="plus-item" onclick="togglePlus(this,'garage')"><input type="checkbox" value="garage"> 🚗 Rimessa / Garage</label>
-              <label class="plus-item" onclick="togglePlus(this,'cancello')"><input type="checkbox" value="cancello"> 🔐 Cancello automatico / Recinzione</label>
-              <label class="plus-item" onclick="togglePlus(this,'agriturismo')"><input type="checkbox" value="agriturismo"> 🏷️ Idoneo agriturismo</label>
+              <label class="plus-item" onclick="togglePlus(this,'giardino',event)"><input type="checkbox" value="giardino"> 🌿 Giardino / Parco</label>
+              <label class="plus-item on" onclick="togglePlus(this,'piscina',event)"><input type="checkbox" value="piscina"> 🏊 Piscina</label>
+              <label class="plus-item" onclick="togglePlus(this,'pannelli',event)"><input type="checkbox" value="pannelli"> ☀️ Pannelli fotovoltaici</label>
+              <label class="plus-item" onclick="togglePlus(this,'pompa',event)"><input type="checkbox" value="pompa"> 🌡️ Pompa di calore</label>
+              <label class="plus-item" onclick="togglePlus(this,'pozzo',event)"><input type="checkbox" value="pozzo"> 💧 Pozzo / Cisterna</label>
+              <label class="plus-item" onclick="togglePlus(this,'irrigazione',event)"><input type="checkbox" value="irrigazione"> 🚿 Impianto irrigazione</label>
+              <label class="plus-item" onclick="togglePlus(this,'cappotto',event)"><input type="checkbox" value="cappotto"> 🧱 Cappotto termico</label>
+              <label class="plus-item" onclick="togglePlus(this,'infissi',event)"><input type="checkbox" value="infissi"> 🪟 Infissi nuovi</label>
+              <label class="plus-item" onclick="togglePlus(this,'pavimento',event)"><input type="checkbox" value="pavimento"> 🔆 Riscaldamento a pavimento</label>
+              <label class="plus-item" onclick="togglePlus(this,'garage',event)"><input type="checkbox" value="garage"> 🚗 Rimessa / Garage</label>
+              <label class="plus-item" onclick="togglePlus(this,'cancello',event)"><input type="checkbox" value="cancello"> 🔐 Cancello automatico / Recinzione</label>
+              <label class="plus-item" onclick="togglePlus(this,'agriturismo',event)"><input type="checkbox" value="agriturismo"> 🏷️ Idoneo agriturismo</label>
             </div>
           </div>
 
@@ -712,7 +712,8 @@
       el.classList.add('on');
     }
 
-    function togglePlus(el, chiave) {
+    function togglePlus(el, chiave, ev) {
+      if (ev) ev.preventDefault();
       el.classList.toggle('on');
       if (plusAttivi.has(chiave)) plusAttivi.delete(chiave);
       else plusAttivi.add(chiave);
