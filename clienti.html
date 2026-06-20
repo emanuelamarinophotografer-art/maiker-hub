@@ -24,24 +24,27 @@
     .filtro-stato { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-family: inherit; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
     .filtro-stato.active { background: var(--accent); border-color: var(--accent); color: white; }
 
-    /* GRIGLIA CLIENTI */
-    .clienti-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    /* LISTA CLIENTI */
+    .clienti-grid { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 
-    /* CARD CLIENTE */
-    .cliente-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
-    .cliente-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .cliente-nome { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .cliente-contatti { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; display: flex; flex-direction: column; gap: 2px; }
-    .cliente-stato { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 10px; }
-    .cliente-info { font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
-    .cliente-info span { display: block; margin-bottom: 2px; }
-    .cliente-actions { display: flex; gap: 6px; margin-top: 10px; }
-    .btn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+    /* RIGA CLIENTE */
+    .cliente-card { display: grid; grid-template-columns: 2fr 1fr 1fr 1.6fr auto; align-items: center; gap: 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 12px 18px; cursor: pointer; transition: background 0.15s; }
+    .cliente-card:last-child { border-bottom: none; }
+    .cliente-card:hover { background: var(--bg); }
+    .cliente-nome { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+    .cliente-contatti { font-size: 0.78rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 1px; }
+    .cliente-stato { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; white-space: nowrap; }
+    .cliente-info { font-size: 0.75rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 1px; }
+    .cliente-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 0.72rem; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
     .btn-card:hover { border-color: var(--accent); color: var(--accent); }
     .btn-card-del:hover { border-color: var(--danger); color: var(--danger); }
-    .btn-stella { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 2px 6px; border-radius: 6px; line-height: 1; transition: transform 0.15s; }
+    .btn-stella { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 2px 4px; border-radius: 6px; line-height: 1; transition: transform 0.15s; }
     .btn-stella:hover { transform: scale(1.2); }
     .btn-stella.attiva { color: #f0a500; }
+
+    @media (max-width: 900px) { .cliente-card { grid-template-columns: 2fr 1fr auto; } .cliente-card .cliente-contatti, .cliente-card .cliente-info { display: none; } }
+    @media (max-width: 600px) { .cliente-card { grid-template-columns: 1fr auto; } .cliente-card .cliente-stato { display: none; } }
 
     /* STATI COLORI */
     .stato-potenziale { background: #e8f4fd; color: #2980b9; }
@@ -69,8 +72,6 @@
     .btn-annulla { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; color: var(--text-muted); }
     .btn-salva { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
 
-    @media (max-width: 900px) { .clienti-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .clienti-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -254,22 +255,24 @@
       }
 
       el.innerHTML = lista.map(c => `
-        <div class="cliente-card">
-          <a class="cliente-nome" href="cliente.html?id=${c.id}" style="text-decoration:none;color:inherit;display:block">${c.nome}</a>
+        <div class="cliente-card" onclick="location.href='cliente.html?id=${c.id}'">
+          <div>
+            <div class="cliente-nome">${c.nome}</div>
+            ${c.immobile ? '<div style="font-size:0.72rem;color:#c0392b;font-weight:500;margin-top:2px">' + c.immobile + '</div>' : ''}
+          </div>
           <div class="cliente-contatti">
             ${c.tel ? '<span>📞 ' + c.tel + '</span>' : ''}
             ${c.email ? '<span>✉️ ' + c.email + '</span>' : ''}
           </div>
-          <span class="cliente-stato ${classeStato[c.stato] || ''}">${c.stato}</span>
+          <span class="cliente-stato ${classeStato[c.stato] || ''}">${c.stato || ''}</span>
           <div class="cliente-info">
-            ${c.immobile ? '<span>🏡 ' + c.immobile + '</span>' : ''}
             ${c.budget ? '<span>💰 ' + c.budget + '</span>' : ''}
             ${c.zona ? '<span>📍 ' + c.zona + '</span>' : ''}
             ${c.note ? '<span>📝 ' + c.note + '</span>' : ''}
           </div>
-          <div class="cliente-actions">
+          <div class="cliente-actions" onclick="event.stopPropagation()">
             <button class="btn-stella ${c.stella ? 'attiva' : ''}" onclick="toggleStella(${c.id})" title="Porta in Centro di Comando">${c.stella ? '⭐' : '☆'}</button>
-            <button class="btn-card" onclick="modificaCliente(${c.id})">✏️ Modifica</button>
+            <button class="btn-card" onclick="modificaCliente(${c.id})">✏️</button>
             <button class="btn-card btn-card-del" onclick="eliminaCliente(${c.id})">✕</button>
           </div>
         </div>

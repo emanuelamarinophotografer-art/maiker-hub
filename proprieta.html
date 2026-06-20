@@ -18,22 +18,22 @@
     .filtro-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-family: inherit; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
     .filtro-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
 
-    /* GRIGLIA */
-    .prop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    /* LISTA PROPRIETÀ */
+    .prop-grid { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 
-    /* CARD PROPRIETÀ */
-    .prop-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
-    .prop-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .prop-ref { font-size: 0.65rem; color: var(--text-faint); margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase; }
-    .prop-titolo { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .prop-zona { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px; }
-    .prop-stato { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 10px; }
-    .prop-numeri { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
-    .prop-numeri span { display: flex; flex-direction: column; gap: 1px; }
-    .prop-numeri strong { font-size: 0.92rem; font-weight: 600; color: var(--text); }
-    .prop-proprietario { font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-    .prop-actions { display: flex; gap: 6px; margin-top: 10px; }
-    .btn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+    /* RIGA PROPRIETÀ */
+    .prop-card { display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1fr auto; align-items: center; gap: 16px; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 12px 18px; cursor: pointer; transition: background 0.15s; }
+    .prop-card:last-child { border-bottom: none; }
+    .prop-card:hover { background: var(--bg); }
+    .prop-ref { font-size: 0.7rem; color: #c0392b; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.04em; }
+    .prop-titolo { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+    .prop-zona { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+    .prop-stato { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; white-space: nowrap; }
+    .prop-numeri { font-size: 0.78rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 1px; }
+    .prop-numeri strong { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    .prop-proprietario { font-size: 0.75rem; color: var(--text-muted); }
+    .prop-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 0.72rem; font-family: inherit; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
     .btn-card:hover { border-color: var(--accent); color: var(--accent); }
     .btn-card-del:hover { border-color: var(--danger); color: var(--danger); }
 
@@ -44,6 +44,9 @@
     .stato-trattativa { background: #fdf2e9; color: #e67e22; }
     .stato-venduto { background: #eafaf1; color: #27ae60; }
     .stato-ritirato { background: #fdedec; color: #c0392b; }
+
+    @media (max-width: 900px) { .prop-card { grid-template-columns: 2fr 1fr auto; } .prop-card .prop-numeri, .prop-card .prop-proprietario { display: none; } }
+    @media (max-width: 600px) { .prop-card { grid-template-columns: 1fr auto; } .prop-card .prop-stato { display: none; } }
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 100; align-items: center; justify-content: center; }
@@ -62,8 +65,6 @@
     .btn-annulla { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; color: var(--text-muted); }
     .btn-salva { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
 
-    @media (max-width: 900px) { .prop-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .prop-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -270,20 +271,23 @@
       const el = document.getElementById('propGrid');
       if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna proprietà trovata.</div>'; return; }
       el.innerHTML = lista.map(p => `
-        <div class="prop-card">
-          ${p.ref ? '<div class="prop-ref">' + p.ref + '</div>' : ''}
-          <div class="prop-titolo">${p.titolo || p.nome || '—'}</div>
-          <div class="prop-zona">📍 ${p.zona || '—'}${p.tipologia ? ' · ' + p.tipologia : ''}</div>
-          <span class="prop-stato ${classeStato[p.stato] || ''}">${p.stato}</span>
-          <div class="prop-numeri">
-            ${p.prezzo ? '<span><strong>' + p.prezzo + '</strong>Prezzo</span>' : ''}
-            ${p.mq ? '<span><strong>' + p.mq + '</strong>Superficie</span>' : ''}
-            ${p.locali ? '<span><strong>' + p.locali + '</strong>Locali</span>' : ''}
-            ${p.caratteristiche ? '<span style="grid-column:1/-1;flex-direction:row;gap:4px;align-items:center"><strong style="font-size:0.75rem;font-weight:500;color:var(--text-muted)">' + p.caratteristiche + '</strong></span>' : ''}
+        <div class="prop-card" onclick="void(0)">
+          <div>
+            ${p.ref ? '<div class="prop-ref">' + p.ref + '</div>' : ''}
+            <div class="prop-titolo">${p.titolo || p.nome || '—'}</div>
+            <div class="prop-zona">📍 ${p.indirizzo || p.zona || '—'}</div>
           </div>
-          ${p.proprietario ? '<div class="prop-proprietario">👤 ' + p.proprietario + '</div>' : ''}
-          <div class="prop-actions">
-            <button class="btn-card" onclick="modificaProprietà(${p.id})">✏️ Modifica</button>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">${p.tipologia || ''}</div>
+            ${p.mq ? '<div style="font-size:0.82rem;font-weight:600;color:var(--text)">' + p.mq + ' mq</div>' : ''}
+          </div>
+          <span class="prop-stato ${classeStato[p.stato] || ''}">${p.stato || ''}</span>
+          <div class="prop-numeri">
+            ${p.prezzo ? '<span><strong>€ ' + Number(p.prezzo).toLocaleString('it-IT') + '</strong>Prezzo</span>' : ''}
+            ${p.flag_mercato ? '<span style="font-size:0.7rem;color:var(--text-muted)">' + p.flag_mercato + '</span>' : ''}
+          </div>
+          <div class="prop-actions" onclick="event.stopPropagation()">
+            <button class="btn-card" onclick="modificaProprietà(${p.id})">✏️</button>
             <button class="btn-card btn-card-del" onclick="eliminaProprietà(${p.id})">✕</button>
           </div>
         </div>
