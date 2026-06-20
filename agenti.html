@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ework — Agenti</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .gerarchia { display: flex; flex-direction: column; gap: 32px; }
+
+    /* LIVELLO CAPO */
+    .capo-row { display: flex; justify-content: center; }
+    .agente-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; position: relative; }
+    .agente-card.capo { border-color: var(--accent); border-width: 2px; min-width: 260px; max-width: 320px; }
+
+    .agente-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .agente-emoji { font-size: 2rem; }
+    .agente-nome { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .agente-tag { font-size: 0.62rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.05em; display: inline-block; margin-top: 2px; }
+    .tag-capo    { background: #f5efe6; color: var(--accent); }
+    .tag-lavoro  { background: #f0d8c4; color: #9a4e1e; }
+    .tag-social  { background: #c8e8d4; color: #2e7048; }
+    .tag-news    { background: #fef3c7; color: #92400e; }
+    .tag-spec    { background: #e8eaf6; color: #3949ab; }
+    .tag-trend   { background: #fce4ec; color: #c62828; }
+    .tag-piano   { background: #e3f2fd; color: #1565c0; }
+    .tag-prod    { background: #e8f5e9; color: #2e7d32; }
+    .tag-ric     { background: #f3e5f5; color: #6a1b9a; }
+
+    .agente-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+
+    .agente-skills { display: flex; flex-wrap: wrap; gap: 5px; }
+    .skill-chip { font-size: 0.65rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 2px 8px; color: var(--text-muted); }
+
+    /* CONNETTORE */
+    .connettore { display: flex; justify-content: center; }
+    .connettore-line { width: 2px; height: 24px; background: var(--border); }
+
+    /* AREE (2 colonne) */
+    .aree-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .area-block { display: flex; flex-direction: column; gap: 12px; }
+    .area-titolo { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-align: center; }
+    .area-lavoro  { background: #f0d8c4; color: #9a4e1e; }
+    .area-social  { background: #c8e8d4; color: #2e7048; }
+    .area-news    { background: #fef3c7; color: #92400e; }
+
+    .area-capo { border-left: 3px solid #c07040; }
+    .area-capo-social { border-left: 3px solid #5a9e6b; }
+    .area-capo-news { border-left: 3px solid #d4a017; }
+
+    .sub-agenti { display: flex; flex-direction: column; gap: 10px; padding-left: 16px; border-left: 2px dashed var(--border); margin-left: 20px; }
+    .agente-card.sub { padding: 14px 18px; }
+
+    .conn-h { display: flex; align-items: center; gap: 0; margin: 0 0 4px 20px; }
+    .conn-h-line { width: 16px; height: 2px; background: var(--border); }
+
+    @media (max-width: 1000px) { .aree-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html"><h1>Ework</h1></a>
+      <div class="sub">Centro operativo</div>
+    </div>
+    <nav class="nav-section c-principale">
+      <div class="nav-label">Principale</div>
+      <a class="nav-item" href="index.html"><span class="icon">🎯</span> Centro di comando</a>
+    </nav>
+    <nav class="nav-section c-operativo">
+      <div class="nav-label">Operativo</div>
+      <a class="nav-item" href="attivita.html"><span class="icon">📅</span> Attività</a>
+      <a class="nav-item active" href="agenti.html"><span class="icon">🤖</span> Agenti</a>
+      <a class="nav-item" href="chat.html"><span class="icon">💬</span> Chat</a>
+    </nav>
+    <nav class="nav-section c-lavoro">
+      <div class="nav-label">Lavoro</div>
+      <a class="nav-item" href="clienti.html"><span class="icon">👤</span> Clienti</a>
+      <a class="nav-item" href="proprieta.html"><span class="icon">🏡</span> Proprietà</a>
+      <a class="nav-item" href="valutazione.html"><span class="icon">🧮</span> Valutazione</a>
+      <a class="nav-item" href="ricerca.html"><span class="icon">🔍</span> Ricerca Immobili</a>
+      <a class="nav-item" href="radar.html"><span class="icon">📡</span> Radar Lunedì</a>
+      <a class="nav-item" href="incarico.html"><span class="icon">📋</span> Scheda Incarico</a>
+    </nav>
+    <nav class="nav-section c-contenuti">
+      <div class="nav-label">Contenuti</div>
+      <a class="nav-item" href="social.html"><span class="icon">📸</span> Social</a>
+      <a class="nav-item" href="#"><span class="icon">🌿</span> Fonti</a>
+    </nav>
+    <div class="sidebar-bottom" id="dataOggi"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h2>🤖 Agenti</h2>
+      <div class="date" id="dataEstesa"></div>
+    </div>
+
+    <div class="content">
+      <div class="gerarchia">
+
+        <!-- GEGGI -->
+        <div class="capo-row">
+          <div class="agente-card capo">
+            <div class="agente-header">
+              <div class="agente-emoji">🎯</div>
+              <div>
+                <div class="agente-nome">Geggi</div>
+                <span class="agente-tag tag-capo">Segretario Capo</span>
+              </div>
+            </div>
+            <div class="agente-desc">Punto di contatto principale. Gestisce la chat, il briefing mattutino, le attività quotidiane e coordina tutti gli agenti. Prima persona da contattare per qualsiasi cosa.</div>
+            <div class="agente-skills">
+              <span class="skill-chip">💬 Chat Supabase</span>
+              <span class="skill-chip">📋 Attività</span>
+              <span class="skill-chip">👤 Clienti</span>
+              <span class="skill-chip">🏡 Proprietà</span>
+              <span class="skill-chip">🌅 Briefing mattutino</span>
+              <span class="skill-chip">📰 Coordina Newspepper</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="connettore"><div class="connettore-line"></div></div>
+
+        <!-- 3 AREE -->
+        <div class="aree-row">
+
+          <!-- AREA LAVORO -->
+          <div class="area-block">
+            <div class="area-titolo area-lavoro">🏡 Area Lavoro Immobiliare</div>
+
+            <div class="agente-card area-capo">
+              <div class="agente-header">
+                <div class="agente-emoji">🏡</div>
+                <div>
+                  <div class="agente-nome">Giarvis</div>
+                  <span class="agente-tag tag-lavoro">Capo Area Lavoro</span>
+                </div>
+              </div>
+              <div class="agente-desc">Coordina tutto il lavoro immobiliare: acquisizione incarichi, clienti, prospecting del lunedì, follow-up. Riceve i report dagli agenti specialisti e li passa a Geggi.</div>
+              <div class="agente-skills">
+                <span class="skill-chip">📊 Schede qualifica</span>
+                <span class="skill-chip">👥 Follow-up clienti</span>
+                <span class="skill-chip">📅 Prospecting lunedì</span>
+                <span class="skill-chip">🗂 Supabase</span>
+              </div>
+            </div>
+
+            <div class="sub-agenti">
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">👥</div>
+                  <div>
+                    <div class="agente-nome">Agente Clienti</div>
+                    <span class="agente-tag tag-spec">Specialista Clienti</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Gestisce il ciclo vita clienti: nuove richieste da portale, bozze risposta, conversione acquirente→proprietario, clienti fermi. Sincronizza Notion e Supabase.</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">📧 Gmail</span>
+                  <span class="skill-chip">📋 Notion RICHIESTE</span>
+                  <span class="skill-chip">✉️ Bozze IT/EN</span>
+                  <span class="skill-chip">🔄 Notion↔Supabase</span>
+                </div>
+              </div>
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">📁</div>
+                  <div>
+                    <div class="agente-nome">Agente Acquisizione</div>
+                    <span class="agente-tag tag-spec">Specialista Incarichi</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Controlla cartelle Drive ACQUISITI, verifica documenti obbligatori (incarico, APE, visura, ecc.), compila l'inserimento immobile per l'amministrazione leggendo scheda qualifica + Drive.</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">📂 Drive ACQUISITI</span>
+                  <span class="skill-chip">✅ Checklist docs</span>
+                  <span class="skill-chip">📝 Inserimento immobile</span>
+                  <span class="skill-chip">🗂 Scheda qualifica</span>
+                </div>
+              </div>
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">🔍</div>
+                  <div>
+                    <div class="agente-nome">Agente Ricercatore</div>
+                    <span class="agente-tag tag-ric">Ricerca & Valutazioni</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Ogni lunedì scandisce i portali per annunci privati in Maremma. Fa valutazioni in tempo reale con dati OMI e terreni multi-tipo. Analizza link trovati da Emanuela (Radar).</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">🌐 Portali privati</span>
+                  <span class="skill-chip">📊 Valutazioni OMI</span>
+                  <span class="skill-chip">📡 Radar link</span>
+                  <span class="skill-chip">🌿 Terreni multi-tipo</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- AREA SOCIAL -->
+          <div class="area-block">
+            <div class="area-titolo area-social">📸 Area Contenuti & Social</div>
+
+            <div class="agente-card area-capo-social">
+              <div class="agente-header">
+                <div class="agente-emoji">📱</div>
+                <div>
+                  <div class="agente-nome">Chicca</div>
+                  <span class="agente-tag tag-social">Capo Area Social</span>
+                </div>
+              </div>
+              <div class="agente-desc">Supervisiona piano editoriale, metriche e pubblicazione reel. Coordina il team creativo. Monitora se la produzione è in ritardo. Gestisce il brainstorming a 4.</div>
+              <div class="agente-skills">
+                <span class="skill-chip">📊 Metriche</span>
+                <span class="skill-chip">📅 Piano editoriale</span>
+                <span class="skill-chip">🎬 Pubblica reel</span>
+                <span class="skill-chip">⚠️ Monitor ritardi</span>
+                <span class="skill-chip">🧠 Brainstorming</span>
+              </div>
+            </div>
+
+            <div class="sub-agenti">
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">🔥</div>
+                  <div>
+                    <div class="agente-nome">La Trendista</div>
+                    <span class="agente-tag tag-trend">Trend & Ispirazione</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Ogni lunedì trova trend virali, format divertenti e audio di tendenza da Instagram, TikTok, YouTube — e li declina per il brand di Emanuela in Maremma.</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">📈 Trend virali</span>
+                  <span class="skill-chip">🎵 Audio tendenza</span>
+                  <span class="skill-chip">😄 Format leggeri</span>
+                  <span class="skill-chip">🌍 Multi-settore</span>
+                </div>
+              </div>
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">✍️</div>
+                  <div>
+                    <div class="agente-nome">La Pianificatrice</div>
+                    <span class="agente-tag tag-piano">Piano & Script</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Personal branding e storytelling. Pianifica i 3 contenuti settimanali, scrive script reel e caroselli, caption e copy. Mantiene coerenza con rubriche e tono di voce.</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">📝 Script reel</span>
+                  <span class="skill-chip">🎠 Caroselli</span>
+                  <span class="skill-chip">✏️ Caption & copy</span>
+                  <span class="skill-chip">🎨 Rubriche</span>
+                  <span class="skill-chip">🗓 Piano settimana</span>
+                </div>
+              </div>
+
+              <div class="agente-card sub">
+                <div class="agente-header">
+                  <div class="agente-emoji">🎬</div>
+                  <div>
+                    <div class="agente-nome">Il Produttore</div>
+                    <span class="agente-tag tag-prod">Produzione Visiva</span>
+                  </div>
+                </div>
+                <div class="agente-desc">Tecnico di produzione. Trasforma gli script in contenuti finiti: immagini Higgsfield, video avatar HeyGen, reel Remotion, caroselli Canva.</div>
+                <div class="agente-skills">
+                  <span class="skill-chip">🖼 Higgsfield</span>
+                  <span class="skill-chip">🎭 HeyGen avatar</span>
+                  <span class="skill-chip">🎞 Remotion</span>
+                  <span class="skill-chip">🎨 Canva</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- NEWSPEPPER -->
+          <div class="area-block">
+            <div class="area-titolo area-news">📰 News & Aggiornamenti</div>
+
+            <div class="agente-card area-capo-news">
+              <div class="agente-header">
+                <div class="agente-emoji">🗞</div>
+                <div>
+                  <div class="agente-nome">Newspepper</div>
+                  <span class="agente-tag tag-news">News Agent</span>
+                </div>
+              </div>
+              <div class="agente-desc">Tiene Emanuela aggiornata su tutto ciò che conta. Alimenta il briefing mattutino di Geggi con le novità più rilevanti del giorno.</div>
+              <div class="agente-skills">
+                <span class="skill-chip">🏡 Mercato immobiliare</span>
+                <span class="skill-chip">⚖️ Normative</span>
+                <span class="skill-chip">📈 Tassi & mutui</span>
+                <span class="skill-chip">📱 Novità social</span>
+                <span class="skill-chip">🛠 Strumenti AI</span>
+                <span class="skill-chip">📚 Fonti Notion</span>
+              </div>
+            </div>
+
+            <div style="padding: 14px 18px; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 12px; margin-left: 0;">
+              <div style="font-size: 0.72rem; color: var(--text-faint); text-align: center; line-height: 1.6;">
+                🔮 Sezione personale<br>
+                <span style="font-size: 0.65rem;">In arrivo</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const d = new Date();
+    const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+    const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
+    document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
+  </script>
+
+</body>
+</html>
