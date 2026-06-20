@@ -221,20 +221,21 @@
         </div>
       </div>
 
-      <!-- GRIGLIA PRINCIPALE: AGENDA + METRICHE -->
+      <!-- GRIGLIA PRINCIPALE -->
       <div class="centro-grid">
 
-        <!-- SINISTRA: VENDITE + AGENDA + PRIORITÀ -->
+        <!-- SINISTRA: BRIEFING GEGGI + AGENDA -->
         <div>
-          <!-- DA SEGUIRE -->
+          <!-- BRIEFING GEGGI -->
           <div class="col-card" style="margin-bottom:16px;">
-            <div class="col-card-title">⭐ Da seguire oggi</div>
-            <div id="recapStellati"><div class="placeholder">Nessun cliente in evidenza.</div></div>
-            <a href="clienti.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ai Clienti</a>
+            <div class="col-card-title">👨‍💼 Briefing Geggi</div>
+            <div id="geggiBriefing"><div class="placeholder">Nessun briefing — scrivi "buongiorno" a Geggi in Chat.</div></div>
+            <div id="geggiData" style="margin-top:8px;font-size:0.68rem;color:var(--text-faint);"></div>
+            <a href="chat.html" style="display:block;margin-top:10px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai alla Chat</a>
           </div>
 
           <!-- AGENDA -->
-          <div class="col-card" style="margin-bottom:16px;">
+          <div class="col-card">
             <div class="col-card-title">📅 Agenda di oggi <span id="calSyncBadge" style="font-size:0.6rem;font-weight:600;padding:2px 7px;border-radius:8px;background:#eafaf1;color:#27ae60;margin-left:6px;display:none">● Calendar</span></div>
             <div class="agenda-input-wrap">
               <input class="agenda-time" type="time" id="ag_ora" />
@@ -244,17 +245,25 @@
             <div id="listaAgenda"><div class="placeholder">Nessun appuntamento oggi.</div></div>
             <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ad Attività</a>
           </div>
+        </div>
+
+        <!-- DESTRA: DA SEGUIRE + PRIORITÀ + METRICHE -->
+        <div>
+          <!-- DA SEGUIRE -->
+          <div class="col-card" style="margin-bottom:16px;">
+            <div class="col-card-title">⭐ Da seguire oggi</div>
+            <div id="recapStellati"><div class="placeholder">Nessun cliente in evidenza.</div></div>
+            <a href="clienti.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ai Clienti</a>
+          </div>
 
           <!-- PRIORITÀ -->
-          <div class="col-card">
+          <div class="col-card" style="margin-bottom:16px;">
             <div class="col-card-title">🔴 Priorità aperte</div>
             <div id="recapPriorita"><div class="placeholder">Nessuna priorità aperta.</div></div>
             <a href="attivita.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ad Attività</a>
           </div>
-        </div>
 
-        <!-- DESTRA: METRICHE SETTIMANA -->
-        <div>
+          <!-- METRICHE -->
           <div class="col-card">
             <div class="col-card-title">📊 Metriche — mese corrente</div>
             <div class="metriche-numeri" id="metricheNumeri"></div>
@@ -299,10 +308,10 @@
 
       </div>
 
-      <!-- NEWSPEPPER BRIEFING -->
+      <!-- BRIEFING NEWSPEPPER -->
       <div class="blocco-header" style="margin-bottom:12px;margin-top:0;">📰 Ultimo briefing Newspepper</div>
       <div class="col-card" style="margin-bottom:28px;">
-        <div id="newspepperBriefing"><div class="placeholder">Nessun briefing disponibile — chiedi a Geggi "buongiorno" per ricevere le news.</div></div>
+        <div id="newspepperBriefing"><div class="placeholder">Nessun briefing disponibile — arriva automaticamente con il buongiorno.</div></div>
         <div id="newspepperData" style="margin-top:10px;font-size:0.68rem;color:var(--text-faint);"></div>
       </div>
 
@@ -513,6 +522,17 @@
           `).join('');
         } else {
           schedeEl.innerHTML = '<div class="placeholder">Nessuna scheda in attesa.</div>';
+        }
+
+        // Geggi — ultimo briefing (messaggi mittente='segretario')
+        const rGeggi = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.segretario&order=created_at.desc&limit=1`, { headers: SB_HEADERS });
+        const geggiMsg = await rGeggi.json();
+        const geggiEl = document.getElementById('geggiBriefing');
+        const geggiData = document.getElementById('geggiData');
+        if (Array.isArray(geggiMsg) && geggiMsg.length > 0) {
+          geggiEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${geggiMsg[0].testo}</div>`;
+          const dt = new Date(geggiMsg[0].created_at);
+          geggiData.textContent = dt.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         }
 
         // Newspepper — ultimo briefing (messaggi mittente='newspepper')
