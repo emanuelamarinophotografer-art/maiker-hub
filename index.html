@@ -213,10 +213,10 @@
       <div class="comando">
         <div class="comando-label">Panoramica</div>
         <div class="oggi">
-          <div class="oggi-item"><span>Clienti attivi</span>—</div>
-          <div class="oggi-item"><span>Proprietà in gestione</span>—</div>
-          <div class="oggi-item"><span>Follow-up da fare</span>—</div>
-          <div class="oggi-item"><span>Prossimo evento</span>—</div>
+          <div class="oggi-item"><span>Clienti attivi</span><span id="contClienti">—</span></div>
+          <div class="oggi-item"><span>Proprietà in gestione</span><span id="contProprieta">—</span></div>
+          <div class="oggi-item"><span>Follow-up da fare</span><span id="contFollowup">—</span></div>
+          <div class="oggi-item"><span>Prossimo evento</span><span id="contEvento">—</span></div>
           <div class="oggi-item" style="border-color:#4a9e6b;"><span style="color:#4a9e6b;">Vendite chiuse</span><span id="contVendite">—</span></div>
         </div>
       </div>
@@ -265,15 +265,22 @@
 
       </div>
 
-      <!-- SEZIONE LIVE: RICHIESTE / SOCIAL / PRODUZIONE -->
+      <!-- SEZIONE LIVE: RICHIESTE / SCHEDE / SOCIAL / PRODUZIONE -->
       <div class="blocco-header" style="margin-bottom:12px;margin-top:20px;">⚡ In tempo reale</div>
-      <div class="realtime-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+      <div class="realtime-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;">
 
         <!-- RICHIESTE DA GESTIRE -->
         <div class="col-card">
           <div class="col-card-title">📩 Richieste da gestire</div>
           <div id="richiesteList"><div class="placeholder">Nessuna richiesta nuova.</div></div>
           <a href="clienti.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ai Clienti</a>
+        </div>
+
+        <!-- SCHEDE DA CARICARE -->
+        <div class="col-card">
+          <div class="col-card-title">📋 Schede da caricare</div>
+          <div id="schedeCaricare"><div class="placeholder">Nessuna scheda in attesa.</div></div>
+          <a href="incarico.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai a Scheda Incarico</a>
         </div>
 
         <!-- PIANO SOCIAL SETTIMANA -->
@@ -290,6 +297,13 @@
           <a href="social.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai a Social</a>
         </div>
 
+      </div>
+
+      <!-- NEWSPEPPER BRIEFING -->
+      <div class="blocco-header" style="margin-bottom:12px;margin-top:0;">📰 Ultimo briefing Newspepper</div>
+      <div class="col-card" style="margin-bottom:28px;">
+        <div id="newspepperBriefing"><div class="placeholder">Nessun briefing disponibile — chiedi a Geggi "buongiorno" per ricevere le news.</div></div>
+        <div id="newspepperData" style="margin-top:10px;font-size:0.68rem;color:var(--text-faint);"></div>
       </div>
 
       <!-- OSSERVATORIO -->
@@ -451,6 +465,73 @@
     const venditeCount = JSON.parse(localStorage.getItem('vendite') || '[]').length;
     document.getElementById('contVendite').textContent = venditeCount || '—';
 
+    // CONTATORI LIVE DA SUPABASE
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+    async function caricaContatori() {
+      try {
+        // Clienti attivi
+        const rClienti = await fetch(`${SB_URL}/rest/v1/clienti?stato=neq.Perso&stato=neq.Chiuso&select=id`, { headers: SB_HEADERS });
+        const clientiAttivi = await rClienti.json();
+        document.getElementById('contClienti').textContent = Array.isArray(clientiAttivi) ? clientiAttivi.length : '—';
+
+        // Proprietà in gestione
+        const rProp = await fetch(`${SB_URL}/rest/v1/proprieta?stato=neq.Venduto&stato=neq.Annullato&select=id`, { headers: SB_HEADERS });
+        const propAttive = await rProp.json();
+        document.getElementById('contProprieta').textContent = Array.isArray(propAttive) ? propAttive.length : '—';
+
+        // Follow-up da fare (Nuovo contatto senza storico recente)
+        const rFollowup = await fetch(`${SB_URL}/rest/v1/clienti?stato=eq.Nuovo contatto&select=id`, { headers: SB_HEADERS });
+        const followup = await rFollowup.json();
+        document.getElementById('contFollowup').textContent = Array.isArray(followup) ? followup.length : '—';
+
+        // Prossimo evento
+        const oggi = new Date().toISOString().split('T')[0];
+        const rEventi = await fetch(`${SB_URL}/rest/v1/eventi_calendario?data_inizio=gte.${oggi}T00:00:00&order=data_inizio.asc&limit=1`, { headers: SB_HEADERS });
+        const prossimoEv = await rEventi.json();
+        if (Array.isArray(prossimoEv) && prossimoEv.length > 0) {
+          const ev = prossimoEv[0];
+          const dt = new Date(ev.data_inizio);
+          const isOggi = dt.toDateString() === new Date().toDateString();
+          const oraStr = ev.tutto_il_giorno ? '' : ' ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          document.getElementById('contEvento').textContent = (isOggi ? 'Oggi' : dt.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })) + oraStr;
+          document.getElementById('contEvento').title = ev.titolo;
+        }
+
+        // Schede da caricare
+        const rSchede = await fetch(`${SB_URL}/rest/v1/scheda_qualifica?caricato_amministrazione=eq.false&esito=eq.verde&select=id,nome_proprietario,indirizzo`, { headers: SB_HEADERS });
+        const schede = await rSchede.json();
+        const schedeEl = document.getElementById('schedeCaricare');
+        if (Array.isArray(schede) && schede.length > 0) {
+          schedeEl.innerHTML = schede.slice(0, 5).map(s => `
+            <div class="priorita-recap-item">
+              <div class="dot-p" style="background:#e67e22"></div>
+              <div class="priorita-recap-testo">${s.nome_proprietario || 'Scheda senza nome'}</div>
+            </div>
+          `).join('');
+        } else {
+          schedeEl.innerHTML = '<div class="placeholder">Nessuna scheda in attesa.</div>';
+        }
+
+        // Newspepper — ultimo briefing (messaggi mittente='newspepper')
+        const rNews = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.newspepper&order=created_at.desc&limit=1`, { headers: SB_HEADERS });
+        const news = await rNews.json();
+        const newsEl = document.getElementById('newspepperBriefing');
+        const newsData = document.getElementById('newspepperData');
+        if (Array.isArray(news) && news.length > 0) {
+          newsEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${news[0].testo}</div>`;
+          const dt = new Date(news[0].created_at);
+          newsData.textContent = 'Ultimo aggiornamento: ' + dt.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        }
+
+      } catch(e) {
+        console.error('Errore caricamento Supabase:', e);
+      }
+    }
+    caricaContatori();
+
 
     // CLIENTI STELLATI
     const clienti = JSON.parse(localStorage.getItem('clienti') || '[]');
@@ -482,9 +563,6 @@
     }
 
     // AGENDA — localStorage + Supabase Calendar
-    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
-    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
-    const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 
     function caricaAgenda() {
       const key = 'agenda_' + d.toDateString();

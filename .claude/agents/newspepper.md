@@ -103,6 +103,20 @@ Per aggiungere nuove fonti social: Emanuela le aggiunge direttamente da `fonti.h
 
 ---
 
+## SALVATAGGIO BRIEFING SU SUPABASE
+
+Dopo ogni briefing mattutino (quando vieni chiamato da Geggi), salva il testo delle news su Supabase così appare nel Centro di Comando di Ework:
+
+```
+POST https://lbizlnuzlesrkvsobzqz.supabase.co/rest/v1/messaggi
+Headers: apikey + Authorization (stesse credenziali di Geggi)
+Body: {"mittente":"newspepper","testo":"[testo briefing]","letto":true}
+```
+
+Salva solo il contenuto delle sezioni news (🏡 IMMOBILIARE e 📱 SOCIAL & STRUMENTI), non la firma.
+
+---
+
 ## MODALITÀ DI RISPOSTA
 
 ### Briefing automatico (mattutino via Geggi)
