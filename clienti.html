@@ -195,26 +195,38 @@
     const statiAcquirenti = ['Nuovo contatto','Visita fatta','Proposta','Chiuso','Perso'];
     const classeStato = { 'Potenziale':'stato-potenziale','Incarico preso':'stato-incarico','In trattativa':'stato-trattativa','Venduto':'stato-venduto','Annullato':'stato-annullato','Nuovo contatto':'stato-nuovo','Visita fatta':'stato-visita','Proposta':'stato-proposta','Chiuso':'stato-chiuso','Perso':'stato-perso' };
 
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
     let tipoAttivo = 'proprietari';
     let filtroStato = 'Tutti';
+    let _clienti = [];
 
-    function carica() { return JSON.parse(localStorage.getItem('clienti') || '[]'); }
-    function salvaStorage(lista) { localStorage.setItem('clienti', JSON.stringify(lista)); }
+    async function carica() {
+      const res = await fetch(`${SB_URL}/rest/v1/clienti?order=created_at.desc`, { headers: SB_H });
+      _clienti = await res.json();
+      return _clienti;
+    }
 
-    function cambiaTipo(tipo, btn) {
+    async function cambiaTipo(tipo, btn) {
       tipoAttivo = tipo;
       filtroStato = 'Tutti';
       document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('searchInput').value = '';
-      // Mostra/nascondi campi modal
+      await aggiorna();
+    }
+
+    async function aggiorna() {
+      await carica();
       renderFiltri();
       renderClienti();
     }
 
     function renderFiltri() {
       const stati = tipoAttivo === 'proprietari' ? statiProprietari : statiAcquirenti;
-      const lista = carica().filter(c => c.tipo === tipoAttivo);
+      const lista = _clienti.filter(c => c.tipo === tipoAttivo);
       const el = document.getElementById('filtriStato');
       el.innerHTML = ['Tutti', ...stati].map(s => {
         const count = s === 'Tutti' ? lista.length : lista.filter(c => c.stato === s).length;
@@ -231,7 +243,7 @@
 
     function renderClienti() {
       const search = document.getElementById('searchInput').value.toLowerCase();
-      let lista = carica().filter(c => c.tipo === tipoAttivo);
+      let lista = _clienti.filter(c => c.tipo === tipoAttivo);
       if (filtroStato !== 'Tutti') lista = lista.filter(c => c.stato === filtroStato);
       if (search) lista = lista.filter(c => c.nome.toLowerCase().includes(search));
 
@@ -264,16 +276,10 @@
       `).join('');
     }
 
-    function apriModal(tipo) {
+    function apriModal() {
       document.getElementById('modalTitolo').textContent = 'Nuovo Cliente';
       document.getElementById('editId').value = '';
-      document.getElementById('f_nome').value = '';
-      document.getElementById('f_tel').value = '';
-      document.getElementById('f_email').value = '';
-      document.getElementById('f_note').value = '';
-      document.getElementById('f_immobile').value = '';
-      document.getElementById('f_budget').value = '';
-      document.getElementById('f_zona').value = '';
+      ['f_nome','f_tel','f_email','f_note','f_immobile','f_budget','f_zona'].forEach(id => document.getElementById(id).value = '');
       aggiornaSelect();
       document.getElementById('modalOverlay').classList.add('open');
     }
@@ -286,19 +292,14 @@
       document.getElementById('wrap_zona').style.display = tipoAttivo === 'acquirenti' ? '' : 'none';
     }
 
-    function chiudiModal() {
-      document.getElementById('modalOverlay').classList.remove('open');
-    }
+    function chiudiModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 
-    function salvaCliente() {
+    async function salvaCliente() {
       const nome = document.getElementById('f_nome').value.trim();
       if (!nome) { alert('Inserisci il nome.'); return; }
-      const lista = carica();
       const editId = parseInt(document.getElementById('editId').value);
       const record = {
-        id: editId || Date.now(),
-        tipo: tipoAttivo,
-        nome,
+        tipo: tipoAttivo, nome,
         tel: document.getElementById('f_tel').value.trim(),
         email: document.getElementById('f_email').value.trim(),
         stato: document.getElementById('f_stato').value,
@@ -306,22 +307,19 @@
         immobile: document.getElementById('f_immobile').value.trim(),
         budget: document.getElementById('f_budget').value.trim(),
         zona: document.getElementById('f_zona').value.trim(),
-        aggiornato: new Date().toLocaleDateString('it-IT'),
+        aggiornato: new Date().toISOString().split('T')[0],
       };
       if (editId) {
-        const idx = lista.findIndex(c => c.id === editId);
-        if (idx >= 0) lista[idx] = record;
+        await fetch(`${SB_URL}/rest/v1/clienti?id=eq.${editId}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify(record) });
       } else {
-        lista.unshift(record);
+        await fetch(`${SB_URL}/rest/v1/clienti`, { method: 'POST', headers: SB_H, body: JSON.stringify(record) });
       }
-      salvaStorage(lista);
       chiudiModal();
-      renderFiltri();
-      renderClienti();
+      await aggiorna();
     }
 
     function modificaCliente(id) {
-      const c = carica().find(c => c.id === id);
+      const c = _clienti.find(c => c.id === id);
       if (!c) return;
       document.getElementById('modalTitolo').textContent = 'Modifica Cliente';
       document.getElementById('editId').value = c.id;
@@ -337,27 +335,24 @@
       document.getElementById('modalOverlay').classList.add('open');
     }
 
-    function toggleStella(id) {
-      const lista = carica();
-      const c = lista.find(c => c.id === id);
-      if (c) c.stella = !c.stella;
-      salvaStorage(lista);
-      renderClienti();
+    async function toggleStella(id) {
+      const c = _clienti.find(c => c.id === id);
+      if (!c) return;
+      await fetch(`${SB_URL}/rest/v1/clienti?id=eq.${id}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify({ stella: !c.stella }) });
+      await aggiorna();
     }
 
-    function eliminaCliente(id) {
+    async function eliminaCliente(id) {
       if (!confirm('Eliminare questo cliente?')) return;
-      salvaStorage(carica().filter(c => c.id !== id));
-      renderFiltri();
-      renderClienti();
+      await fetch(`${SB_URL}/rest/v1/clienti?id=eq.${id}`, { method: 'DELETE', headers: SB_H });
+      await aggiorna();
     }
 
     document.getElementById('modalOverlay').addEventListener('click', e => {
       if (e.target === document.getElementById('modalOverlay')) chiudiModal();
     });
 
-    renderFiltri();
-    renderClienti();
+    aggiorna();
   </script>
 
 </body>
