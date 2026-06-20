@@ -265,8 +265,35 @@
 
       </div>
 
+      <!-- SEZIONE LIVE: RICHIESTE / SOCIAL / PRODUZIONE -->
+      <div class="blocco-header" style="margin-bottom:12px;margin-top:20px;">⚡ In tempo reale</div>
+      <div class="realtime-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+
+        <!-- RICHIESTE DA GESTIRE -->
+        <div class="col-card">
+          <div class="col-card-title">📩 Richieste da gestire</div>
+          <div id="richiesteList"><div class="placeholder">Nessuna richiesta nuova.</div></div>
+          <a href="clienti.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai ai Clienti</a>
+        </div>
+
+        <!-- PIANO SOCIAL SETTIMANA -->
+        <div class="col-card">
+          <div class="col-card-title">📸 Piano social — questa settimana</div>
+          <div id="socialSettimana"><div class="placeholder">Nessun contenuto pianificato.</div></div>
+          <a href="social.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai a Social</a>
+        </div>
+
+        <!-- PRODUZIONE + PROSSIMA PUBBLICAZIONE -->
+        <div class="col-card">
+          <div class="col-card-title">🔧 Da produrre &amp; pubblicare</div>
+          <div id="produzioneLista"><div class="placeholder">Nessun contenuto in lavorazione.</div></div>
+          <a href="social.html" style="display:block;margin-top:12px;font-size:0.78rem;color:var(--accent);text-decoration:none;">→ Vai a Social</a>
+        </div>
+
+      </div>
+
       <!-- OSSERVATORIO -->
-      <div class="blocco-header" style="margin-bottom:12px;margin-top:20px;">🔭 Osservatorio acquisizioni</div>
+      <div class="blocco-header" style="margin-bottom:12px;margin-top:0;">🔭 Osservatorio acquisizioni</div>
       <div class="centro-grid" style="margin-bottom:24px;">
 
         <!-- TOP 3 RICERCA -->
@@ -304,11 +331,11 @@
                 <div class="mappa-nodo-nome">Attività & Agenda</div>
                 <div class="mappa-nodo-desc">Todo giornaliero, journal, metriche mensili e goal</div>
               </a>
-              <div class="mappa-nodo pianificato">
-                <div class="mappa-nodo-top"><span class="mappa-nodo-icon">🤖</span><span class="mappa-nodo-stato piano-badge">📋 Pianificato</span></div>
+              <a href="agenti.html" class="mappa-nodo fatto">
+                <div class="mappa-nodo-top"><span class="mappa-nodo-icon">🤖</span><span class="mappa-nodo-stato fatto-badge">✅ Live</span></div>
                 <div class="mappa-nodo-nome">Agenti AI</div>
-                <div class="mappa-nodo-desc">Automazioni intelligenti e supervisore attività</div>
-              </div>
+                <div class="mappa-nodo-desc">Geggi, Giarvis, Chicca + 6 agenti specializzati</div>
+              </a>
             </div>
           </div>
 
@@ -387,10 +414,10 @@
                 <div class="mappa-nodo-nome">Google Calendar</div>
                 <div class="mappa-nodo-desc">Agenda reale sincronizzata con Attività</div>
               </div>
-              <div class="mappa-nodo pianificato">
-                <div class="mappa-nodo-top"><span class="mappa-nodo-icon">🗄</span><span class="mappa-nodo-stato piano-badge">📋 Pianificato</span></div>
+              <div class="mappa-nodo fatto">
+                <div class="mappa-nodo-top"><span class="mappa-nodo-icon">🗄</span><span class="mappa-nodo-stato fatto-badge">✅ Attivo</span></div>
                 <div class="mappa-nodo-nome">Supabase</div>
-                <div class="mappa-nodo-desc">Dati in cloud, accesso da qualsiasi dispositivo</div>
+                <div class="mappa-nodo-desc">Chat, clienti, attività, schede qualifica in cloud</div>
               </div>
             </div>
           </div>
@@ -503,6 +530,82 @@
     campi.forEach(c => totali[c] = 0);
     campi.forEach(c => { totali[c] += corrente[c] || 0; });
     storico.forEach(r => { campi.forEach(c => { totali[c] += r[c] || 0; }); });
+
+    // RICHIESTE DA GESTIRE (clienti stato "Nuovo contatto")
+    const tuttiClienti = JSON.parse(localStorage.getItem('clienti') || '[]');
+    const nuoveRichieste = tuttiClienti.filter(c => c.stato === 'Nuovo contatto' || c.stato === 'Richiesta');
+    const richEl = document.getElementById('richiesteList');
+    if (nuoveRichieste.length === 0) {
+      richEl.innerHTML = '<div class="placeholder">Nessuna richiesta nuova.</div>';
+    } else {
+      richEl.innerHTML = nuoveRichieste.slice(0, 6).map(c => `
+        <div class="priorita-recap-item">
+          <div class="dot-p" style="background:#e67e22"></div>
+          <div style="flex:1">
+            <div class="priorita-recap-testo">${c.nome}</div>
+            <div style="font-size:0.7rem;color:var(--text-muted)">${c.tipo === 'acquirenti' ? 'Acquirente' : 'Proprietario'} · ${c.zona || c.email || ''}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // PIANO SOCIAL SETTIMANA
+    const piano = JSON.parse(localStorage.getItem('piano_editoriale') || '[]');
+    const oggi = new Date(); oggi.setHours(0,0,0,0);
+    const fineSett = new Date(oggi); fineSett.setDate(oggi.getDate() + (6 - oggi.getDay() + 1));
+    const inizioSett = new Date(oggi); inizioSett.setDate(oggi.getDate() - oggi.getDay() + 1);
+    const postSett = piano.filter(p => { const d = new Date(p.data); return d >= inizioSett && d <= fineSett; })
+      .sort((a, b) => new Date(a.data) - new Date(b.data));
+    const socialEl = document.getElementById('socialSettimana');
+    const coloreRubrica = { nero: '#222', bianco: '#888', oro: '#c9a227', grigio: '#666' };
+    const emojiStato = { bozza: '📋', 'in-produzione': '🔧', pubblicato: '✅' };
+    const giorniCortissimi = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+    if (postSett.length === 0) {
+      socialEl.innerHTML = '<div class="placeholder">Nessun contenuto questa settimana.</div>';
+    } else {
+      socialEl.innerHTML = postSett.map(p => {
+        const dp = new Date(p.data);
+        const col = coloreRubrica[p.rubrica] || '#888';
+        const st = emojiStato[p.stato] || '📋';
+        return `<div class="priorita-recap-item">
+          <div style="width:32px;font-size:0.72rem;font-weight:700;color:${col};text-align:center">${giorniCortissimi[dp.getDay()]}<br>${dp.getDate()}</div>
+          <div style="flex:1">
+            <div class="priorita-recap-testo">${p.titolo}</div>
+            <div style="font-size:0.7rem;color:var(--text-muted)">${p.formato || ''}</div>
+          </div>
+          <div style="font-size:0.85rem">${st}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // DA PRODURRE & PUBBLICARE
+    const daFare = piano.filter(p => p.stato !== 'pubblicato').sort((a, b) => new Date(a.data) - new Date(b.data));
+    const prossimaPublbl = piano.filter(p => p.stato === 'pubblicato' && new Date(p.data) >= oggi).sort((a, b) => new Date(a.data) - new Date(b.data))[0];
+    const prodEl = document.getElementById('produzioneLista');
+    if (daFare.length === 0 && !prossimaPublbl) {
+      prodEl.innerHTML = '<div class="placeholder">Nessun contenuto in lavorazione.</div>';
+    } else {
+      let html = '';
+      if (daFare.length > 0) {
+        html += daFare.slice(0, 4).map(p => {
+          const dp = new Date(p.data);
+          const isScaduto = dp < oggi;
+          const label = p.stato === 'in-produzione' ? '🔧 In lav.' : '📋 Bozza';
+          const colData = isScaduto ? '#c0392b' : 'var(--text-muted)';
+          return `<div class="priorita-recap-item">
+            <div style="flex:1">
+              <div class="priorita-recap-testo">${p.titolo}</div>
+              <div style="font-size:0.7rem;color:${colData}">${label} · ${dp.toLocaleDateString('it-IT', {day:'numeric',month:'short'})}${isScaduto ? ' ⚠️' : ''}</div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      if (prossimaPublbl) {
+        const dp = new Date(prossimaPublbl.data);
+        html += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:0.75rem;color:#27ae60;font-weight:600">🚀 Pronto: ${prossimaPublbl.titolo} — ${dp.toLocaleDateString('it-IT',{day:'numeric',month:'short'})}</div>`;
+      }
+      prodEl.innerHTML = html;
+    }
 
     // OSSERVATORIO — TOP 3 RICERCA
     const ricercaImmobili = JSON.parse(localStorage.getItem('ricerca_immobili') || '[]');
