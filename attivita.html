@@ -396,46 +396,45 @@
       settimana.appendChild(div);
     }
 
-    // PRIORITÀ
-    function carica() { return JSON.parse(localStorage.getItem('priorita') || '[]'); }
-    function salva(lista) { localStorage.setItem('priorita', JSON.stringify(lista)); }
+    // SUPABASE
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
-    function aggiungi() {
+    // PRIORITÀ (su Supabase)
+    async function aggiungi() {
       const input = document.getElementById('nuovaVoce');
       const testo = input.value.trim();
       if (!testo) return;
-      const lista = carica();
-      lista.unshift({ id: Date.now(), testo, fatto: false });
-      salva(lista);
       input.value = '';
+      await fetch(`${SB_URL}/rest/v1/attivita`, { method: 'POST', headers: SB_H, body: JSON.stringify({ testo, completata: false, categoria: 'priorita' }) });
       renderPriorita();
     }
 
-    function toggle(id) {
-      const lista = carica();
+    async function toggle(id) {
+      const lista = window._attivita || [];
       const item = lista.find(i => i.id === id);
-      if (item) item.fatto = !item.fatto;
-      salva(lista);
+      if (!item) return;
+      await fetch(`${SB_URL}/rest/v1/attivita?id=eq.${id}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify({ completata: !item.completata }) });
       renderPriorita();
     }
 
-    function elimina(id) {
-      salva(carica().filter(i => i.id !== id));
+    async function elimina(id) {
+      await fetch(`${SB_URL}/rest/v1/attivita?id=eq.${id}`, { method: 'DELETE', headers: SB_H });
       renderPriorita();
     }
 
-    function renderPriorita() {
-      const lista = carica();
-      const aperte = lista.filter(i => !i.fatto).length;
+    async function renderPriorita() {
+      const res = await fetch(`${SB_URL}/rest/v1/attivita?categoria=eq.priorita&order=created_at.desc`, { headers: SB_H });
+      const lista = await res.json();
+      window._attivita = lista;
+      const aperte = lista.filter(i => !i.completata).length;
       document.getElementById('contPriorita').textContent = aperte;
       const el = document.getElementById('listaPriorita');
-      if (lista.length === 0) {
-        el.innerHTML = '<div class="placeholder">Nessuna priorità.</div>';
-        return;
-      }
+      if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna priorità.</div>'; return; }
       el.innerHTML = lista.map(item => `
-        <div class="priorita-item ${item.fatto ? 'fatto' : ''}">
-          <div class="checkbox ${item.fatto ? 'checked' : ''}" onclick="toggle(${item.id})">${item.fatto ? '✓' : ''}</div>
+        <div class="priorita-item ${item.completata ? 'fatto' : ''}">
+          <div class="checkbox ${item.completata ? 'checked' : ''}" onclick="toggle(${item.id})">${item.completata ? '✓' : ''}</div>
           <div class="item-testo">${item.testo}</div>
           <button class="btn-elimina" onclick="elimina(${item.id})">✕</button>
         </div>
