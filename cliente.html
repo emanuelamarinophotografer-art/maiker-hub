@@ -129,22 +129,23 @@
     const classeStato = { 'Potenziale':'stato-potenziale','Incarico preso':'stato-incarico','In trattativa':'stato-trattativa','Venduto':'stato-venduto','Annullato':'stato-annullato','Nuovo contatto':'stato-nuovo','Visita fatta':'stato-visita','Proposta':'stato-proposta','Chiuso':'stato-chiuso','Perso':'stato-perso' };
     const iconaTipo = { 'Chiamata':'📞', 'Email':'✉️', 'Visita':'🏡', 'Incontro':'🤝', 'Nota':'📝', 'WhatsApp':'💬' };
 
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
     const params = new URLSearchParams(location.search);
     const clienteId = parseInt(params.get('id'));
 
-    function caricaClienti() { return JSON.parse(localStorage.getItem('clienti') || '[]'); }
-    function salvaClienti(lista) { localStorage.setItem('clienti', JSON.stringify(lista)); }
-    function caricaAttivita() { return JSON.parse(localStorage.getItem('attivita_clienti') || '{}'); }
-    function salvaAttivita(obj) { localStorage.setItem('attivita_clienti', JSON.stringify(obj)); }
-
-    function render() {
-      const cliente = caricaClienti().find(c => c.id === clienteId);
+    async function render() {
+      const resC = await fetch(`${SB_URL}/rest/v1/clienti?id=eq.${clienteId}`, { headers: SB_H });
+      const clienti = await resC.json();
+      const cliente = clienti[0];
       if (!cliente) { document.getElementById('contenuto').innerHTML = '<div class="placeholder">Cliente non trovato.</div>'; return; }
 
       document.getElementById('topbarNome').textContent = cliente.nome;
 
-      const attivitaObj = caricaAttivita();
-      const attivita = (attivitaObj[clienteId] || []);
+      const resA = await fetch(`${SB_URL}/rest/v1/storico_clienti?cliente_id=eq.${clienteId}&order=created_at.desc`, { headers: SB_H });
+      const attivita = await resA.json();
 
       const isProprietario = cliente.tipo === 'proprietari';
 
@@ -187,12 +188,8 @@
           </div>
           <div class="attivita-input-wrap">
             <select class="attivita-tipo" id="att_tipo">
-              <option>Chiamata</option>
-              <option>WhatsApp</option>
-              <option>Email</option>
-              <option>Visita</option>
-              <option>Incontro</option>
-              <option>Nota</option>
+              <option>Chiamata</option><option>WhatsApp</option><option>Email</option>
+              <option>Visita</option><option>Incontro</option><option>Nota</option>
             </select>
             <input class="attivita-input" type="text" id="att_testo" placeholder="Descrivi l'attività…" />
             <button class="btn-add" onclick="aggiungiAttivita()">+ Aggiungi</button>
@@ -204,12 +201,11 @@
                   <div class="att-icon">${iconaTipo[a.tipo] || '📝'}</div>
                   <div class="att-body">
                     <div class="att-testo">${a.testo}</div>
-                    <div class="att-meta">${a.tipo} · ${a.data}</div>
+                    <div class="att-meta">${a.tipo} · ${new Date(a.created_at).toLocaleDateString('it-IT')}</div>
                   </div>
-                  <button class="att-del" onclick="eliminaAttivita(${a.ts})">✕</button>
+                  <button class="att-del" onclick="eliminaAttivita(${a.id})">✕</button>
                 </div>
-              `).join('')
-            }
+              `).join('')}
           </div>
         </div>
       `;
@@ -217,22 +213,17 @@
       document.getElementById('att_testo').addEventListener('keydown', e => { if (e.key === 'Enter') aggiungiAttivita(); });
     }
 
-    function aggiungiAttivita() {
+    async function aggiungiAttivita() {
       const tipo = document.getElementById('att_tipo').value;
       const testo = document.getElementById('att_testo').value.trim();
       if (!testo) return;
-      const obj = caricaAttivita();
-      if (!obj[clienteId]) obj[clienteId] = [];
-      obj[clienteId].unshift({ ts: Date.now(), tipo, testo, data: new Date().toLocaleDateString('it-IT') });
-      salvaAttivita(obj);
+      await fetch(`${SB_URL}/rest/v1/storico_clienti`, { method: 'POST', headers: SB_H, body: JSON.stringify({ cliente_id: clienteId, tipo, testo }) });
       document.getElementById('att_testo').value = '';
       render();
     }
 
-    function eliminaAttivita(ts) {
-      const obj = caricaAttivita();
-      if (obj[clienteId]) obj[clienteId] = obj[clienteId].filter(a => a.ts !== ts);
-      salvaAttivita(obj);
+    async function eliminaAttivita(id) {
+      await fetch(`${SB_URL}/rest/v1/storico_clienti?id=eq.${id}`, { method: 'DELETE', headers: SB_H });
       render();
     }
 
