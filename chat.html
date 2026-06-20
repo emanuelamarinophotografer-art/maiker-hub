@@ -299,16 +299,26 @@
       document.getElementById('statusBar').textContent = 'in ascolto…';
     }
 
+    const agentiInfo = {
+      geggi:   { emoji: '🎯', nome: 'Geggi' },
+      giarvis: { emoji: '🏡', nome: 'Giarvis' },
+      chicca:  { emoji: '📱', nome: 'Chicca' },
+    };
+
     function creaElemento(m) {
       const isMe = m.mittente === 'emanuela';
+      const agente = agentiInfo[m.mittente];
       const wrap = document.createElement('div');
       wrap.className = 'msg-wrap ' + (isMe ? 'me' : 'io');
 
       const ora = new Date(m.created_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      const avatar = agente ? agente.emoji : '🤖';
+      const nome = agente ? agente.nome : m.mittente;
 
       wrap.innerHTML = `
-        ${!isMe ? '<div class="msg-avatar">🤖</div>' : ''}
+        ${!isMe ? `<div class="msg-avatar" title="${nome}">${avatar}</div>` : ''}
         <div class="msg-group">
+          ${!isMe ? `<div style="font-size:0.68rem;font-weight:600;color:var(--text-muted);margin-bottom:3px;padding-left:2px">${nome}</div>` : ''}
           <div class="msg-bubble">${m.testo.replace(/\n/g, '<br>')}</div>
           <div class="msg-time">${ora}</div>
         </div>
