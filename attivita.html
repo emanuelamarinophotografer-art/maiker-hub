@@ -10,7 +10,7 @@
     .attivita-top { margin-bottom: 16px; }
     .attivita-grid {
       display: grid;
-      grid-template-columns: 1fr 220px;
+      grid-template-columns: 1fr 1fr;
       gap: 20px;
       align-items: start;
       margin-bottom: 20px;
@@ -216,6 +216,12 @@
             <div id="listaPriorita"></div>
           </div>
 
+          <!-- DA SEGUIRE OGGI -->
+          <div class="blocco">
+            <div class="blocco-header">Da seguire oggi <span class="count" id="contSeguire">0</span></div>
+            <div id="listaSeguire"><div class="placeholder">Caricamento…</div></div>
+          </div>
+
           <!-- DA RISPONDERE -->
           <div class="blocco">
             <div class="blocco-header">Da rispondere <span class="count" id="contRispondere">0</span></div>
@@ -226,12 +232,6 @@
           <div class="blocco">
             <div class="blocco-header">Bozze da inviare <span class="count" id="contBozze">0</span></div>
             <div id="listaBozze"><div class="placeholder">Caricamento…</div></div>
-          </div>
-
-          <!-- DA SEGUIRE OGGI -->
-          <div class="blocco">
-            <div class="blocco-header">Da seguire oggi <span class="count" id="contSeguire">0</span></div>
-            <div id="listaSeguire"><div class="placeholder">Caricamento…</div></div>
           </div>
 
         </div>
