@@ -564,6 +564,21 @@
           newsData.textContent = 'Ultimo aggiornamento: ' + dt.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         }
 
+        // Priorità da Supabase
+        const rPriorita = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_HEADERS });
+        const prioritaSB = await rPriorita.json();
+        const recapEl = document.getElementById('recapPriorita');
+        if (Array.isArray(prioritaSB) && prioritaSB.length > 0) {
+          recapEl.innerHTML = prioritaSB.map(p => `
+            <div class="priorita-recap-item">
+              <div class="dot-p"></div>
+              <div class="priorita-recap-testo">${p.testo}</div>
+            </div>
+          `).join('');
+        } else {
+          recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
+        }
+
       } catch(e) {
         console.error('Errore caricamento Supabase:', e);
       }
@@ -585,25 +600,6 @@
           <div style="font-size:0.72rem;color:var(--text-muted)">${c.stato}</div>
         </div>
       `).join('');
-    }
-
-    // PRIORITÀ da Supabase
-    const recapEl = document.getElementById('recapPriorita');
-    try {
-      const rPriorita = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_HEADERS });
-      const prioritaSB = await rPriorita.json();
-      if (prioritaSB.length === 0) {
-        recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
-      } else {
-        recapEl.innerHTML = prioritaSB.map(p => `
-          <div class="priorita-recap-item">
-            <div class="dot-p"></div>
-            <div class="priorita-recap-testo">${p.testo}</div>
-          </div>
-        `).join('');
-      }
-    } catch(e) {
-      recapEl.innerHTML = '<div class="placeholder">Errore caricamento priorità.</div>';
     }
 
     // AGENDA — localStorage + Supabase Calendar
