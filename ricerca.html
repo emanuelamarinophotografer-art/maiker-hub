@@ -53,6 +53,7 @@
     .btn-promuovi:hover { opacity: 0.85; }
     .btn-arch:hover { border-color: #888; color: #888; }
     .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+    .inc-label { font-size: 0.75rem; color: #27ae60; font-weight: 600; }
 
     /* MODAL STATO */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 100; align-items: center; justify-content: center; }
@@ -64,6 +65,17 @@
     .stato-opzione:hover { border-color: var(--accent); background: var(--accent-bg); }
     .modal-actions { display: flex; justify-content: flex-end; }
     .btn-annulla { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; color: var(--text-muted); }
+
+    /* MODAL MODIFICA */
+    .modal-modifica { width: 500px; }
+    .modal-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .modal-field { display: flex; flex-direction: column; gap: 4px; }
+    .modal-field label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    .modal-field input, .modal-field textarea { width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; }
+    .modal-field input:focus, .modal-field textarea:focus { border-color: var(--accent); }
+    .modal-field textarea { resize: vertical; }
+    .modal-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
     @media (max-width: 900px) { .ricerca-grid { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 600px) { .ricerca-grid { grid-template-columns: 1fr; } }
@@ -126,6 +138,37 @@
     </div>
   </main>
 
+  <!-- MODAL MODIFICA SCHEDA -->
+  <div class="modal-overlay" id="modalModifica">
+    <div class="modal modal-modifica">
+      <h3>✏️ Modifica scheda</h3>
+      <div class="modal-form">
+        <div class="modal-field">
+          <label>Nome scheda</label>
+          <input type="text" id="edit_nome" />
+        </div>
+        <div class="modal-row-2">
+          <div class="modal-field">
+            <label>Prezzo richiesto (€)</label>
+            <input type="number" id="edit_prezzo" />
+          </div>
+          <div class="modal-field">
+            <label>Giorni in mercato</label>
+            <input type="number" id="edit_giorni" />
+          </div>
+        </div>
+        <div class="modal-field">
+          <label>Note</label>
+          <textarea id="edit_note" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-annulla" onclick="document.getElementById('modalModifica').classList.remove('open')">Annulla</button>
+        <button type="button" class="btn-promuovi" onclick="salvaModifica()">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL CAMBIO STATO -->
   <div class="modal-overlay" id="modalStato">
     <div class="modal">
@@ -137,7 +180,7 @@
         <div class="stato-opzione" onclick="cambiaStato('archiviato')">📁 Archiviato / Non preso</div>
       </div>
       <div class="modal-actions">
-        <button class="btn-annulla" onclick="document.getElementById('modalStato').classList.remove('open')">Annulla</button>
+        <button type="button" class="btn-annulla" onclick="document.getElementById('modalStato').classList.remove('open')">Annulla</button>
       </div>
     </div>
   </div>
@@ -246,9 +289,10 @@
             </div>
             ${s.note ? `<div class="ric-note">📝 ${s.note}</div>` : ''}
             <div class="ric-actions">
-              <button class="btn-card" onclick="apriModalStato(${s.id})">📋 Stato</button>
-              ${s.stato_scheda !== 'incarico' ? `<button class="btn-promuovi" onclick="promuoviIncarico(${s.id})">✅ Incarico preso</button>` : '<span style="font-size:0.75rem;color:#27ae60;font-weight:600">✅ In Proprietà</span>'}
-              <button class="btn-card btn-del" onclick="elimina(${s.id})">✕</button>
+              <button type="button" class="btn-card" onclick="apriModalStato(${s.id})">📋 Stato</button>
+              <button type="button" class="btn-card" onclick="apriModifica(${s.id})">✏️ Modifica</button>
+              ${s.stato_scheda !== 'incarico' ? `<button type="button" class="btn-promuovi" onclick="promuoviIncarico(${s.id})">✅ Incarico preso</button>` : '<span class="inc-label">✅ In Proprietà</span>'}
+              <button type="button" class="btn-card btn-del" onclick="elimina(${s.id})">✕</button>
             </div>
           </div>
         `;
@@ -303,6 +347,30 @@
       render();
     }
 
+    function apriModifica(id) {
+      idSelezionato = id;
+      const s = carica().find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('edit_nome').value = s.nome || '';
+      document.getElementById('edit_prezzo').value = s.prezzoRichiesto || '';
+      document.getElementById('edit_giorni').value = s.giorniMercato || '';
+      document.getElementById('edit_note').value = s.note || '';
+      document.getElementById('modalModifica').classList.add('open');
+    }
+
+    function salvaModifica() {
+      const lista = carica();
+      const i = lista.findIndex(x => x.id === idSelezionato);
+      if (i < 0) return;
+      lista[i].nome = document.getElementById('edit_nome').value.trim() || lista[i].nome;
+      lista[i].prezzoRichiesto = parseFloat(document.getElementById('edit_prezzo').value) || 0;
+      lista[i].giorniMercato = parseInt(document.getElementById('edit_giorni').value) || 0;
+      lista[i].note = document.getElementById('edit_note').value.trim();
+      salva(lista);
+      document.getElementById('modalModifica').classList.remove('open');
+      render();
+    }
+
     function elimina(id) {
       if (!confirm('Eliminare questa scheda?')) return;
       salva(carica().filter(x => x.id !== id));
@@ -310,6 +378,9 @@
     }
 
     document.getElementById('modalStato').addEventListener('click', e => {
+      if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+    });
+    document.getElementById('modalModifica').addEventListener('click', e => {
       if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
     });
 
