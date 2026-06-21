@@ -88,11 +88,11 @@ body {
 .nav-section.c-operativo .nav-item:hover { background: #b0cade; }
 .nav-section.c-operativo .nav-item.active { color: #1e3e52; border-left-color: #5a8aa8; background: #9ab8cc; }
 
-.nav-section.c-lavoro { background: #c0ccda; border-radius: 6px; margin: 0 8px 4px; }
-.nav-section.c-lavoro .nav-label { color: #1a2e42; }
+.nav-section.c-lavoro { background: #dcc0a0; border-radius: 6px; margin: 0 8px 4px; }
+.nav-section.c-lavoro .nav-label { color: #5a3010; }
 .nav-section.c-lavoro .nav-item { border-radius: 5px; }
-.nav-section.c-lavoro .nav-item:hover { background: #aebece; }
-.nav-section.c-lavoro .nav-item.active { color: #1a2e42; border-left-color: #3a5a78; background: #9ab0c4; }
+.nav-section.c-lavoro .nav-item:hover { background: #ccae8c; }
+.nav-section.c-lavoro .nav-item.active { color: #5a3010; border-left-color: #a06030; background: #c09a78; }
 
 .nav-section.c-contenuti { background: #c4d0bc; border-radius: 6px; margin: 0 8px 4px; }
 .nav-section.c-contenuti .nav-label { color: #2a3e24; }
