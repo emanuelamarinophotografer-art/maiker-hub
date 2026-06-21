@@ -587,17 +587,23 @@
       `).join('');
     }
 
-    // PRIORITÀ
+    // PRIORITÀ da Supabase
     const recapEl = document.getElementById('recapPriorita');
-    if (aperte.length === 0) {
-      recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
-    } else {
-      recapEl.innerHTML = aperte.slice(0, 6).map(p => `
-        <div class="priorita-recap-item">
-          <div class="dot-p"></div>
-          <div class="priorita-recap-testo">${p.testo}</div>
-        </div>
-      `).join('');
+    try {
+      const rPriorita = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_HEADERS });
+      const prioritaSB = await rPriorita.json();
+      if (prioritaSB.length === 0) {
+        recapEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
+      } else {
+        recapEl.innerHTML = prioritaSB.map(p => `
+          <div class="priorita-recap-item">
+            <div class="dot-p"></div>
+            <div class="priorita-recap-testo">${p.testo}</div>
+          </div>
+        `).join('');
+      }
+    } catch(e) {
+      recapEl.innerHTML = '<div class="placeholder">Errore caricamento priorità.</div>';
     }
 
     // AGENDA — localStorage + Supabase Calendar
