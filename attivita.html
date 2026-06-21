@@ -6,6 +6,17 @@
   <title>Ework — Attività</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    /* LAYOUT DOPPIA COLONNA */
+    .attivita-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .attivita-col { display: flex; flex-direction: column; gap: 16px; }
+    @media (max-width: 960px) { .attivita-grid { grid-template-columns: 1fr; } }
+
+    /* PRIORITÀ */
     .priorita-input-wrap { display: flex; gap: 10px; margin-bottom: 12px; }
     .priorita-input {
       flex: 1; background: var(--bg-card); border: 1px solid var(--border);
@@ -20,7 +31,7 @@
     .btn-aggiungi:hover { opacity: 0.85; }
     .priorita-item {
       background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-      padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+      padding: 10px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
     }
     .priorita-item.fatto { opacity: 0.4; }
     .priorita-item.fatto .item-testo { text-decoration: line-through; }
@@ -30,45 +41,85 @@
       justify-content: center; font-size: 0.65rem; background: var(--bg);
     }
     .checkbox.checked { background: var(--accent); border-color: var(--accent); color: white; }
-    .item-testo { flex: 1; font-size: 0.92rem; color: var(--text); }
+    .item-testo { flex: 1; font-size: 0.88rem; color: var(--text); }
     .btn-elimina {
       background: none; border: none; color: var(--text-faint);
       cursor: pointer; font-size: 0.9rem; padding: 2px 6px;
     }
     .btn-elimina:hover { color: var(--danger); }
 
+    /* SEZIONI LIVE */
+    .ric-item {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .ric-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--accent-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--accent); flex-shrink: 0;
+    }
+    .ric-info { flex: 1; min-width: 0; }
+    .ric-nome { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    .ric-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ric-badge {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0;
+    }
+    .badge-scaduto { background: #f5d0d0; color: #7a2020; }
+    .badge-oggi { background: #fce8c8; color: #6a3800; }
+    .badge-attesa { background: #c4d8e6; color: #1e3e52; }
+    .badge-bozza { background: #d0e8d8; color: #1a4a28; }
+    .ric-link { font-size: 0.72rem; color: var(--accent); text-decoration: none; font-weight: 600; flex-shrink: 0; }
+    .ric-link:hover { text-decoration: underline; }
+
+    /* NUMERI RAPIDI */
+    .numeri-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .numero-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 16px; text-align: center;
+    }
+    .numero-val { font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .numero-val.accent { color: var(--accent); }
+    .numero-val.warn { color: #c07040; }
+    .numero-label { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+
     /* METRICHE */
-    .metriche-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; }
-    .metriche-gruppo { margin-bottom: 20px; }
+    .metriche-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .metriche-gruppo { margin-bottom: 16px; }
     .metriche-gruppo-label { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
-    .metriche-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .metrica-item label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+    .metriche-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .metrica-item label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
     .metrica-item input {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; padding: 8px 10px; font-size: 1rem; font-family: inherit;
+      border-radius: 6px; padding: 7px 8px; font-size: 0.95rem; font-family: inherit;
       font-weight: 600; color: var(--text); outline: none; text-align: center;
+      box-sizing: border-box;
     }
     .metrica-item input:focus { border-color: var(--accent); }
-    .metriche-actions { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .metriche-autosave { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
-    .btn-chiudi { background: #4a9e6b; color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .metriche-actions { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .metriche-autosave { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
+    .btn-chiudi { background: #4a9e6b; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; font-family: inherit; font-weight: 600; cursor: pointer; }
     .btn-chiudi:hover { opacity: 0.85; }
     .btn-mese-passato { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 3px 10px; font-size: 0.72rem; font-family: inherit; font-weight: 600; cursor: pointer; margin-left: 10px; }
     .btn-mese-passato:hover { background: var(--accent-bg); }
-    .mese-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; }
-    .mese-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .mese-card-title { font-size: 0.88rem; font-weight: 600; color: var(--text); text-transform: capitalize; }
+    .storico-metriche-wrap { margin-top: 16px; }
+    .mesi-passati-wrap { margin-top: 20px; }
+    .form-mese-passato { display: none; }
+    .form-mese-passato.aperto { display: block; }
+    .metriche-form-mese { margin-bottom: 12px; }
+    .select-mese { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.88rem; background: var(--bg); }
+    .input-anno { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.88rem; background: var(--bg); box-sizing: border-box; }
 
     .storico-settimana {
       background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 14px 18px; margin-bottom: 10px;
+      padding: 12px 16px; margin-bottom: 10px;
     }
     .storico-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .storico-data { font-size: 0.82rem; font-weight: 600; color: var(--text); }
     .storico-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .storico-val { text-align: center; }
-    .storico-val span { display: block; font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .storico-val strong { font-size: 1.1rem; color: var(--text); }
+    .storico-val span { display: block; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .storico-val strong { font-size: 1rem; color: var(--text); }
     .storico-val strong.zero { color: var(--text-faint); }
     .btn-del-storico { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.8rem; }
     .btn-del-storico:hover { color: var(--danger); }
@@ -79,16 +130,17 @@
     }
     .totale-mese-label { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
 
-    .goal-bars { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .goal-bar-item { }
-    .goal-bar-header { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 5px; }
+    .goal-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .goal-bar-header { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; }
     .goal-bar-nome { font-weight: 600; color: var(--text); }
     .goal-bar-num { color: var(--text-muted); }
-    .goal-bar-track { background: var(--border); border-radius: 20px; height: 10px; overflow: hidden; }
+    .goal-bar-track { background: var(--border); border-radius: 20px; height: 8px; overflow: hidden; }
     .goal-bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width 0.4s; }
     .goal-bar-fill.raggiunto { background: #4a9e6b; }
 
-    @media (max-width: 900px) { .metriche-row { grid-template-columns: repeat(2, 1fr); } .storico-grid { grid-template-columns: repeat(2, 1fr); } }
+    .mese-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+    .mese-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .mese-card-title { font-size: 0.88rem; font-weight: 600; color: var(--text); text-transform: capitalize; }
   </style>
 </head>
 <body>
@@ -101,50 +153,31 @@
 
     <nav class="nav-section c-principale">
       <div class="nav-label">Principale</div>
-      <a class="nav-item" href="index.html">
-        <span class="icon">🎯</span> Centro di comando
-      </a>
+      <a class="nav-item" href="index.html"><span class="icon">🎯</span> Centro di comando</a>
     </nav>
 
     <nav class="nav-section c-operativo">
       <div class="nav-label">Operativo</div>
-      <a class="nav-item active" href="attivita.html">
-        <span class="icon">📅</span> Attività
-      </a>
-      <a class="nav-item" href="agenti.html">
-        <span class="icon">🤖</span> Agenti
-      </a>
-      <a class="nav-item" href="chat.html">
-        <span class="icon">💬</span> Chat
-      </a>
+      <a class="nav-item active" href="attivita.html"><span class="icon">📅</span> Attività</a>
+      <a class="nav-item" href="agenti.html"><span class="icon">🤖</span> Agenti</a>
+      <a class="nav-item" href="chat.html"><span class="icon">💬</span> Chat</a>
     </nav>
 
     <nav class="nav-section c-lavoro">
       <div class="nav-label">Lavoro</div>
-      <a class="nav-item" href="clienti.html">
-        <span class="icon">👤</span> Clienti
-      </a>
+      <a class="nav-item" href="clienti.html"><span class="icon">👤</span> Clienti</a>
       <a class="nav-item" href="richieste.html"><span class="icon">📞</span> Richieste</a>
       <a class="nav-item" href="proprieta.html"><span class="icon">🏡</span> Proprietà</a>
-      <a class="nav-item" href="ricerca.html">
-        <span class="icon">🔍</span> Ricerca Immobili
-      </a>
-      <a class="nav-item" href="radar.html">
-        <span class="icon">📡</span> Radar Lunedì
-      </a>
-      <a class="nav-item" href="incarico.html">
-        <span class="icon">📋</span> Scheda Incarico
-      </a>
+      <a class="nav-item" href="valutazione.html"><span class="icon">🧮</span> Valutazione</a>
+      <a class="nav-item" href="ricerca.html"><span class="icon">🔍</span> Ricerca Immobili</a>
+      <a class="nav-item" href="radar.html"><span class="icon">📡</span> Radar Lunedì</a>
+      <a class="nav-item" href="incarico.html"><span class="icon">📋</span> Scheda Incarico</a>
     </nav>
 
     <nav class="nav-section c-contenuti">
       <div class="nav-label">Contenuti</div>
-      <a class="nav-item" href="social.html">
-        <span class="icon">📸</span> Social
-      </a>
-      <a class="nav-item" href="fonti.html">
-        <span class="icon">🌿</span> Fonti
-      </a>
+      <a class="nav-item" href="social.html"><span class="icon">📸</span> Social</a>
+      <a class="nav-item" href="fonti.html"><span class="icon">🌿</span> Fonti</a>
     </nav>
 
     <div class="sidebar-bottom" id="dataOggi"></div>
@@ -152,217 +185,170 @@
 
   <main class="main">
     <div class="topbar">
-      <h2>Attività</h2>
+      <h2>📅 Attività</h2>
       <div class="date" id="dataEstesa"></div>
     </div>
 
     <div class="content">
+      <div class="attivita-grid">
 
-      <!-- 0. PRIORITÀ -->
-      <div class="blocco">
-        <div class="blocco-header">Priorità <span class="count" id="contPriorita">0</span></div>
-        <div class="priorita-input-wrap">
-          <input class="priorita-input" id="nuovaVoce" type="text" placeholder="Aggiungi una priorità…" />
-          <button class="btn-aggiungi" onclick="aggiungi()">+ Aggiungi</button>
+        <!-- COLONNA SINISTRA: operativo giornaliero -->
+        <div class="attivita-col">
+
+          <!-- PRIORITÀ -->
+          <div class="blocco">
+            <div class="blocco-header">Priorità <span class="count" id="contPriorita">0</span></div>
+            <div class="priorita-input-wrap">
+              <input class="priorita-input" id="nuovaVoce" type="text" placeholder="Aggiungi una priorità…" />
+              <button class="btn-aggiungi" onclick="aggiungi()">+ Aggiungi</button>
+            </div>
+            <div id="listaPriorita"></div>
+          </div>
+
+          <!-- DA SEGUIRE OGGI -->
+          <div class="blocco">
+            <div class="blocco-header">Da seguire oggi <span class="count" id="contSeguire">0</span></div>
+            <div id="listaSeguire"><div class="placeholder">Caricamento…</div></div>
+          </div>
+
+          <!-- DA RISPONDERE -->
+          <div class="blocco">
+            <div class="blocco-header">Da rispondere <span class="count" id="contRispondere">0</span></div>
+            <div id="listaRispondere"><div class="placeholder">Caricamento…</div></div>
+          </div>
+
+          <!-- BOZZE DA INVIARE -->
+          <div class="blocco">
+            <div class="blocco-header">Bozze da inviare <span class="count" id="contBozze">0</span></div>
+            <div id="listaBozze"><div class="placeholder">Caricamento…</div></div>
+          </div>
+
         </div>
-        <div id="listaPriorita"></div>
-      </div>
 
-      <!-- 1. SETTIMANA -->
-      <div class="blocco">
-        <div class="blocco-header">Settimana</div>
-        <div class="settimana-wrap"><div class="settimana" id="settimana"></div></div>
-      </div>
+        <!-- COLONNA DESTRA: settimana + metriche -->
+        <div class="attivita-col">
 
-      <!-- 2. DA FARE OGGI -->
-      <div class="blocco">
-        <div class="blocco-header">Da fare oggi <span class="count">0</span></div>
-        <div class="lista">
-          <div class="placeholder">Nessuna attività per oggi.</div>
-        </div>
-      </div>
+          <!-- SETTIMANA -->
+          <div class="blocco">
+            <div class="blocco-header">Settimana</div>
+            <div class="settimana-wrap"><div class="settimana" id="settimana"></div></div>
+          </div>
 
-      <!-- 3. DA RISPONDERE OGGI -->
-      <div class="blocco">
-        <div class="blocco-header">Da rispondere oggi <span class="count">0</span></div>
-        <div class="lista">
-          <div class="placeholder">Nessuna mail o richiesta in attesa.</div>
-        </div>
-      </div>
-
-      <!-- 4. DA RICORDARE -->
-      <div class="blocco">
-        <div class="blocco-header">Da ricordare</div>
-        <div class="lista">
-          <div class="placeholder">Note veloci per la settimana.</div>
-        </div>
-      </div>
-
-      <!-- 5. RECAP FOLLOW-UP -->
-      <div class="blocco">
-        <div class="blocco-header">Recap follow-up</div>
-        <div class="lista">
-          <div class="placeholder">Nessun follow-up in sospeso.</div>
-        </div>
-      </div>
-
-      <!-- 6. AZIONI SCHEDULATE -->
-      <div class="blocco">
-        <div class="blocco-header">Azioni schedulate questa settimana</div>
-        <div class="lista">
-          <div class="placeholder">Nessuna azione pianificata.</div>
-        </div>
-      </div>
-
-      <!-- 7. METRICHE SETTIMANALI -->
-      <div class="blocco">
-        <div class="blocco-header">Metriche settimanali</div>
-
-        <div class="metriche-form">
-
-          <div class="metriche-gruppo">
-            <div class="metriche-gruppo-label">Transazioni & Incarichi</div>
-            <div class="metriche-row">
-              <div class="metrica-item">
-                <label>Transazioni chiuse</label>
-                <input type="number" min="0" id="m_transazioni" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Incarichi esclusiva</label>
-                <input type="number" min="0" id="m_incarichi_e" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Incarichi non esclusiva</label>
-                <input type="number" min="0" id="m_incarichi_ne" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Valutazioni</label>
-                <input type="number" min="0" id="m_valutazioni" placeholder="0" />
-              </div>
+          <!-- NUMERI RAPIDI -->
+          <div class="blocco">
+            <div class="blocco-header">Numeri rapidi</div>
+            <div class="numeri-grid" id="numeriRapidi">
+              <div class="numero-card"><div class="numero-val" id="nr_tot">—</div><div class="numero-label">Richieste totali</div></div>
+              <div class="numero-card"><div class="numero-val accent" id="nr_attive">—</div><div class="numero-label">Richieste attive</div></div>
+              <div class="numero-card"><div class="numero-val warn" id="nr_scadute">—</div><div class="numero-label">Follow scaduti</div></div>
+              <div class="numero-card"><div class="numero-val" id="nr_mese">—</div><div class="numero-label">Arrivate questo mese</div></div>
             </div>
           </div>
 
-          <div class="metriche-gruppo">
-            <div class="metriche-gruppo-label">Visite & Appuntamenti</div>
-            <div class="metriche-row">
-              <div class="metrica-item">
-                <label>Appuntamenti di visita</label>
-                <input type="number" min="0" id="m_visita" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Coll. interna</label>
-                <input type="number" min="0" id="m_coll_int" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Coll. esterna</label>
-                <input type="number" min="0" id="m_coll_ext" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>App. per incarico</label>
-                <input type="number" min="0" id="m_x_incarico" placeholder="0" />
-              </div>
-            </div>
-          </div>
+          <!-- METRICHE SETTIMANALI -->
+          <div class="blocco">
+            <div class="blocco-header">Metriche settimanali</div>
 
-          <div class="metriche-gruppo">
-            <div class="metriche-gruppo-label">Contatti & Altro</div>
-            <div class="metriche-row">
-              <div class="metrica-item">
-                <label>Contatti presi</label>
-                <input type="number" min="0" id="m_contatti" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Telefonate fatte</label>
-                <input type="number" min="0" id="m_telefonate" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Ribassi</label>
-                <input type="number" min="0" id="m_ribassi" placeholder="0" />
-              </div>
-              <div class="metrica-item">
-                <label>Proposte ritirate</label>
-                <input type="number" min="0" id="m_proposte_rit" placeholder="0" />
-              </div>
-            </div>
-          </div>
-
-          <div class="metriche-actions">
-            <span class="metriche-autosave" id="autosaveMsg"></span>
-            <button class="btn-chiudi" onclick="chiudiSettimana()">✓ Chiudi settimana</button>
-          </div>
-
-        </div>
-
-        <!-- STORICO -->
-        <div id="storicoMetriche" style="margin-top: 20px;"></div>
-
-        <!-- MESI PASSATI -->
-        <div style="margin-top: 24px;">
-          <div class="blocco-header" style="margin-bottom:12px;">Storico mesi passati
-            <button class="btn-mese-passato" onclick="toggleFormMese()">+ Aggiungi mese</button>
-          </div>
-
-          <div id="formMesePassato" style="display:none;">
-            <div class="metriche-form" style="margin-bottom:12px;">
-              <div class="metriche-gruppo">
-                <div class="metriche-gruppo-label">Mese di riferimento</div>
-                <div class="metriche-row" style="grid-template-columns: 1fr 1fr;">
-                  <div class="metrica-item">
-                    <label>Mese</label>
-                    <select id="mp_mese" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:0.9rem;background:var(--bg);">
-                      <option value="0">Gennaio</option><option value="1">Febbraio</option>
-                      <option value="2">Marzo</option><option value="3">Aprile</option>
-                      <option value="4">Maggio</option><option value="5">Giugno</option>
-                      <option value="6">Luglio</option><option value="7">Agosto</option>
-                      <option value="8">Settembre</option><option value="9">Ottobre</option>
-                      <option value="10">Novembre</option><option value="11">Dicembre</option>
-                    </select>
-                  </div>
-                  <div class="metrica-item">
-                    <label>Anno</label>
-                    <input type="number" id="mp_anno" value="2026" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:0.9rem;background:var(--bg);" />
-                  </div>
-                </div>
-              </div>
+            <div class="metriche-form">
               <div class="metriche-gruppo">
                 <div class="metriche-gruppo-label">Transazioni & Incarichi</div>
                 <div class="metriche-row">
-                  <div class="metrica-item"><label>Transazioni</label><input type="number" min="0" id="mp_transazioni" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Incarichi E.</label><input type="number" min="0" id="mp_incarichi_e" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Incarichi N.E.</label><input type="number" min="0" id="mp_incarichi_ne" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Valutazioni</label><input type="number" min="0" id="mp_valutazioni" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Transazioni chiuse</label><input type="number" min="0" id="m_transazioni" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Incarichi esclusiva</label><input type="number" min="0" id="m_incarichi_e" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Incarichi non esclusiva</label><input type="number" min="0" id="m_incarichi_ne" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Valutazioni</label><input type="number" min="0" id="m_valutazioni" placeholder="0" /></div>
                 </div>
               </div>
               <div class="metriche-gruppo">
                 <div class="metriche-gruppo-label">Visite & Appuntamenti</div>
                 <div class="metriche-row">
-                  <div class="metrica-item"><label>App. visita</label><input type="number" min="0" id="mp_visita" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Coll. interna</label><input type="number" min="0" id="mp_coll_int" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Coll. esterna</label><input type="number" min="0" id="mp_coll_ext" placeholder="0" /></div>
-                  <div class="metrica-item"><label>App. incarico</label><input type="number" min="0" id="mp_x_incarico" placeholder="0" /></div>
+                  <div class="metrica-item"><label>App. di visita</label><input type="number" min="0" id="m_visita" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Coll. interna</label><input type="number" min="0" id="m_coll_int" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Coll. esterna</label><input type="number" min="0" id="m_coll_ext" placeholder="0" /></div>
+                  <div class="metrica-item"><label>App. per incarico</label><input type="number" min="0" id="m_x_incarico" placeholder="0" /></div>
                 </div>
               </div>
               <div class="metriche-gruppo">
                 <div class="metriche-gruppo-label">Contatti & Altro</div>
                 <div class="metriche-row">
-                  <div class="metrica-item"><label>Contatti</label><input type="number" min="0" id="mp_contatti" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Telefonate</label><input type="number" min="0" id="mp_telefonate" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Ribassi</label><input type="number" min="0" id="mp_ribassi" placeholder="0" /></div>
-                  <div class="metrica-item"><label>Prop. ritirate</label><input type="number" min="0" id="mp_proposte_rit" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Contatti presi</label><input type="number" min="0" id="m_contatti" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Telefonate fatte</label><input type="number" min="0" id="m_telefonate" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Ribassi</label><input type="number" min="0" id="m_ribassi" placeholder="0" /></div>
+                  <div class="metrica-item"><label>Proposte ritirate</label><input type="number" min="0" id="m_proposte_rit" placeholder="0" /></div>
                 </div>
               </div>
               <div class="metriche-actions">
-                <span></span>
-                <button class="btn-aggiungi" onclick="salvaMesePassato()">💾 Salva mese</button>
+                <span class="metriche-autosave" id="autosaveMsg"></span>
+                <button type="button" class="btn-chiudi" onclick="chiudiSettimana()">✓ Chiudi settimana</button>
               </div>
             </div>
+
+            <div class="storico-metriche-wrap" id="storicoMetriche"></div>
+
+            <!-- MESI PASSATI -->
+            <div class="mesi-passati-wrap">
+              <div class="blocco-header" style="margin-bottom:12px;">Storico mesi passati
+                <button type="button" class="btn-mese-passato" onclick="toggleFormMese()">+ Aggiungi mese</button>
+              </div>
+              <div id="formMesePassato" class="form-mese-passato">
+                <div class="metriche-form metriche-form-mese">
+                  <div class="metriche-gruppo">
+                    <div class="metriche-gruppo-label">Mese di riferimento</div>
+                    <div class="metriche-row">
+                      <div class="metrica-item">
+                        <label>Mese</label>
+                        <select id="mp_mese" class="select-mese">
+                          <option value="0">Gennaio</option><option value="1">Febbraio</option>
+                          <option value="2">Marzo</option><option value="3">Aprile</option>
+                          <option value="4">Maggio</option><option value="5">Giugno</option>
+                          <option value="6">Luglio</option><option value="7">Agosto</option>
+                          <option value="8">Settembre</option><option value="9">Ottobre</option>
+                          <option value="10">Novembre</option><option value="11">Dicembre</option>
+                        </select>
+                      </div>
+                      <div class="metrica-item"><label>Anno</label><input type="number" id="mp_anno" value="2026" class="input-anno" /></div>
+                    </div>
+                  </div>
+                  <div class="metriche-gruppo">
+                    <div class="metriche-gruppo-label">Transazioni & Incarichi</div>
+                    <div class="metriche-row">
+                      <div class="metrica-item"><label>Transazioni</label><input type="number" min="0" id="mp_transazioni" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Incarichi E.</label><input type="number" min="0" id="mp_incarichi_e" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Incarichi N.E.</label><input type="number" min="0" id="mp_incarichi_ne" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Valutazioni</label><input type="number" min="0" id="mp_valutazioni" placeholder="0" /></div>
+                    </div>
+                  </div>
+                  <div class="metriche-gruppo">
+                    <div class="metriche-gruppo-label">Visite & Appuntamenti</div>
+                    <div class="metriche-row">
+                      <div class="metrica-item"><label>App. visita</label><input type="number" min="0" id="mp_visita" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Coll. interna</label><input type="number" min="0" id="mp_coll_int" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Coll. esterna</label><input type="number" min="0" id="mp_coll_ext" placeholder="0" /></div>
+                      <div class="metrica-item"><label>App. incarico</label><input type="number" min="0" id="mp_x_incarico" placeholder="0" /></div>
+                    </div>
+                  </div>
+                  <div class="metriche-gruppo">
+                    <div class="metriche-gruppo-label">Contatti & Altro</div>
+                    <div class="metriche-row">
+                      <div class="metrica-item"><label>Contatti</label><input type="number" min="0" id="mp_contatti" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Telefonate</label><input type="number" min="0" id="mp_telefonate" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Ribassi</label><input type="number" min="0" id="mp_ribassi" placeholder="0" /></div>
+                      <div class="metrica-item"><label>Prop. ritirate</label><input type="number" min="0" id="mp_proposte_rit" placeholder="0" /></div>
+                    </div>
+                  </div>
+                  <div class="metriche-actions">
+                    <span></span>
+                    <button type="button" class="btn-aggiungi" onclick="salvaMesePassato()">💾 Salva mese</button>
+                  </div>
+                </div>
+              </div>
+              <div id="storicoMesi"></div>
+            </div>
+
           </div>
 
-          <div id="storicoMesi"></div>
         </div>
-
       </div>
-
     </div>
   </main>
 
@@ -375,23 +361,19 @@
     document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
     document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
 
+    // SETTIMANA
     const settimana = document.getElementById('settimana');
     const oggi = d.getDay();
     const lunedi = new Date(d);
     const diffLun = (oggi === 0) ? -6 : 1 - oggi;
     lunedi.setDate(d.getDate() + diffLun);
-
     for (let i = 0; i < 7; i++) {
       const giorno = new Date(lunedi);
       giorno.setDate(lunedi.getDate() + i);
       const isOggi = giorno.toDateString() === d.toDateString();
       const div = document.createElement('div');
       div.className = 'giorno' + (isOggi ? ' oggi' : '');
-      div.innerHTML = `
-        <div class="giorno-nome">${giorniBrevi[giorno.getDay()]}</div>
-        <div class="giorno-num">${giorno.getDate()}</div>
-        <div class="empty-slot">libero</div>
-      `;
+      div.innerHTML = `<div class="giorno-nome">${giorniBrevi[giorno.getDay()]}</div><div class="giorno-num">${giorno.getDate()}</div><div class="empty-slot">libero</div>`;
       settimana.appendChild(div);
     }
 
@@ -400,7 +382,19 @@
     const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
     const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
-    // PRIORITÀ (su Supabase)
+    function fmt(s) {
+      if (!s) return '';
+      const [y, m, dd] = s.split('-');
+      return dd + '/' + m + '/' + y;
+    }
+
+    function iniziali(nome) {
+      if (!nome) return '?';
+      const p = nome.trim().split(' ');
+      return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
+    }
+
+    // PRIORITÀ
     async function aggiungi() {
       const input = document.getElementById('nuovaVoce');
       const testo = input.value.trim();
@@ -440,10 +434,87 @@
       `).join('');
     }
 
-    document.getElementById('nuovaVoce').addEventListener('keydown', e => {
-      if (e.key === 'Enter') aggiungi();
-    });
+    document.getElementById('nuovaVoce').addEventListener('keydown', e => { if (e.key === 'Enter') aggiungi(); });
 
+    // SEZIONI LIVE DA SUPABASE RICHIESTE
+    async function caricaRichieste() {
+      const oggi = new Date().toISOString().split('T')[0];
+      const meseFine = oggi.slice(0,8) + '01'; // primo del mese corrente
+
+      // Fetch parallelo: tutte le richieste non annullate
+      const [resAttive, resTot] = await Promise.all([
+        fetch(`${SB_URL}/rest/v1/richieste?stato_cliente=neq.Annullato&select=id,nome_cliente,immobile,prossimo_follow,stato_follow,telefono,email`, { headers: SB_H }),
+        fetch(`${SB_URL}/rest/v1/richieste?select=id,stato_cliente,prossimo_follow,data_richiesta,stato_follow`, { headers: SB_H })
+      ]);
+      const attive = await resAttive.json();
+      const tutte = await resTot.json();
+
+      const oggiStr = oggi;
+
+      // Da seguire oggi: prossimo_follow <= oggi e stato_follow non è Completato/Perso/Annullato
+      const seguire = attive.filter(r => {
+        if (!r.prossimo_follow) return false;
+        const stati_esclusi = ['Completato', 'Perso', 'Annullato'];
+        if (stati_esclusi.includes(r.stato_follow)) return false;
+        return r.prossimo_follow <= oggiStr;
+      });
+
+      // Da rispondere: stato_follow = 'Da rispondere'
+      const rispondere = attive.filter(r => r.stato_follow === 'Da rispondere');
+
+      // Bozze da inviare: stato_follow = 'Da generare' (bozza pronta, non ancora mandata)
+      const bozze = attive.filter(r => r.stato_follow === 'Da generare');
+
+      // Numeri rapidi
+      const totale = tutte.length;
+      const nAttive = tutte.filter(r => !['Annullato','Perso','Venduto'].includes(r.stato_cliente)).length;
+      const scadute = seguire.length;
+      const questoMese = tutte.filter(r => r.data_richiesta && r.data_richiesta >= meseFine).length;
+
+      document.getElementById('nr_tot').textContent = totale;
+      document.getElementById('nr_attive').textContent = nAttive;
+      document.getElementById('nr_scadute').textContent = scadute;
+      document.getElementById('nr_mese').textContent = questoMese;
+
+      renderSezione('listaSeguire', 'contSeguire', seguire, 'seguire');
+      renderSezione('listaRispondere', 'contRispondere', rispondere, 'rispondere');
+      renderSezione('listaBozze', 'contBozze', bozze, 'bozze');
+    }
+
+    function renderSezione(elId, countId, lista, tipo) {
+      document.getElementById(countId).textContent = lista.length;
+      const el = document.getElementById(elId);
+      if (lista.length === 0) {
+        const vuoti = { seguire: 'Nessun follow-up in scadenza.', rispondere: 'Nessuna risposta in attesa.', bozze: 'Nessuna bozza da inviare.' };
+        el.innerHTML = `<div class="placeholder">${vuoti[tipo]}</div>`;
+        return;
+      }
+      el.innerHTML = lista.map(r => {
+        let badge = '';
+        const oggiStr = new Date().toISOString().split('T')[0];
+        if (tipo === 'seguire') {
+          const scad = r.prossimo_follow < oggiStr;
+          badge = `<span class="ric-badge ${scad ? 'badge-scaduto' : 'badge-oggi'}">${scad ? 'Scaduto' : 'Oggi'}</span>`;
+        } else if (tipo === 'rispondere') {
+          badge = `<span class="ric-badge badge-attesa">In attesa</span>`;
+        } else {
+          badge = `<span class="ric-badge badge-bozza">Da inviare</span>`;
+        }
+        const sub = [r.immobile, r.prossimo_follow ? fmt(r.prossimo_follow) : null].filter(Boolean).join(' · ');
+        return `
+          <div class="ric-item">
+            <div class="ric-avatar">${iniziali(r.nome_cliente)}</div>
+            <div class="ric-info">
+              <div class="ric-nome">${r.nome_cliente || '—'}</div>
+              ${sub ? `<div class="ric-sub">${sub}</div>` : ''}
+            </div>
+            ${badge}
+            <a class="ric-link" href="richieste.html" title="Vai a richieste">→</a>
+          </div>`;
+      }).join('');
+    }
+
+    caricaRichieste();
     renderPriorita();
 
     // METRICHE
@@ -461,16 +532,11 @@
     function caricaStorico() { return JSON.parse(localStorage.getItem('metriche_storico') || '[]'); }
     function salvaStorico(lista) { localStorage.setItem('metriche_storico', JSON.stringify(lista)); }
 
-    // Carica settimana corrente nei campi
     function caricaCampi() {
       const r = caricaCorrente();
-      campi.forEach(c => {
-        const el = document.getElementById('m_' + c);
-        if (el) el.value = r[c] || '';
-      });
+      campi.forEach(c => { const el = document.getElementById('m_' + c); if (el) el.value = r[c] || ''; });
     }
 
-    // Autosave al cambio di ogni campo
     function autosave() {
       const r = caricaCorrente();
       campi.forEach(c => { r[c] = parseInt(document.getElementById('m_' + c).value) || 0; });
@@ -481,10 +547,7 @@
       renderMetriche();
     }
 
-    campi.forEach(c => {
-      const el = document.getElementById('m_' + c);
-      if (el) el.addEventListener('input', autosave);
-    });
+    campi.forEach(c => { const el = document.getElementById('m_' + c); if (el) el.addEventListener('input', autosave); });
 
     function chiudiSettimana() {
       const r = caricaCorrente();
@@ -509,8 +572,6 @@
       const corrente = caricaCorrente();
       const storico = caricaStorico();
       const el = document.getElementById('storicoMetriche');
-
-      // Totali mese = corrente + storico
       const meseCorrente = new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
       const totali = {};
       campi.forEach(c => totali[c] = 0);
@@ -523,45 +584,30 @@
         { nome: 'Incarichi (E. + N.E.)', valore: incarichi_tot, goal: goal.incarichi },
         { nome: 'Transazioni', valore: totali.transazioni, goal: goal.transazioni },
       ];
-
       const barre = goalBars.map(g => {
         const perc = Math.min(Math.round((g.valore / g.goal) * 100), 100);
         const raggiunto = g.valore >= g.goal;
         return `<div class="goal-bar-item">
-          <div class="goal-bar-header">
-            <span class="goal-bar-nome">${g.nome}</span>
-            <span class="goal-bar-num">${g.valore} / ${g.goal} ${raggiunto ? '✓' : ''}</span>
-          </div>
-          <div class="goal-bar-track">
-            <div class="goal-bar-fill ${raggiunto ? 'raggiunto' : ''}" style="width: ${perc}%"></div>
-          </div>
+          <div class="goal-bar-header"><span class="goal-bar-nome">${g.nome}</span><span class="goal-bar-num">${g.valore} / ${g.goal} ${raggiunto ? '✓' : ''}</span></div>
+          <div class="goal-bar-track"><div class="goal-bar-fill ${raggiunto ? 'raggiunto' : ''}" style="width:${perc}%"></div></div>
         </div>`;
       }).join('');
 
       let html = `<div class="totale-mese">
         <div class="totale-mese-label">Totale mese — ${meseCorrente}</div>
-        <div class="storico-grid">
-          ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${totali[c] === 0 ? 'zero' : ''}">${totali[c]}</strong></div>`).join('')}
-        </div>
+        <div class="storico-grid">${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${totali[c]===0?'zero':''}">${totali[c]}</strong></div>`).join('')}</div>
         <div class="goal-bars">${barre}</div>
       </div>`;
 
       if (storico.length > 0) {
         html += storico.map(r => `
           <div class="storico-settimana">
-            <div class="storico-header">
-              <div class="storico-data">${r.dataInizio} → ${r.dataFine || r.dataInizio}</div>
-              <button class="btn-del-storico" onclick="eliminaMetrica(${r.ts})">✕ elimina</button>
-            </div>
-            <div class="storico-grid">
-              ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0) === 0 ? 'zero' : ''}">${r[c]||0}</strong></div>`).join('')}
-            </div>
-          </div>
-        `).join('');
+            <div class="storico-header"><div class="storico-data">${r.dataInizio} → ${r.dataFine||r.dataInizio}</div><button class="btn-del-storico" onclick="eliminaMetrica(${r.ts})">✕</button></div>
+            <div class="storico-grid">${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0)===0?'zero':''}">${r[c]||0}</strong></div>`).join('')}</div>
+          </div>`).join('');
       } else if (!corrente.dataInizio) {
         html += '<div class="placeholder" style="margin-top:12px">Nessuna settimana chiusa ancora.</div>';
       }
-
       el.innerHTML = html;
     }
 
@@ -570,12 +616,7 @@
 
     // MESI PASSATI
     const nomiMesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-
-    function toggleFormMese() {
-      const f = document.getElementById('formMesePassato');
-      f.style.display = f.style.display === 'none' ? 'block' : 'none';
-    }
-
+    function toggleFormMese() { document.getElementById('formMesePassato').classList.toggle('aperto'); }
     function caricaMesiPassati() { return JSON.parse(localStorage.getItem('mesi_passati') || '[]'); }
     function salvaMesiPassatiStorage(lista) { localStorage.setItem('mesi_passati', JSON.stringify(lista)); }
 
@@ -593,10 +634,7 @@
       renderMesiPassati();
     }
 
-    function eliminaMese(ts) {
-      salvaMesiPassatiStorage(caricaMesiPassati().filter(r => r.ts !== ts));
-      renderMesiPassati();
-    }
+    function eliminaMese(ts) { salvaMesiPassatiStorage(caricaMesiPassati().filter(r => r.ts !== ts)); renderMesiPassati(); }
 
     function renderMesiPassati() {
       const lista = caricaMesiPassati();
@@ -604,15 +642,9 @@
       if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessun mese passato inserito.</div>'; return; }
       el.innerHTML = lista.map(r => `
         <div class="mese-card">
-          <div class="mese-card-header">
-            <div class="mese-card-title">${nomiMesi[r.mese]} ${r.anno}</div>
-            <button class="btn-del-storico" onclick="eliminaMese(${r.ts})">✕ elimina</button>
-          </div>
-          <div class="storico-grid">
-            ${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0) === 0 ? 'zero' : ''}">${r[c]||0}</strong></div>`).join('')}
-          </div>
-        </div>
-      `).join('');
+          <div class="mese-card-header"><div class="mese-card-title">${nomiMesi[r.mese]} ${r.anno}</div><button class="btn-del-storico" onclick="eliminaMese(${r.ts})">✕</button></div>
+          <div class="storico-grid">${campi.map(c => `<div class="storico-val"><span>${etichette[c]}</span><strong class="${(r[c]||0)===0?'zero':''}">${r[c]||0}</strong></div>`).join('')}</div>
+        </div>`).join('');
     }
 
     renderMesiPassati();
