@@ -72,6 +72,14 @@
     .btn-annulla { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; color: var(--text-muted); }
     .btn-salva { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
 
+    /* AUTOCOMPLETE */
+    .ac-wrap { position: relative; }
+    .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--accent); border-radius: 0 0 8px 8px; z-index: 200; max-height: 200px; overflow-y: auto; display: none; }
+    .ac-list.open { display: block; }
+    .ac-item { padding: 9px 12px; font-size: 0.88rem; cursor: pointer; color: var(--text); }
+    .ac-item:hover { background: var(--accent-bg); }
+    .ac-selected { font-size: 0.75rem; color: var(--accent); margin-top: 4px; font-style: italic; }
+
     @media (max-width: 760px) { .scheda-body { grid-template-columns: 1fr; } .analisi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
@@ -177,9 +185,12 @@
       <div class="form-row">
         <div class="form-group full">
           <label>Proprietario</label>
-          <select class="form-select" id="f_proprietario_id">
-            <option value="">— nessun proprietario —</option>
-          </select>
+          <div class="ac-wrap">
+            <input class="form-input" type="text" id="f_proprietario_cerca" placeholder="Scrivi il nome…" autocomplete="off" />
+            <div class="ac-list" id="f_proprietario_list"></div>
+          </div>
+          <div class="ac-selected" id="f_proprietario_sel"></div>
+          <input type="hidden" id="f_proprietario_id" />
         </div>
       </div>
       <div class="form-row">
@@ -326,14 +337,21 @@
       document.getElementById('f_mq').value = p.mq || '';
       document.getElementById('f_scadenza').value = p.scadenza || '';
       document.getElementById('f_note').value = p.note || '';
-      // Carica lista proprietari per select
+      // Carica lista proprietari per autocomplete
       if (_tuttiProprietari.length === 0) {
         const rp = await fetch(`${SB_URL}/rest/v1/clienti?tipo=eq.proprietari&select=id,nome&order=nome.asc&limit=300`, { headers: SB_H });
         _tuttiProprietari = await rp.json();
       }
-      const sel = document.getElementById('f_proprietario_id');
-      sel.innerHTML = '<option value="">— nessun proprietario —</option>' +
-        _tuttiProprietari.map(c => `<option value="${c.id}" ${p.proprietario_id === c.id ? 'selected' : ''}>${c.nome}</option>`).join('');
+      // Precompila se già collegato
+      document.getElementById('f_proprietario_id').value = p.proprietario_id || '';
+      if (_propCliente) {
+        document.getElementById('f_proprietario_cerca').value = _propCliente.nome;
+        document.getElementById('f_proprietario_sel').textContent = '✓ ' + _propCliente.nome;
+      } else {
+        document.getElementById('f_proprietario_cerca').value = '';
+        document.getElementById('f_proprietario_sel').textContent = '';
+      }
+      initAc('f_proprietario_cerca', 'f_proprietario_list', 'f_proprietario_id', 'f_proprietario_sel', _tuttiProprietari);
       document.getElementById('modalOverlay').classList.add('open');
     }
 
@@ -359,6 +377,30 @@
       await fetch(`${SB_URL}/rest/v1/proprieta?id=eq.${propId}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify(obj) });
       chiudiModal();
       render();
+    }
+
+    function initAc(inputId, listId, hiddenId, selId, items) {
+      const inp = document.getElementById(inputId);
+      const list = document.getElementById(listId);
+      const hidden = document.getElementById(hiddenId);
+      const sel = document.getElementById(selId);
+      inp.oninput = () => {
+        const q = inp.value.trim().toLowerCase();
+        if (!q) { list.classList.remove('open'); list.innerHTML = ''; return; }
+        const hits = items.filter(it => it.nome.toLowerCase().includes(q)).slice(0, 10);
+        if (!hits.length) { list.classList.remove('open'); return; }
+        list.innerHTML = hits.map(it => `<div class="ac-item" data-id="${it.id}" data-nome="${it.nome}">${it.nome}</div>`).join('');
+        list.classList.add('open');
+      };
+      list.addEventListener('click', e => {
+        const item = e.target.closest('.ac-item');
+        if (!item) return;
+        hidden.value = item.dataset.id;
+        inp.value = item.dataset.nome;
+        sel.textContent = '✓ ' + item.dataset.nome;
+        list.classList.remove('open');
+      });
+      document.addEventListener('click', e => { if (!inp.contains(e.target) && !list.contains(e.target)) list.classList.remove('open'); });
     }
 
     document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) chiudiModal(); });

@@ -34,6 +34,14 @@
     .s-chiuso     { background: #f1f8e9; color: #33691e; }
     .s-richiamare { background: #fff9c4; color: #827717; }
 
+    /* AUTOCOMPLETE */
+    .ac-wrap { position: relative; }
+    .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--accent); border-radius: 0 0 8px 8px; z-index: 200; max-height: 200px; overflow-y: auto; display: none; }
+    .ac-list.open { display: block; }
+    .ac-item { padding: 9px 12px; font-size: 0.88rem; cursor: pointer; color: var(--text); }
+    .ac-item:hover { background: var(--accent-bg); }
+    .ac-selected { font-size: 0.75rem; color: var(--accent); margin-top: 4px; font-style: italic; }
+
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
@@ -171,10 +179,13 @@
           <input class="form-input" type="text" id="f_immobile" placeholder="es. 33541050-137" />
         </div>
         <div class="form-group">
-          <label>Proprietà collegata</label>
-          <select class="form-select" id="f_proprieta_id">
-            <option value="">— nessuna —</option>
-          </select>
+          <label>Proprietà collegata (rif.)</label>
+          <div class="ac-wrap">
+            <input class="form-input" type="text" id="f_proprieta_cerca" placeholder="Scrivi il riferimento…" autocomplete="off" />
+            <div class="ac-list" id="f_proprieta_list"></div>
+          </div>
+          <div class="ac-selected" id="f_proprieta_sel"></div>
+          <input type="hidden" id="f_proprieta_id" />
         </div>
       </div>
       <div class="form-row">
@@ -385,10 +396,36 @@
       document.getElementById('modalOverlay').classList.add('open');
     }
 
+    function initAc(inputId, listId, hiddenId, selId, items, labelFn) {
+      const inp = document.getElementById(inputId);
+      const list = document.getElementById(listId);
+      const hidden = document.getElementById(hiddenId);
+      const sel = document.getElementById(selId);
+      inp.oninput = () => {
+        const q = inp.value.trim().toLowerCase();
+        if (!q) { list.classList.remove('open'); list.innerHTML = ''; return; }
+        const hits = items.filter(it => labelFn(it).toLowerCase().includes(q)).slice(0, 10);
+        if (!hits.length) { list.classList.remove('open'); return; }
+        list.innerHTML = hits.map(it => `<div class="ac-item" data-id="${it.id}" data-label="${labelFn(it)}">${labelFn(it)}</div>`).join('');
+        list.classList.add('open');
+      };
+      list.addEventListener('click', e => {
+        const item = e.target.closest('.ac-item');
+        if (!item) return;
+        hidden.value = item.dataset.id;
+        inp.value = item.dataset.label;
+        sel.textContent = '✓ ' + item.dataset.label;
+        list.classList.remove('open');
+      });
+      document.addEventListener('click', e => { if (!inp.contains(e.target) && !list.contains(e.target)) list.classList.remove('open'); }, { once: false });
+    }
+
     function popolaSelectProprieta(selId) {
-      const sel = document.getElementById('f_proprieta_id');
-      sel.innerHTML = '<option value="">— nessuna —</option>' +
-        _proprieta.map(p => `<option value="${p.id}" ${p.id === selId ? 'selected' : ''}>${p.ref || p.titolo}</option>`).join('');
+      const p = selId ? _proprieta.find(x => x.id === selId) : null;
+      document.getElementById('f_proprieta_id').value = selId || '';
+      document.getElementById('f_proprieta_cerca').value = p ? (p.ref || p.titolo) : '';
+      document.getElementById('f_proprieta_sel').textContent = p ? '✓ ' + (p.ref || p.titolo) : '';
+      initAc('f_proprieta_cerca', 'f_proprieta_list', 'f_proprieta_id', 'f_proprieta_sel', _proprieta, p => p.ref || p.titolo || '');
     }
 
     function chiudiModal() { document.getElementById('modalOverlay').classList.remove('open'); _editId = null; }
