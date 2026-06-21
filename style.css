@@ -76,11 +76,11 @@ body {
 }
 
 /* Colori sezioni sidebar — palette polverosa */
-.nav-section.c-principale { background: #dccab8; border-radius: 6px; margin: 0 8px 4px; }
-.nav-section.c-principale .nav-label { color: #6a3818; }
+.nav-section.c-principale { background: #d4b4b4; border-radius: 6px; margin: 0 8px 4px; }
+.nav-section.c-principale .nav-label { color: #5a2828; }
 .nav-section.c-principale .nav-item { border-radius: 5px; }
-.nav-section.c-principale .nav-item:hover { background: #ccb8a4; }
-.nav-section.c-principale .nav-item.active { color: #6a3818; border-left-color: #a06840; background: #bca898; }
+.nav-section.c-principale .nav-item:hover { background: #c4a0a0; }
+.nav-section.c-principale .nav-item.active { color: #5a2828; border-left-color: #9a5858; background: #b48c8c; }
 
 .nav-section.c-operativo { background: #c4d8e6; border-radius: 6px; margin: 0 8px 4px; }
 .nav-section.c-operativo .nav-label { color: #1e3e52; }
