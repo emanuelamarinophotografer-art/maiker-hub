@@ -28,6 +28,10 @@
     .cat-link { font-size: 0.72rem; color: var(--accent); text-decoration: none; font-weight: 600; }
     .cat-link:hover { text-decoration: underline; }
 
+    /* COUNTER */
+    .fonte-counter { font-size: 0.72rem; color: var(--text-muted); }
+    .badge-pdf { font-size: 0.6rem; font-weight: 700; background: #f5eef8; color: #7b4ccc; border-radius: 6px; padding: 1px 6px; flex-shrink: 0; }
+
     /* FONTI LISTA (social) */
     .fonti-lista { display: flex; flex-direction: column; gap: 8px; }
     .fonte-item {
@@ -117,52 +121,20 @@
         <div class="fonti-area-header">
           <div>
             <div class="fonti-area-title">🏡 Mercato Immobiliare & Normative</div>
-            <div class="fonti-area-sub">Gestite su Notion via skill <code>/ricerca-fonti</code> · usate da Newspepper per il briefing</div>
+            <div class="fonti-area-sub">Archiviate nei CSV Drive · usate da Newspepper per il briefing</div>
           </div>
+          <div class="fonte-counter" id="contImmobiliare"></div>
         </div>
 
-        <div class="cat-grid">
-          <div class="cat-card" style="border-top:3px solid #4a9e6b">
-            <div class="cat-card-top">
-              <span class="cat-icon">🎁</span>
-              <span class="cat-count">Notion</span>
-            </div>
-            <div class="cat-nome">Agevolazioni</div>
-            <div class="cat-desc">Prima casa, under 36, agevolazioni acquirenti stranieri, bonus ristrutturazioni</div>
-            <a class="cat-link" href="https://www.notion.so" target="_blank">Apri su Notion →</a>
-          </div>
-          <div class="cat-card" style="border-top:3px solid #3949ab">
-            <div class="cat-card-top">
-              <span class="cat-icon">🏛</span>
-              <span class="cat-count">Notion</span>
-            </div>
-            <div class="cat-nome">Amministrativi</div>
-            <div class="cat-desc">Catasto, visure, urbanistica, piani regolatori comuni Maremma, concessioni edilizie</div>
-            <a class="cat-link" href="https://www.notion.so" target="_blank">Apri su Notion →</a>
-          </div>
-          <div class="cat-card" style="border-top:3px solid #c0392b">
-            <div class="cat-card-top">
-              <span class="cat-icon">⚖️</span>
-              <span class="cat-count">Notion</span>
-            </div>
-            <div class="cat-nome">Legali</div>
-            <div class="cat-desc">Normative rogito, contratti preliminari, tutele acquirenti stranieri, Decreto Salva Casa</div>
-            <a class="cat-link" href="https://www.notion.so" target="_blank">Apri su Notion →</a>
-          </div>
-          <div class="cat-card" style="border-top:3px solid #e67e22">
-            <div class="cat-card-top">
-              <span class="cat-icon">💶</span>
-              <span class="cat-count">Notion</span>
-            </div>
-            <div class="cat-nome">Finanziari</div>
-            <div class="cat-desc">Tassi BCE, Euribor, andamento mutui, report Nomisma e FIAIP, dati compravendite</div>
-            <a class="cat-link" href="https://www.notion.so" target="_blank">Apri su Notion →</a>
-          </div>
+        <div class="filtri" id="filtriImmobiliare">
+          <button type="button" class="filtro-btn active" onclick="filtraImm('tutti', this)">Tutte</button>
+          <button type="button" class="filtro-btn" onclick="filtraImm('agevolazioni', this)">🎁 Agevolazioni</button>
+          <button type="button" class="filtro-btn" onclick="filtraImm('amministrativi', this)">🏛 Amministrativi</button>
+          <button type="button" class="filtro-btn" onclick="filtraImm('legali', this)">⚖️ Legali</button>
+          <button type="button" class="filtro-btn" onclick="filtraImm('finanziari', this)">💶 Finanziari</button>
         </div>
 
-        <div style="margin-top:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;color:var(--text-muted);">
-          💡 Per aggiungere nuove fonti immobiliari usa la skill <strong>/ricerca-fonti</strong> — cercherà e salverà automaticamente su Notion + PDF su Drive.
-        </div>
+        <div class="fonti-lista" id="fonteImmList"></div>
       </div>
 
       <!-- AREA 2: SOCIAL & STRUMENTI -->
@@ -211,6 +183,73 @@
     const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
     document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
     document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
+
+    // FONTI IMMOBILIARI (da CSV Drive)
+    const fontiImm = [
+      // AGEVOLAZIONI
+      { cat: 'agevolazioni', nome: 'Agenzia Entrate — Acquisto prima casa', url: 'https://www.agenziaentrate.gov.it/portale/schede/agevolazioni/scheda-acquisto-prima-casa/infogen-agevolazioni-acquisto-prima-casa', tipo: 'link', riassunto: 'Imposta registro 2% (invece del 9%) sul valore catastale da privato. Legge Bilancio 2025: 2 anni per vendere vecchia casa.', note: 'Prima casa, imposta registro, 2%, privati' },
+      { cat: 'agevolazioni', nome: 'Agenzia Entrate — Guida PDF Acquisto Casa', url: 'https://www.agenziaentrate.gov.it/portale/documents/20143/3949367/Guida_acquisto__Casa_imposte_e_agevolazioni_5062024.pdf/2a30330e-bc04-b486-ba96-c870c60ac66f', tipo: 'PDF', riassunto: 'Guida completa ufficiale su tutte le imposte e agevolazioni fiscali per acquisto immobili residenziali. Aggiornata 2024.', note: 'guida, imposte, agevolazioni' },
+      { cat: 'agevolazioni', nome: 'Agenzia Entrate — Agevolazioni Under 36', url: 'https://www.agenziaentrate.gov.it/portale/le-agevolazioni-prima-casa-under-36', tipo: 'link', riassunto: 'Garanzia statale fino all\'80% del mutuo per under 36 con ISEE ≤€40.000. Proroga: bonus fiscale fino al 31/12/2026, Fondo Garanzia fino al 2027.', note: 'under 36, prima casa, fondo garanzia, ISEE, mutuo max €250.000' },
+      { cat: 'agevolazioni', nome: 'MEF — Fondo Garanzia Mutui Prima Casa', url: 'https://www.de.mef.gov.it/it/attivita_istituzionali/interventi_finanziari/misure_casa/fondo_garanzia/', tipo: 'link', riassunto: 'Scheda ufficiale del Ministero: categorie prioritarie e modalità di richiesta tramite banche aderenti Consap.', note: 'MEF, fondo garanzia, mutuo, Consap' },
+      { cat: 'agevolazioni', nome: 'Agenzia Entrate — Guida Ristrutturazioni Feb 2026', url: 'https://www.agenziaentrate.gov.it/portale/documents/d/guest/ristrutturazioni_edilizie_le_agevolazioni_fiscali-1', tipo: 'PDF', riassunto: '2026: detrazione 50% prima casa (36% altri). Tetto €96.000/unità. Dal 2027 scende al 36%/30%.', note: 'ristrutturazione, ecobonus, sismabonus — guida feb 2026' },
+      { cat: 'agevolazioni', nome: 'Agenzia Entrate — Agevolazioni Persone con Disabilità', url: 'https://www.agenziaentrate.gov.it/portale/le-agevolazioni-fiscali-per-le-persone-con-disabilita', tipo: 'link', riassunto: 'Detrazione IRPEF 19% e IVA agevolata 4% per ausili; detrazioni per eliminazione barriere architettoniche. Aggiornata feb 2026.', note: 'disabili, IVA agevolata, barriere architettoniche' },
+      // AMMINISTRATIVI
+      { cat: 'amministrativi', nome: 'Agenzia Entrate — Visura Catastale', url: 'https://www.agenziaentrate.gov.it/portale/schede/fabbricatiterreni/visura-catastale/scheda-info-visura-catastale', tipo: 'link', riassunto: 'Dal 1/1/2025 visure catastali online gratuite anche per immobili altrui. Nuovo layout SIT. (D.Lgs. 139/2024)', note: 'visura catastale, catasto, SIT, gratuita' },
+      { cat: 'amministrativi', nome: 'Agenzia Entrate — Aggiornamento Catasto DOCFA', url: 'https://www.agenziaentrate.gov.it/portale/Schede/FabbricatiTerreni/Aggiornamento+Catasto+fabbricati+-+Docfa/', tipo: 'link', riassunto: 'Procedura per aggiornare la planimetria catastale tramite DOCFA. Visura planimetria online disponibile gratuitamente.', note: 'DOCFA, planimetria, catasto fabbricati' },
+      { cat: 'amministrativi', nome: 'Il Sole 24 Ore — Direttiva Green e APE', url: 'https://ntpluscondominio.ilsole24ore.com/art/direttiva-green-e-futuro-ape-indicazioni-e-elementi-chiave-requisiti-attestati-prestazione-energetica-AFIxsXpD', tipo: 'link', riassunto: 'Direttiva 2024/1275 (Case Green): nuovi APE scala A-G, obbligatorio allegarlo al rogito. Validità 10 anni salvo ristrutturazioni.', note: 'APE, classe energetica, direttiva green, compravendita' },
+      { cat: 'amministrativi', nome: 'Notariato.it — L\'agibilità di un immobile', url: 'https://www.notariato.it/wp-content/uploads/Acquisto_Certificato_Agibilita_immobile.pdf', tipo: 'PDF', riassunto: 'Cosa certifica l\'agibilità e differenza con conformità urbanistica. Obblighi del venditore in sede di rogito.', note: 'agibilità, conformità urbanistica, abuso edilizio' },
+      { cat: 'amministrativi', nome: 'Notariato.it — Attestazione stato legittimo', url: 'https://www.notariato.it/wp-content/uploads/Acquisto_Certificato_Attestazione.pdf', tipo: 'PDF', riassunto: 'Cos\'è l\'attestazione di stato legittimo obbligatoria in compravendita per certificare la regolarità edilizia.', note: 'stato legittimo, fabbricati, conformità' },
+      { cat: 'amministrativi', nome: 'Agenzia Entrate — Dichiarazione di Successione', url: 'https://www.agenziaentrate.gov.it/portale/schede/dichiarazioni/dichiarazione-di-successione/cosa-dichiarazioni-successione', tipo: 'link', riassunto: 'Presentazione telematica entro 12 mesi dal decesso. Dal 1/1/2025 autoliquidazione imposta di successione.', note: 'successione, immobili, voltura catastale, 12 mesi' },
+      { cat: 'amministrativi', nome: 'Notariato.it — Impianti e conformità', url: 'https://www.notariato.it/wp-content/uploads/Acquisto_Certificato_Impianti_conformita.pdf', tipo: 'PDF', riassunto: 'Dichiarazioni di conformità degli impianti (elettrico, idraulico, gas) richieste in fase di compravendita.', note: 'impianti, conformità, rogito, documentazione' },
+      // LEGALI
+      { cat: 'legali', nome: 'Agenzia Entrate — Contratto preliminare', url: 'https://www.agenziaentrate.gov.it/portale/contratto-preliminare-di-compravendita/infogen-contratto-preliminare-di-compravendita-cittadini', tipo: 'link', riassunto: 'Forma scritta obbligatoria. Caparra confirmatoria: imposta registro 0,50% imputabile al rogito definitivo. Non soggetta a IVA.', note: 'preliminare, caparra confirmatoria, registrazione' },
+      { cat: 'legali', nome: 'Notariato.it — Documenti compravendita', url: 'https://www.notariato.it/en/casa/real-estate-law-checklist/', tipo: 'link', riassunto: 'Checklist ufficiale con tutti i documenti obbligatori per il rogito: identità, urbanistica, catastale, conformità impianti, dichiarazione mediatore.', note: 'rogito, documenti, compravendita, notaio' },
+      { cat: 'legali', nome: 'Notariato.it — L\'atto pubblico di compravendita', url: 'https://www.notariato.it/en/casa/public-act-of-sale-or-deed/', tipo: 'link', riassunto: 'Funzionamento del rogito: obblighi delle parti e modalità di pagamento da indicare nell\'atto.', note: 'atto pubblico, rogito, venditore, acquirente' },
+      { cat: 'legali', nome: 'Il Sole 24 Ore — Mediatore e provvigione', url: 'https://ntplusdiritto.ilsole24ore.com/art/mediatore-immobiliare-l-affare-che-legittima-pretesa-provvigione-nell-interpretazione-giurisprudenziale-AHe2tWlB', tipo: 'link', riassunto: 'Il mediatore perde la provvigione se fornisce info false o omette irregolarità urbanistiche conoscibili con normale diligenza.', note: '⚠️ Sentenza rilevante per la responsabilità professionale dell\'agente' },
+      { cat: 'legali', nome: 'Il Sole 24 Ore — Commissioni agente nel rogito', url: 'https://en.ilsole24ore.com/art/change-real-estate-deeds-the-commission-amount-no-longer-has-to-be-indicated-AGSXvFV', tipo: 'link', riassunto: 'Nel rogito non è più obbligatorio indicare l\'importo della provvigione — basta il riferimento alla fattura emessa.', note: 'provvigioni, rogito, trasparenza — aggiornamento normativo recente' },
+      { cat: 'legali', nome: 'Il Sole 24 Ore — Vendita immobili ereditati', url: 'https://ntpluscondominio.ilsole24ore.com/art/vendita-immobili-ereditati-atti-accettazione-dell-eredita-e-diritto-prelazione-eredi-AFzrU0PC', tipo: 'link', riassunto: 'Diritto di prelazione nella vendita di immobili ereditati: il conduttore ha 60 giorni per esercitarla; obblighi verso coeredi.', note: 'prelazione, eredi, locazione, coeredi' },
+      // FINANZIARI
+      { cat: 'finanziari', nome: 'MutuiOnline — Mutui 2026: tassi e mercato', url: 'https://www.mutuionline.it/news/mutui-2026-tassi-stabili-ma-il-mercato-e-cambiato-come-orientarsi-nella-scelta.asp', tipo: 'link', riassunto: 'Tasso fisso medio 3,34%, variabile 2,64%. Oltre 90% sceglie il fisso. Euribor atteso in lieve rialzo. Importo medio record: €151.400.', note: 'mutuo, tasso fisso, variabile, BCE — aggiornamento 2026' },
+      { cat: 'finanziari', nome: 'Agenzia Entrate — Cedolare Secca', url: 'https://www.agenziaentrate.gov.it/portale/aree-tematiche/casa/affitto/cedolare-secca', tipo: 'link', riassunto: '2026: 21% affitti ordinari, 10% canone concordato. Locazioni brevi: 21% primo immobile, 26% dal secondo. Max 2 app. in locazione breve.', note: 'cedolare secca, affitti, locazione breve — Legge Bilancio 2026' },
+      { cat: 'finanziari', nome: 'Agenzia Entrate — Locazioni brevi apr 2026', url: 'https://www.agenziaentrate.gov.it/portale/documents/d/guest/locazioni_brevi_disciplina_fiscale_e_regole_per_intermediari_aprile-2026', tipo: 'PDF', riassunto: 'Guida aprile 2026 su disciplina fiscale delle locazioni brevi e obblighi per gli intermediari (Airbnb ecc.).', note: 'locazioni brevi, Airbnb, intermediari, ritenuta — aggiornatissima' },
+      { cat: 'finanziari', nome: 'Il Sole 24 Ore — Scadenze IMU 2026', url: 'https://ntplusfisco.ilsole24ore.com/art/doppia-scadenza-l-imu-chi-deve-versare-esenzioni-e-dichiarazione-AHGglz3', tipo: 'link', riassunto: 'Acconto 16 giugno, saldo 16 dicembre. Esente abitazione principale (salvo A/1 A/8 A/9). Aliquota max 1,14%.', note: 'IMU, acconto, saldo, aliquote comunali' },
+      { cat: 'finanziari', nome: 'Banca d\'Italia — Mercato abitazioni Q1 2026', url: 'https://www.bancaditalia.it/media/notizia/sondaggio-congiunturale-sul-mercato-delle-abitazioni-in-italia-1-trimestre-2026/', tipo: 'link', riassunto: 'Prezzi in crescita del 3-4% nel 2026, compravendite attese a 800.000 unità (+4% sul 2025). Fonte istituzionale.', note: 'mercato immobiliare, prezzi, compravendite, Banca d\'Italia' },
+      { cat: 'finanziari', nome: 'FIAIP — Compravendite 2025 e previsioni 2026', url: 'https://www.fiaip.it/comunicati-stampa/casa-nel-2025-compravendite-65-e-affitti7/', tipo: 'link', riassunto: 'Nel 2025 compravendite +6,5% e affitti +7%. Per il 2026 previste 800.000 transazioni. Nuove costruzioni crescono più del recupero.', note: 'compravendite, prezzi case, affitti, mercato 2025-2026' },
+    ];
+
+    const immColore = { agevolazioni: '#4a9e6b', amministrativi: '#3949ab', legali: '#c0392b', finanziari: '#e67e22' };
+    const immNome   = { agevolazioni: '🎁 Agevolazioni', amministrativi: '🏛 Amministrativi', legali: '⚖️ Legali', finanziari: '💶 Finanziari' };
+    let filtroImm = 'tutti';
+
+    function filtraImm(cat, btn) {
+      filtroImm = cat;
+      document.querySelectorAll('#filtriImmobiliare .filtro-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFontiImm();
+    }
+
+    function renderFontiImm() {
+      const filtrate = filtroImm === 'tutti' ? fontiImm : fontiImm.filter(f => f.cat === filtroImm);
+      document.getElementById('contImmobiliare').textContent = fontiImm.length + ' fonti archiviate';
+      const el = document.getElementById('fonteImmList');
+      el.innerHTML = filtrate.map(f => `
+        <div class="fonte-item">
+          <div class="fonte-cat-dot" style="background:${immColore[f.cat]}"></div>
+          <div class="fonte-info">
+            <div class="fonte-nome">${f.nome}</div>
+            <div class="fonte-desc">${f.riassunto}</div>
+            ${f.note ? `<div class="fonte-desc" style="margin-top:3px;color:var(--text-faint);font-style:italic">${f.note}</div>` : ''}
+          </div>
+          <span class="fonte-tag">${immNome[f.cat]}</span>
+          ${f.tipo === 'PDF' ? '<span class="badge-pdf">PDF</span>' : ''}
+          <div class="fonte-azioni">
+            ${f.url ? `<a class="fonte-link-btn" href="${f.url}" target="_blank">→ Apri</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderFontiImm();
 
     const catColore = {
       instagram: '#e040a0',
