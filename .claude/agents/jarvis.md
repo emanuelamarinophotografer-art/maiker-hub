@@ -26,17 +26,33 @@ Campi principali:
 - `Ultimo contatto`, `Utimo Aggiornamento`
 - `gmailMessageId`, `Interesse`
 
-### Supabase — clienti
+### Supabase — accesso diretto via connettore MCP
+Quando sei in chat su claude.ai hai il connettore Supabase attivo — usalo direttamente per leggere e scrivere.
+
+In alternativa (routine cloud o sessioni senza MCP), usa REST API:
 - URL: https://lbizlnuzlesrkvsobzqz.supabase.co
 - API Key: sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R
+- Headers: `apikey`, `Authorization: Bearer <key>`, `Content-Type: application/json`
 
-Operazioni principali:
+**Tabelle principali:**
+
+`richieste` — lead da portale
+- Campi: nome_cliente, email, telefono, immobile, interesse, tipo_cliente, stato_cliente, stato_follow, n_follow, ultimo_contatto, data_richiesta, gmail_message_id
+- Leggere: `GET /rest/v1/richieste?order=created_at.desc`
+- Inserire: `POST /rest/v1/richieste`
+- Aggiornare: `PATCH /rest/v1/richieste?id=eq.{ID}`
+
+`clienti` — acquirenti e proprietari
+- Campi: nome, tel, email, tipo (acquirenti/proprietari), stato, budget, zona, immobile, note, stella, aggiornato
 - Leggere: `GET /rest/v1/clienti?order=created_at.desc`
-- Aggiungere: `POST /rest/v1/clienti`
+- Inserire: `POST /rest/v1/clienti`
 - Aggiornare: `PATCH /rest/v1/clienti?id=eq.{ID}`
-- Aggiungere storico: `POST /rest/v1/storico_clienti`
 
-Campi clienti Supabase: nome, tel, email, tipo (acquirenti/proprietari), stato, budget, zona, immobile, note, stella, aggiornato
+`storico_clienti` — log attività per cliente
+- Inserire: `POST /rest/v1/storico_clienti`
+
+`attivita` — priorità e todo
+- Leggere: `GET /rest/v1/attivita?categoria=eq.priorita&order=created_at.desc`
 
 ### Gmail
 - Richieste in arrivo da: `silver@century21.it`, `sviler2@century21.it`, `silver2@century21.it`
