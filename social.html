@@ -340,30 +340,32 @@
     /* ── SUPABASE ── */
     const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
     const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
-    const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+    const SB_HEADERS_GET  = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+    const SB_HEADERS_WRITE = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
     let cachedPosts = null;
 
     async function loadPosts() {
       if (cachedPosts) return cachedPosts;
       try {
-        const r = await fetch(`${SB_URL}/rest/v1/piano_editoriale?order=data.asc&limit=200`, { headers: SB_HEADERS });
+        const r = await fetch(`${SB_URL}/rest/v1/piano_editoriale?order=data.asc&limit=200`, { headers: SB_HEADERS_GET });
+        if (!r.ok) { console.error('Supabase error', r.status, await r.text()); return []; }
         cachedPosts = await r.json();
-        return cachedPosts || [];
-      } catch(e) { return []; }
+        return Array.isArray(cachedPosts) ? cachedPosts : [];
+      } catch(e) { console.error('loadPosts error', e); return []; }
     }
 
     async function savePost(post) {
       if (post.id && typeof post.id === 'number') {
-        await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${post.id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(post) });
+        await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${post.id}`, { method: 'PATCH', headers: SB_HEADERS_WRITE, body: JSON.stringify(post) });
       } else {
-        await fetch(`${SB_URL}/rest/v1/piano_editoriale`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(post) });
+        await fetch(`${SB_URL}/rest/v1/piano_editoriale`, { method: 'POST', headers: SB_HEADERS_WRITE, body: JSON.stringify(post) });
       }
       cachedPosts = null;
     }
 
     async function deletePost(id) {
-      await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${id}`, { method: 'DELETE', headers: SB_HEADERS });
+      await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${id}`, { method: 'DELETE', headers: SB_HEADERS_GET });
       cachedPosts = null;
     }
 
