@@ -8,7 +8,8 @@
   <style>
     /* TEAM */
     .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-    .agente-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+    .agente-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+    .agente-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
     .agente-avatar { font-size: 1.8rem; margin-bottom: 8px; }
     .agente-nome { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
     .agente-ruolo { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
@@ -17,6 +18,37 @@
     .tag-trend { background: #fef3c7; color: #92400e; }
     .tag-piano { background: #e0e7ff; color: #3730a3; }
     .tag-prod { background: #dcfce7; color: #166534; }
+
+    /* PANNELLO AGENTE */
+    .pannello-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 200; }
+    .pannello-overlay.open { display: block; }
+    .pannello { position: fixed; top: 0; right: -480px; width: 460px; height: 100vh; background: var(--bg-card); border-left: 1px solid var(--border); z-index: 201; display: flex; flex-direction: column; transition: right 0.25s ease; overflow: hidden; }
+    .pannello.open { right: 0; }
+    .pannello-header { padding: 24px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
+    .pannello-header-info { display: flex; align-items: center; gap: 14px; }
+    .pannello-avatar { font-size: 2rem; }
+    .pannello-nome { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+    .pannello-ruolo { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+    .btn-chiudi-pannello { background: none; border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 1rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .btn-chiudi-pannello:hover { border-color: var(--accent); color: var(--accent); }
+    .pannello-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+    .pannello-sezione-titolo { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .pannello-posts { display: flex; flex-direction: column; gap: 6px; }
+    .pannello-post-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .pannello-post-item:hover { border-color: var(--accent); }
+    .pannello-post-data { font-size: 0.72rem; color: var(--text-muted); min-width: 68px; }
+    .pannello-post-testo { font-size: 0.85rem; color: var(--text); flex: 1; }
+    .pannello-post-stato { font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+    .stato-pubblicato { background: #c8f0d8; color: #145a30; }
+    .stato-in-produzione { background: #fdebc8; color: #6b3d00; }
+    .stato-bozza { background: #e8e8e8; color: #555; }
+    .pannello-empty { font-size: 0.82rem; color: var(--text-faint); font-style: italic; padding: 10px 0; }
+    .pannello-appunti textarea { width: 100%; min-height: 140px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.88rem; font-family: inherit; color: var(--text); resize: vertical; outline: none; line-height: 1.5; }
+    .pannello-appunti textarea:focus { border-color: var(--accent); }
+    .pannello-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+    .btn-salva-appunti { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .btn-salva-appunti:hover { opacity: 0.9; }
+    .salva-ok { font-size: 0.82rem; color: #145a30; display: none; align-self: center; }
 
     /* BRAINSTORMING BTN */
     .brainstorm-bar { background: var(--accent); border-radius: 10px; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
@@ -141,25 +173,25 @@
 
       <!-- TEAM CHICCA -->
       <div class="team-grid">
-        <div class="agente-card">
+        <div class="agente-card" onclick="apriPannello('chicca')">
           <div class="agente-avatar">📱</div>
           <div class="agente-nome">Chicca</div>
           <div class="agente-ruolo">Supervisione area contenuti, metriche e piano editoriale</div>
           <span class="agente-tag tag-capo">Capo area</span>
         </div>
-        <div class="agente-card">
+        <div class="agente-card" onclick="apriPannello('trendista')">
           <div class="agente-avatar">🔥</div>
           <div class="agente-nome">La Trendista</div>
           <div class="agente-ruolo">Trend virali, format divertenti, audio Instagram — ogni lunedì</div>
           <span class="agente-tag tag-trend">Trend & Ispirazione</span>
         </div>
-        <div class="agente-card">
+        <div class="agente-card" onclick="apriPannello('pianificatrice')">
           <div class="agente-avatar">✍️</div>
           <div class="agente-nome">La Pianificatrice</div>
           <div class="agente-ruolo">Personal branding, storytelling, script reel e caroselli</div>
           <span class="agente-tag tag-piano">Piano & Script</span>
         </div>
-        <div class="agente-card">
+        <div class="agente-card" onclick="apriPannello('produttore')">
           <div class="agente-avatar">🎬</div>
           <div class="agente-nome">Il Produttore</div>
           <div class="agente-ruolo">HeyGen, Higgsfield, Remotion, Canva — produzione contenuti finiti</div>
@@ -215,6 +247,35 @@
 
     </div>
   </main>
+
+  <!-- PANNELLO AGENTE -->
+  <div class="pannello-overlay" id="pannelloOverlay" onclick="chiudiPannello()"></div>
+  <div class="pannello" id="pannelloAgente">
+    <div class="pannello-header">
+      <div class="pannello-header-info">
+        <div class="pannello-avatar" id="pAvatar"></div>
+        <div>
+          <div class="pannello-nome" id="pNome"></div>
+          <div class="pannello-ruolo" id="pRuolo"></div>
+        </div>
+      </div>
+      <button class="btn-chiudi-pannello" onclick="chiudiPannello()">✕</button>
+    </div>
+    <div class="pannello-body">
+      <div>
+        <div class="pannello-sezione-titolo">Contenuti in programma</div>
+        <div class="pannello-posts" id="pPosts"></div>
+      </div>
+      <div class="pannello-appunti">
+        <div class="pannello-sezione-titolo">Appunti per l'agente</div>
+        <textarea id="pAppunti" placeholder="Scrivi qui brief, idee, indicazioni o note per questa sessione…"></textarea>
+      </div>
+    </div>
+    <div class="pannello-footer">
+      <span class="salva-ok" id="salvaCfm">✓ Salvato</span>
+      <button class="btn-salva-appunti" onclick="salvaAppunti()">Salva appunti</button>
+    </div>
+  </div>
 
   <!-- MODAL POST -->
   <div class="modal-overlay" id="modalPost">
@@ -488,6 +549,85 @@
     document.getElementById('modalPost').addEventListener('click', e => {
       if (e.target === e.currentTarget) chiudiModal();
     });
+
+    /* ── PANNELLO AGENTE ── */
+    const AGENTI_CFG = {
+      chicca: {
+        avatar: '📱', nome: 'Chicca', ruolo: 'Supervisione area contenuti, metriche e piano editoriale',
+        rubriche: ['nero','bianco','oro','grigio'] // vede tutto
+      },
+      trendista: {
+        avatar: '🔥', nome: 'La Trendista', ruolo: 'Trend virali, format divertenti, audio Instagram',
+        rubriche: ['nero','bianco','oro','grigio']
+      },
+      pianificatrice: {
+        avatar: '✍️', nome: 'La Pianificatrice', ruolo: 'Personal branding, storytelling, script reel e caroselli',
+        rubriche: ['bianco','grigio']
+      },
+      produttore: {
+        avatar: '🎬', nome: 'Il Produttore', ruolo: 'HeyGen, Higgsfield, Remotion, Canva — produzione contenuti finiti',
+        rubriche: ['nero','bianco','oro','grigio']
+      }
+    };
+
+    let pannelloAgente = null;
+
+    function apriPannello(id) {
+      pannelloAgente = id;
+      const cfg = AGENTI_CFG[id];
+      document.getElementById('pAvatar').textContent = cfg.avatar;
+      document.getElementById('pNome').textContent = cfg.nome;
+      document.getElementById('pRuolo').textContent = cfg.ruolo;
+
+      // Post in programma (non ancora pubblicati, ordinati per data)
+      const posts = loadPosts()
+        .filter(p => cfg.rubriche.includes(p.rubrica || 'grigio'))
+        .sort((a,b) => (a.data || '').localeCompare(b.data || ''));
+
+      const container = document.getElementById('pPosts');
+      container.innerHTML = '';
+      if (posts.length === 0) {
+        container.innerHTML = '<div class="pannello-empty">Nessun contenuto pianificato.</div>';
+      } else {
+        posts.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'pannello-post-item';
+          const dataFmt = p.data ? new Date(p.data + 'T00:00:00').toLocaleDateString('it-IT', {day:'2-digit',month:'short'}) : '—';
+          const statoClass = p.stato === 'pubblicato' ? 'stato-pubblicato' : p.stato === 'in-produzione' ? 'stato-in-produzione' : 'stato-bozza';
+          const statoLabel = p.stato === 'pubblicato' ? 'Pubblicato' : p.stato === 'in-produzione' ? 'In produzione' : 'Bozza';
+          item.innerHTML = `
+            <span class="pannello-post-data">${dataFmt}</span>
+            <span class="pannello-post-testo">${rubrToDot(p.rubrica)} ${p.titolo || 'Post'}</span>
+            <span class="pannello-post-stato ${statoClass}">${statoLabel}</span>`;
+          item.onclick = () => { chiudiPannello(); apriModal(p); };
+          container.appendChild(item);
+        });
+      }
+
+      // Appunti salvati
+      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
+      document.getElementById('pAppunti').value = appunti[id] || '';
+      document.getElementById('salvaCfm').style.display = 'none';
+
+      document.getElementById('pannelloOverlay').classList.add('open');
+      document.getElementById('pannelloAgente').classList.add('open');
+    }
+
+    function chiudiPannello() {
+      document.getElementById('pannelloOverlay').classList.remove('open');
+      document.getElementById('pannelloAgente').classList.remove('open');
+      pannelloAgente = null;
+    }
+
+    function salvaAppunti() {
+      if (!pannelloAgente) return;
+      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
+      appunti[pannelloAgente] = document.getElementById('pAppunti').value;
+      localStorage.setItem('appunti_agenti', JSON.stringify(appunti));
+      const cfm = document.getElementById('salvaCfm');
+      cfm.style.display = 'inline';
+      setTimeout(() => cfm.style.display = 'none', 2000);
+    }
 
     /* ── INIT ── */
     renderSettimana();
