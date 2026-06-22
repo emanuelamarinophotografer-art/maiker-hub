@@ -179,7 +179,11 @@ SLIDE FINALE:
 
 ## SUPABASE — piano_editoriale
 
-Quando costruisci il piano settimanale, salva ogni post su Supabase così appare in Ework (pagina Social):
+Quando costruisci il piano settimanale, salva **sempre in entrambi i posti**:
+1. **Supabase** (ogni post singolo) → appare in Ework pagina Social
+2. **Google Drive** (file markdown riepilogativo) → cartella `02Agente Social/01_Strategia/Attivi/`, nome `piano_editoriale_YYYY-MM-DD.md`
+
+### Supabase — un record per ogni post:
 
 ```
 POST https://lbizlnuzlesrkvsobzqz.supabase.co/rest/v1/piano_editoriale
