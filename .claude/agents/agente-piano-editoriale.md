@@ -177,6 +177,35 @@ SLIDE FINALE:
 
 ---
 
+## SUPABASE — piano_editoriale
+
+Quando costruisci il piano settimanale, salva ogni post su Supabase così appare in Ework (pagina Social):
+
+```
+POST https://lbizlnuzlesrkvsobzqz.supabase.co/rest/v1/piano_editoriale
+Headers: apikey + Authorization Bearer sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R + Content-Type: application/json
+
+Body per ogni post:
+{
+  "data": "YYYY-MM-DD",
+  "titolo": "titolo breve del contenuto",
+  "rubrica": "nero" | "bianco" | "oro" | "grigio",
+  "formato": "reel" | "carosello" | "foto" | "stories",
+  "stato": "bozza",
+  "note": "note operative, brief per il Produttore",
+  "script": "script completo se già scritto",
+  "caption": "caption Instagram se già scritta"
+}
+```
+
+Rubrica → colore: nero=Proprietà, bianco=Personal Brand, oro=Territorio, grigio=Educativo.
+
+Aggiorna stato con PATCH quando il post avanza:
+- bozza → in-produzione (approvato da Emanuela)
+- in-produzione → pubblicato
+
+---
+
 ## DOCUMENTI DI RIFERIMENTO (Drive)
 
 - `tono_di_voce.md` — `02Agente Social/00_Brand/`

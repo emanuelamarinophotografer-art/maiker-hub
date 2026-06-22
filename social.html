@@ -337,9 +337,35 @@
     document.getElementById('dataOggi').textContent = GIORNI[oggi.getDay()] + ' ' + oggi.getDate() + ' ' + MESI_LABEL[oggi.getMonth()];
     document.getElementById('dataEstesa').textContent = GIORNI[oggi.getDay()] + ' ' + oggi.getDate() + ' ' + MESI_LABEL[oggi.getMonth()] + ' ' + oggi.getFullYear();
 
-    /* ── STORAGE ── */
-    function loadPosts() { return JSON.parse(localStorage.getItem('social_posts') || '[]'); }
-    function savePosts(p) { localStorage.setItem('social_posts', JSON.stringify(p)); }
+    /* ── SUPABASE ── */
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+    let cachedPosts = null;
+
+    async function loadPosts() {
+      if (cachedPosts) return cachedPosts;
+      try {
+        const r = await fetch(`${SB_URL}/rest/v1/piano_editoriale?order=data.asc&limit=200`, { headers: SB_HEADERS });
+        cachedPosts = await r.json();
+        return cachedPosts || [];
+      } catch(e) { return []; }
+    }
+
+    async function savePost(post) {
+      if (post.id && typeof post.id === 'number') {
+        await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${post.id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(post) });
+      } else {
+        await fetch(`${SB_URL}/rest/v1/piano_editoriale`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(post) });
+      }
+      cachedPosts = null;
+    }
+
+    async function deletePost(id) {
+      await fetch(`${SB_URL}/rest/v1/piano_editoriale?id=eq.${id}`, { method: 'DELETE', headers: SB_HEADERS });
+      cachedPosts = null;
+    }
 
     /* ── SETTIMANA ── */
     let settOffset = 0;
@@ -364,13 +390,13 @@
 
     function isoDate(d) { return d.toISOString().split('T')[0]; }
 
-    function renderSettimana() {
+    async function renderSettimana() {
       const giorni = dateSettimana(settOffset);
       const lun = giorni[0], dom = giorni[6];
       document.getElementById('labelSettimana').textContent =
         lun.getDate() + ' ' + MESI_LABEL[lun.getMonth()] + ' – ' + dom.getDate() + ' ' + MESI_LABEL[dom.getMonth()];
 
-      const posts = loadPosts();
+      const posts = await loadPosts();
       const el = document.getElementById('gridSettimana');
       el.innerHTML = '';
 
@@ -405,16 +431,16 @@
       });
     }
 
-    function settimanaPrec() { settOffset--; renderSettimana(); }
-    function settimanaSucc() { settOffset++; renderSettimana(); }
+    function settimanaPrec() { settOffset--; cachedPosts = null; renderSettimana(); }
+    function settimanaSucc() { settOffset++; cachedPosts = null; renderSettimana(); }
 
     /* ── MESE ── */
     let meseAnno = oggi.getFullYear();
     let meseMese = oggi.getMonth();
 
-    function renderMese() {
+    async function renderMese() {
       document.getElementById('labelMese').textContent = MESI_LABEL[meseMese] + ' ' + meseAnno;
-      const posts = loadPosts();
+      const posts = await loadPosts();
       const el = document.getElementById('gridMese');
       el.innerHTML = '';
 
@@ -463,12 +489,12 @@
     function mesePrec() {
       meseMese--;
       if (meseMese < 0) { meseMese = 11; meseAnno--; }
-      renderMese();
+      cachedPosts = null; renderMese();
     }
     function meseSucc() {
       meseMese++;
       if (meseMese > 11) { meseMese = 0; meseAnno++; }
-      renderMese();
+      cachedPosts = null; renderMese();
     }
 
     /* ── RUBRICA UTILS ── */
@@ -507,12 +533,10 @@
 
     function chiudiModal() { document.getElementById('modalPost').classList.remove('open'); }
 
-    function salvaPost() {
+    async function salvaPost() {
       const titolo = document.getElementById('p_titolo').value.trim();
       if (!titolo) { alert('Inserisci un titolo.'); return; }
-      const posts = loadPosts();
       const post = {
-        id: editId || Date.now(),
         titolo,
         data: document.getElementById('p_data').value,
         rubrica: document.getElementById('p_rubrica').value,
@@ -520,21 +544,16 @@
         stato: document.getElementById('p_stato').value,
         note: document.getElementById('p_note').value
       };
-      if (editId) {
-        const i = posts.findIndex(p => p.id === editId);
-        if (i >= 0) posts[i] = post;
-      } else {
-        posts.push(post);
-      }
-      savePosts(posts);
+      if (editId) post.id = editId;
+      await savePost(post);
       chiudiModal();
       renderSettimana();
       renderMese();
     }
 
-    function eliminaPost() {
+    async function eliminaPost() {
       if (!editId) return;
-      savePosts(loadPosts().filter(p => p.id !== editId));
+      await deletePost(editId);
       chiudiModal();
       renderSettimana();
       renderMese();
@@ -580,7 +599,7 @@
       document.getElementById('pRuolo').textContent = cfg.ruolo;
 
       // Post in programma (non ancora pubblicati, ordinati per data)
-      const posts = loadPosts()
+      const posts = (await loadPosts())
         .filter(p => cfg.rubriche.includes(p.rubrica || 'grigio'))
         .sort((a,b) => (a.data || '').localeCompare(b.data || ''));
 
