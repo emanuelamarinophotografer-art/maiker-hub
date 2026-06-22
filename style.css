@@ -306,8 +306,21 @@ body {
 }
 
 /* SETTIMANA */
-.settimana-wrap { }
-.settimana { display: flex; flex-direction: column; gap: 0; }
+.settimana-wrap { overflow-x: auto; padding-bottom: 8px; }
+.settimana { display: flex; gap: 8px; min-width: max-content; }
+
+.giorno {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 10px;
+  min-height: 120px;
+  min-width: 140px;
+}
+.giorno.oggi { border-color: var(--accent); background: var(--accent-bg); }
+.giorno-nome { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.giorno.oggi .giorno-nome { color: var(--accent); }
+.giorno-num { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
 
 .evento {
   background: var(--bg);
