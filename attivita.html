@@ -371,15 +371,44 @@
     const lunedi = new Date(d);
     const diffLun = (oggi === 0) ? -6 : 1 - oggi;
     lunedi.setDate(d.getDate() + diffLun);
-    for (let i = 0; i < 7; i++) {
-      const giorno = new Date(lunedi);
-      giorno.setDate(lunedi.getDate() + i);
-      const isOggi = giorno.toDateString() === d.toDateString();
-      const div = document.createElement('div');
-      div.className = 'giorno' + (isOggi ? ' oggi' : '');
-      div.innerHTML = `<div class="giorno-nome">${giorniBrevi[giorno.getDay()]}</div><div class="giorno-num">${giorno.getDate()}</div><div class="empty-slot">libero</div>`;
-      settimana.appendChild(div);
+    const domenica = new Date(lunedi);
+    domenica.setDate(lunedi.getDate() + 6);
+
+    function toYMD(dt) {
+      return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
     }
+
+    async function caricaSettimana() {
+      const dal = toYMD(lunedi) + 'T00:00:00';
+      const al  = toYMD(domenica) + 'T23:59:59';
+      const SB_URL2 = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+      const SB_KEY2 = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+      const SB_H2 = { 'apikey': SB_KEY2, 'Authorization': 'Bearer ' + SB_KEY2 };
+      let eventi = [];
+      try {
+        const res = await fetch(`${SB_URL2}/rest/v1/eventi_calendario?data_inizio=gte.${dal}&data_inizio=lte.${al}&order=data_inizio.asc`, { headers: SB_H2 });
+        eventi = await res.json();
+      } catch(e) {}
+
+      for (let i = 0; i < 7; i++) {
+        const giorno = new Date(lunedi);
+        giorno.setDate(lunedi.getDate() + i);
+        const isOggi = giorno.toDateString() === d.toDateString();
+        const ymd = toYMD(giorno);
+        const eventiGiorno = Array.isArray(eventi) ? eventi.filter(e => e.data_inizio && e.data_inizio.startsWith(ymd)) : [];
+        const div = document.createElement('div');
+        div.className = 'giorno' + (isOggi ? ' oggi' : '');
+        const slotsHtml = eventiGiorno.length > 0
+          ? eventiGiorno.map(e => {
+              const ora = e.tutto_il_giorno ? '' : `<span style="font-size:0.65rem;color:var(--text-muted)">${e.data_inizio.substring(11,16)}</span> `;
+              return `<div style="font-size:0.7rem;line-height:1.4;padding:2px 4px;margin-top:3px;background:var(--bg-card);border-radius:4px;border-left:2px solid var(--accent)">${ora}${e.titolo}</div>`;
+            }).join('')
+          : '<div class="empty-slot">libero</div>';
+        div.innerHTML = `<div class="giorno-nome">${giorniBrevi[giorno.getDay()]}</div><div class="giorno-num">${giorno.getDate()}</div>${slotsHtml}`;
+        settimana.appendChild(div);
+      }
+    }
+    caricaSettimana();
 
     // SUPABASE
     const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
