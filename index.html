@@ -498,7 +498,7 @@
         }
 
         // Priorità da Supabase
-        const rPr = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_H });
+        const rPr = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_H, cache: 'no-store' });
         const prList = await rPr.json();
         const prEl = document.getElementById('recapPriorita');
         if (Array.isArray(prList) && prList.length > 0) {
@@ -511,25 +511,30 @@
           prEl.innerHTML = '<div class="placeholder">Nessuna priorità aperta.</div>';
         }
 
-        // Schede da caricare (le uso come "bozze da inviare" nel semaforo)
-        const rSch = await fetch(`${SB_URL}/rest/v1/scheda_qualifica?caricato_amministrazione=eq.false&esito=eq.verde&select=id,nome_proprietario,indirizzo`, { headers: SB_H });
-        const schede = await rSch.json();
+        // Da rispondere: richieste con bozza Gmail pronta (stato_follow='Bozza creata' o 'Nuovo' con stato='Nuova richiesta')
+        const daRispondere = richAll.filter(r =>
+          r.stato_follow === 'Bozza creata' || (r.stato_cliente === 'Nuova richiesta' && r.stato_follow === 'Nuovo')
+        );
         const schedeEl = document.getElementById('schedeCaricare');
-        document.getElementById('countBozze').textContent = Array.isArray(schede) ? schede.length : 0;
-        if (Array.isArray(schede) && schede.length > 0) {
-          schedeEl.innerHTML = schede.slice(0, 4).map(s => `
-            <div class="lista-item">
+        document.getElementById('countBozze').textContent = daRispondere.length;
+        if (daRispondere.length > 0) {
+          schedeEl.innerHTML = daRispondere.map(r => `
+            <div class="lista-item" style="cursor:pointer" onclick="location.href='richieste.html'">
               <div class="dot dot-warn"></div>
-              <div class="lista-testo">${s.nome_proprietario || 'Scheda senza nome'}</div>
+              <div style="flex:1">
+                <div class="lista-testo">${r.nome_cliente || '—'}</div>
+                <div class="lista-sub">${r.immobile || ''}</div>
+              </div>
             </div>`).join('');
         } else {
-          schedeEl.innerHTML = '<div class="placeholder">Nessuna scheda in attesa.</div>';
+          schedeEl.innerHTML = '<div class="placeholder">Nessuna risposta in attesa.</div>';
         }
 
-        // SEMAFORO: Richieste aperte (tutte tranne chiuse/perse)
-        const STATI_CHIUSI = ['Chiuso','Perso','Non interessato','Non procedere'];
-        const rRich = await fetch(`${SB_URL}/rest/v1/richieste?stato_cliente=not.in.(Chiuso,Perso,Non%20interessato,Non%20procedere)&order=data_richiesta.asc&limit=20`, { headers: SB_H });
-        const richList = await rRich.json();
+        // SEMAFORO: Richieste aperte (fetch tutto, filtro JS)
+        const STATI_CHIUSI = new Set(['Chiuso','Perso','Non interessato','Non procedere']);
+        const rRich = await fetch(`${SB_URL}/rest/v1/richieste?order=data_richiesta.asc&limit=200`, { headers: SB_H, cache: 'no-store' });
+        const richAll = await rRich.json();
+        const richList = Array.isArray(richAll) ? richAll.filter(r => !STATI_CHIUSI.has(r.stato_cliente)) : [];
         const richEl = document.getElementById('richiesteList');
         document.getElementById('countNuoveRichieste').textContent = Array.isArray(richList) ? richList.length : 0;
         const STATO_COLORE = {
@@ -599,6 +604,7 @@
       }
     }
     caricaContatori();
+    setInterval(caricaContatori, 5 * 60 * 1000);
 
     // AGENDA
     function caricaAgenda() { return JSON.parse(localStorage.getItem('agenda_' + d.toDateString()) || '[]'); }
