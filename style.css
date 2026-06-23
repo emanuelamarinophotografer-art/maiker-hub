@@ -347,7 +347,7 @@ body {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .sidebar { display: none; }
   .main { margin-left: 0; padding-bottom: 70px; }
   .content { padding: 20px 16px 80px; }
