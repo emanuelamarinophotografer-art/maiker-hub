@@ -342,8 +342,96 @@ body {
   .due-col { grid-template-columns: 1fr; }
 }
 
+/* BOTTOM NAV MOBILE */
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding-bottom: 70px; }
+  .content { padding: 20px 16px 80px; }
+  .topbar { padding: 16px 20px; }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    align-items: stretch;
+  }
+
+  .bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 6px 0;
+    transition: color 0.15s;
+  }
+
+  .bn-item.active { color: var(--accent); }
+  .bn-item:hover { color: var(--text); }
+  .bn-item .bn-icon { font-size: 1.3rem; line-height: 1; }
+
+  /* Drawer menu "altro" */
+  .bn-drawer {
+    position: fixed;
+    bottom: 60px; left: 0; right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    z-index: 999;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .bn-drawer.open { transform: translateY(0); }
+
+  .bn-drawer-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 6px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.65rem;
+    text-align: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+
+  .bn-drawer-item .icon { font-size: 1.4rem; }
+  .bn-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 998;
+    background: rgba(0,0,0,0.2);
+    display: none;
+  }
+  .bn-drawer-overlay.open { display: block; }
+}
+
 @media (max-width: 600px) {
   .sezioni { grid-template-columns: 1fr; }
-  .main { margin-left: 0; }
-  .sidebar { display: none; }
 }
