@@ -93,6 +93,26 @@
 
     @media (max-width: 1100px) { .layout-con-score { grid-template-columns: 1fr; } .score-sidebar { position: static; } }
     @media (max-width: 700px) { .scheda-intro-fields { grid-template-columns: 1fr 1fr; } .param-row { grid-template-columns: 1fr; } .form-grid, .form-grid-3 { grid-template-columns: 1fr; } .esito-section { grid-template-columns: 1fr; } }
+
+    /* LISTA SCHEDE */
+    .lista-schede-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .lista-schede-header h3 { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+    .btn-nuova { background: var(--accent); color: white; border: none; border-radius: 7px; padding: 7px 16px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .schede-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .scheda-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s; }
+    .scheda-card:hover { border-color: var(--accent); }
+    .scheda-card-nome { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .scheda-card-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; }
+    .scheda-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .scheda-card-esito { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+    .scheda-card-data { font-size: 0.68rem; color: var(--text-faint); }
+    .schede-empty { font-size: 0.85rem; color: var(--text-faint); font-style: italic; padding: 12px 0; }
+
+    /* CONVERTI BUTTON */
+    .btn-converti { width: 100%; background: #145a30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 0.88rem; font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .btn-converti:hover { opacity: 0.85; }
+    .btn-converti:disabled { opacity: 0.35; cursor: not-allowed; }
+    .converti-msg { font-size: 0.72rem; color: #145a30; text-align: center; margin-top: 6px; display: none; }
   </style>
 </head>
 <body>
@@ -141,6 +161,15 @@
     </div>
 
     <div class="content">
+
+      <!-- LISTA SCHEDE SALVATE -->
+      <div id="listaSchedeSection">
+        <div class="lista-schede-header">
+          <h3>Schede qualifica salvate</h3>
+          <button type="button" class="btn-nuova" onclick="nuovaScheda()">+ Nuova scheda</button>
+        </div>
+        <div class="schede-grid" id="schedeGrid"><div class="schede-empty">Caricamento...</div></div>
+      </div>
 
       <!-- IDENTIFICAZIONE -->
       <div class="scheda-intro">
@@ -696,8 +725,11 @@
             </div>
           </div>
 
-          <button class="btn-salva-scheda" onclick="salva()">💾 Salva scheda</button>
+          <button type="button" class="btn-salva-scheda" onclick="salva()">💾 Salva scheda</button>
           <div class="salva-msg" id="salvaMsg"></div>
+
+          <button type="button" class="btn-converti" id="btnConverti" onclick="convertiInIncarico()" disabled>Firma incarico → Crea proprietà</button>
+          <div class="converti-msg" id="convertiMsg"></div>
 
           <label class="caricato-check">
             <input type="checkbox" id="caricato_admin" onchange="salva()" />
@@ -894,6 +926,167 @@
     setInterval(() => { if (leggiCampo('h_nome')) salva(); }, 60000);
 
     aggiornaPunteggio();
+
+    /* ── LISTA SCHEDE ── */
+    const ESITO_STYLE = {
+      verde:  { bg: '#c8f0d8', color: '#145a30', label: 'Verde — Procedi' },
+      giallo: { bg: '#fdebc8', color: '#6b3d00', label: 'Giallo — Da valutare' },
+      rosso:  { bg: '#fad4d0', color: '#7b1a15', label: 'Rosso — Non adatto' }
+    };
+
+    async function caricaListaSchede() {
+      const grid = document.getElementById('schedeGrid');
+      try {
+        const r = await fetch(`${SB_URL}/rest/v1/scheda_qualifica?order=created_at.desc&limit=30`, {
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+        });
+        const schede = await r.json();
+        if (!schede.length) { grid.innerHTML = '<div class="schede-empty">Nessuna scheda salvata.</div>'; return; }
+        grid.innerHTML = schede.map(s => {
+          const est = ESITO_STYLE[s.esito] || { bg: '#e8e8e8', color: '#555', label: s.esito || '—' };
+          const dataFmt = s.created_at ? new Date(s.created_at).toLocaleDateString('it-IT', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+          const attiva = schedaId === s.id ? ' style="border-color:var(--accent)"' : '';
+          return `<div class="scheda-card"${attiva} onclick="apriScheda(${s.id})">
+            <div class="scheda-card-nome">${s.nome || 'Scheda senza nome'}</div>
+            <div class="scheda-card-sub">${[s.comune, s.tipologia].filter(Boolean).join(' · ')}</div>
+            <div class="scheda-card-footer">
+              <span class="scheda-card-esito" style="background:${est.bg};color:${est.color}">${est.label}</span>
+              <span class="scheda-card-data">${dataFmt}</span>
+            </div>
+          </div>`;
+        }).join('');
+      } catch(e) { grid.innerHTML = '<div class="schede-empty">Errore caricamento schede.</div>'; }
+    }
+
+    async function apriScheda(id) {
+      const r = await fetch(`${SB_URL}/rest/v1/scheda_qualifica?id=eq.${id}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      const data = await r.json();
+      if (!data[0]) return;
+      const s = data[0];
+      schedaId = s.id;
+      history.replaceState(null, '', `?id=${schedaId}`);
+
+      // Campi header
+      ['nome','indirizzo','comune','zona'].forEach(f => { const el = document.getElementById('h_'+f); if (el) el.value = s[f] || ''; });
+      // Campi testo
+      const map = {
+        t_tipologia:'tipologia', t_anno_costruzione:'anno_costruzione', t_stato_manutentivo:'stato_manutentivo',
+        t_classe_energetica:'classe_energetica', t_mq_abitabili:'mq_abitabili', t_mq_totali:'mq_totali',
+        t_piano:'piano', t_n_locali:'n_locali', t_n_bagni:'n_bagni', t_mq_balconi:'mq_balconi',
+        t_giardino:'giardino', t_mq_giardino:'mq_giardino', t_mq_garage:'mq_garage', t_n_posti_auto:'n_posti_auto',
+        t_riscaldamento:'riscaldamento', t_tipo_impianto:'tipo_impianto', t_infissi:'infissi', t_pavimentazione:'pavimentazione',
+        t_proprietario:'proprietario', t_titolo_provenienza:'titolo_provenienza',
+        t_conformita_urbanistica:'conformita_urbanistica', t_conformita_catastale:'conformita_catastale',
+        t_vincoli:'vincoli', t_spese_condominiali:'spese_condominiali', t_disponibilita:'disponibilita',
+        t_mutuo_residuo:'mutuo_residuo', t_tempistiche:'tempistiche',
+        t_punti_forza:'punti_forza', t_lavori_eseguiti:'lavori_eseguiti', t_lavori_necessari:'lavori_necessari',
+        t_note:'note', t_referente_nome:'referente_nome', t_referente_tel:'referente_tel', t_referente_email:'referente_email',
+        t_prezzo_richiesto:'prezzo_richiesto', t_motivazione:'motivazione', t_urgenza:'urgenza', t_documentazione:'documentazione',
+        t_prossimo_step:'prossimo_step', t_note_qualifica:'note_qualifica'
+      };
+      Object.entries(map).forEach(([elId, field]) => {
+        const el = document.getElementById(elId);
+        if (el) el.value = s[field] || '';
+      });
+      // Boolean chips
+      ['ascensore','balconi','garage','posti_auto','aria_condizionata','impianti_certificati','domotica','allarme','fibra','videocitofono','trattabile','mutuo','ape_disponibile'].forEach(f => {
+        const val = s[f];
+        const si = document.querySelector(`.bool-chip[data-field="${f}"][data-val="si"]`);
+        const no = document.querySelector(`.bool-chip[data-field="${f}"][data-val="no"]`);
+        if (si && no) { si.classList.toggle('sel-si', val === true); no.classList.toggle('sel-no', val === false); }
+      });
+      // Esito
+      esitoSel = s.esito;
+      document.querySelectorAll('.esito-chip').forEach(c => { c.classList.toggle('sel', c.dataset.val === s.esito); });
+      // Caricato admin
+      document.getElementById('caricato_admin').checked = !!s.caricato_amministrazione;
+
+      aggiornaPunteggio();
+      aggiornaBottoneConverti();
+      // Scroll al form
+      document.querySelector('.scheda-intro').scrollIntoView({ behavior: 'smooth' });
+      caricaListaSchede();
+    }
+
+    function nuovaScheda() {
+      schedaId = null;
+      history.replaceState(null, '', location.pathname);
+      document.querySelectorAll('.field-input, .param-input, .param-textarea').forEach(el => el.value = '');
+      document.querySelectorAll('.bool-chip').forEach(c => c.classList.remove('sel-si','sel-no'));
+      document.querySelectorAll('.val-chip, .esito-chip').forEach(c => c.classList.remove('sel'));
+      esitoSel = null;
+      document.getElementById('caricato_admin').checked = false;
+      document.getElementById('salvaMsg').textContent = '';
+      document.getElementById('btnConverti').disabled = true;
+      aggiornaPunteggio();
+      document.querySelector('.scheda-intro').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function aggiornaBottoneConverti() {
+      const btn = document.getElementById('btnConverti');
+      btn.disabled = !schedaId;
+    }
+
+    async function convertiInIncarico() {
+      if (!schedaId) return;
+      const r = await fetch(`${SB_URL}/rest/v1/scheda_qualifica?id=eq.${schedaId}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      const data = await r.json();
+      const s = data[0];
+      if (!s) return;
+
+      const oggi = new Date().toISOString().split('T')[0];
+      const mq = parseInt(s.mq_abitabili || s.mq_totali || '0') || null;
+      const proprieta = {
+        nome: s.nome || '',
+        titolo: s.nome || '',
+        indirizzo: s.indirizzo || '',
+        comune: s.comune || '',
+        zona: s.zona || '',
+        tipologia: s.tipologia || '',
+        mq: mq,
+        prezzo: s.prezzo_richiesto || '',
+        proprietario: s.proprietario || s.referente_nome || '',
+        tel_proprietario: s.referente_tel || '',
+        stato: 'Incarico preso',
+        data_incarico: oggi,
+        note: s.note || ''
+      };
+
+      const res = await fetch(`${SB_URL}/rest/v1/proprieta`, {
+        method: 'POST',
+        headers: SB_H,
+        body: JSON.stringify(proprieta)
+      });
+
+      const msg = document.getElementById('convertiMsg');
+      if (res.ok) {
+        const created = await res.json();
+        msg.style.display = 'block';
+        msg.textContent = '✓ Proprietà creata! Vai a Proprietà per completarla.';
+        document.getElementById('btnConverti').disabled = true;
+        if (created[0]?.id) {
+          setTimeout(() => { window.location.href = `proprieta-detail.html?id=${created[0].id}`; }, 1500);
+        }
+      } else {
+        msg.style.display = 'block';
+        msg.style.color = '#7b1a15';
+        msg.textContent = 'Errore nella creazione.';
+      }
+    }
+
+    // Abilita bottone converti dopo ogni salvataggio
+    const _salvaorig = salva;
+    async function salva() {
+      await _salvaorig.apply(this, arguments);
+      aggiornaBottoneConverti();
+    }
+
+    caricaListaSchede();
+    if (schedaId) apriScheda(schedaId);
   </script>
 
 </body>
