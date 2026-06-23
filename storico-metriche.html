@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ework — Storico Metriche</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .filtri { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filtro-btn { padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .filtro-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .storico-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .storico-table th { text-align: left; padding: 8px 10px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; border-bottom: 2px solid var(--border); }
+    .storico-table td { padding: 10px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .storico-table tr:last-child td { border-bottom: none; }
+    .storico-table tr:hover td { background: var(--bg); }
+    .td-periodo { font-weight: 700; white-space: nowrap; }
+    .td-tipo { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+    .tipo-sett { background: #eaf4fb; color: #1565C0; }
+    .tipo-mese { background: #fef9e7; color: #b7860b; }
+    .td-num { text-align: center; font-weight: 600; color: var(--text); }
+    .td-num.zero { color: var(--text-faint); }
+    .td-num.highlight { color: var(--accent); font-size: 1rem; }
+    .td-actions { text-align: right; }
+    .btn-del { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; }
+    .btn-del:hover { color: var(--danger); }
+
+    .totali-row td { background: var(--bg-card); font-weight: 700; color: var(--text); border-top: 2px solid var(--accent); font-size: 0.88rem; }
+    .totali-row .td-num { color: var(--accent); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.88rem; }
+
+    .kpi-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .kpi-mini { flex: 1; min-width: 80px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; text-align: center; }
+    .kpi-mini-val { font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+    .kpi-mini-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html"><h1>Ework</h1></a>
+      <div class="sub">Centro operativo</div>
+    </div>
+    <nav class="nav-section c-principale">
+      <div class="nav-label">Principale</div>
+      <a class="nav-item" href="index.html"><span class="icon">🎯</span> Dashboard</a>
+    </nav>
+    <nav class="nav-section c-operativo">
+      <div class="nav-label">Operativo</div>
+      <a class="nav-item" href="attivita.html"><span class="icon">✅</span> Task</a>
+      <a class="nav-item active" href="storico-metriche.html"><span class="icon">📈</span> Storico Metriche</a>
+      <a class="nav-item" href="agenti.html"><span class="icon">🤖</span> Agenti</a>
+      <a class="nav-item" href="chat.html"><span class="icon">💬</span> Chat</a>
+    </nav>
+    <nav class="nav-section c-lavoro">
+      <div class="nav-label">Lavoro</div>
+      <a class="nav-item" href="clienti.html"><span class="icon">👤</span> Clienti</a>
+      <a class="nav-item" href="richieste.html"><span class="icon">📞</span> Richieste</a>
+      <a class="nav-item" href="proprieta.html"><span class="icon">🏡</span> Proprietà</a>
+      <a class="nav-item" href="valutazione.html"><span class="icon">🧮</span> Valutazione</a>
+      <a class="nav-item" href="ricerca.html"><span class="icon">🔍</span> Ricerca Immobili</a>
+      <a class="nav-item" href="radar.html"><span class="icon">📡</span> Radar Lunedì</a>
+      <a class="nav-item" href="incarico.html"><span class="icon">📋</span> Scheda Incarico</a>
+    </nav>
+    <nav class="nav-section c-contenuti">
+      <div class="nav-label">Contenuti</div>
+      <a class="nav-item" href="social.html"><span class="icon">📸</span> Social</a>
+      <a class="nav-item" href="fonti.html"><span class="icon">🌿</span> Fonti</a>
+    </nav>
+    <nav class="nav-section c-analisi">
+      <div class="nav-label">Analisi</div>
+      <a class="nav-item" href="mara.html"><span class="icon">📊</span> Mara Analytics</a>
+    </nav>
+    <div class="sidebar-bottom" id="dataOggi"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h2>📈 Storico Metriche</h2>
+      <div class="date" id="dataEstesa"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- KPI TOTALI -->
+      <div class="kpi-strip" id="kpiStrip"></div>
+
+      <!-- FILTRI -->
+      <div class="filtri">
+        <button class="filtro-btn active" onclick="setFiltro('tutti', this)">Tutti</button>
+        <button class="filtro-btn" onclick="setFiltro('settimanali', this)">Settimane</button>
+        <button class="filtro-btn" onclick="setFiltro('mensili', this)">Mesi</button>
+      </div>
+
+      <!-- TABELLA -->
+      <div class="blocco">
+        <div class="blocco-header" id="titoloTabella">Tutti i periodi</div>
+        <div id="contenutoTabella"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const d = new Date();
+    const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+    const mesiNomi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    const nomiMesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesiNomi[d.getMonth()];
+    document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesiNomi[d.getMonth()] + ' ' + d.getFullYear();
+
+    const campi = ['vendite','incarichi_e','incarichi_ne','valutazioni','visita','coll_int','coll_ext','x_incarico','contatti','telefonate','ribassi','proposte_rit'];
+    const etichette = {
+      vendite:'Vendite', incarichi_e:'Inc. E.', incarichi_ne:'Inc. N.E.', valutazioni:'Valutaz.',
+      visita:'Visite', coll_int:'Coll.Int.', coll_ext:'Coll.Ext.', x_incarico:'App.Inc.',
+      contatti:'Contatti', telefonate:'Tel.', ribassi:'Ribassi', proposte_rit:'Prop.Rit.'
+    };
+    const campiPrincipali = ['vendite','incarichi_e','incarichi_ne','contatti','visita'];
+
+    let filtroAttivo = 'tutti';
+
+    function caricaStorico() { return JSON.parse(localStorage.getItem('metriche_storico') || '[]'); }
+    function salvaStorico(lista) { localStorage.setItem('metriche_storico', JSON.stringify(lista)); }
+    function caricaMesiPassati() { return JSON.parse(localStorage.getItem('mesi_passati') || '[]'); }
+    function salvaMesiPassati(lista) { localStorage.setItem('mesi_passati', JSON.stringify(lista)); }
+
+    function setFiltro(filtro, btn) {
+      filtroAttivo = filtro;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      const settimane = caricaStorico();
+      const mesi = caricaMesiPassati();
+
+      // KPI totali
+      const tutti = [
+        ...settimane.map(r => ({ ...r, _tipo: 'sett' })),
+        ...mesi.map(r => ({ ...r, _tipo: 'mese' }))
+      ];
+      const totali = {};
+      campi.forEach(c => { totali[c] = tutti.reduce((s, r) => s + (r[c] || 0), 0); });
+      document.getElementById('kpiStrip').innerHTML = campiPrincipali.map(c => `
+        <div class="kpi-mini">
+          <div class="kpi-mini-val">${totali[c] || 0}</div>
+          <div class="kpi-mini-label">${etichette[c]}</div>
+        </div>`).join('');
+
+      // Tabella
+      let righe = [];
+      if (filtroAttivo !== 'mensili') {
+        settimane.forEach(r => righe.push({ ...r, _tipo: 'sett', _label: 'Settimana chiusa ' + (r.dataFine || r.dataInizio || '—') }));
+      }
+      if (filtroAttivo !== 'settimanali') {
+        mesi.forEach(r => righe.push({ ...r, _tipo: 'mese', _label: nomiMesi[r.mese] + ' ' + r.anno }));
+      }
+
+      const titoli = { tutti: 'Tutti i periodi', settimanali: 'Settimane', mensili: 'Mesi' };
+      document.getElementById('titoloTabella').textContent = titoli[filtroAttivo] + ' (' + righe.length + ')';
+
+      const el = document.getElementById('contenutoTabella');
+      if (righe.length === 0) {
+        el.innerHTML = '<div class="empty-state">Nessun dato salvato ancora.<br>Chiudi una settimana da Task per iniziare.</div>';
+        return;
+      }
+
+      // Totali riga
+      const tot = {};
+      campi.forEach(c => { tot[c] = righe.reduce((s, r) => s + (r[c] || 0), 0); });
+
+      el.innerHTML = `
+        <table class="storico-table">
+          <thead>
+            <tr>
+              <th>Periodo</th>
+              <th></th>
+              ${campi.map(c => `<th style="text-align:center">${etichette[c]}</th>`).join('')}
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${righe.map((r, i) => `
+              <tr>
+                <td class="td-periodo">${r._label}</td>
+                <td><span class="td-tipo ${r._tipo === 'sett' ? 'tipo-sett' : 'tipo-mese'}">${r._tipo === 'sett' ? 'Sett.' : 'Mese'}</span></td>
+                ${campi.map(c => `<td class="td-num ${(r[c]||0)===0?'zero':''} ${campiPrincipali.includes(c)&&(r[c]||0)>0?'highlight':''}">${r[c]||0}</td>`).join('')}
+                <td class="td-actions"><button class="btn-del" onclick="elimina('${r._tipo}', ${r.ts || 0}, ${i})">✕</button></td>
+              </tr>`).join('')}
+            <tr class="totali-row">
+              <td colspan="2"><strong>TOTALE</strong></td>
+              ${campi.map(c => `<td class="td-num">${tot[c]}</td>`).join('')}
+              <td></td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    function elimina(tipo, ts, idx) {
+      if (!confirm('Eliminare questo periodo?')) return;
+      if (tipo === 'sett') {
+        salvaStorico(caricaStorico().filter(r => r.ts !== ts));
+      } else {
+        const lista = caricaMesiPassati();
+        lista.splice(idx - caricaStorico().length, 1);
+        salvaMesiPassati(lista);
+      }
+      render();
+    }
+
+    render();
+  </script>
+
+</body>
+</html>

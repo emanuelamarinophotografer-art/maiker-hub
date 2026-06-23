@@ -308,7 +308,10 @@
       <div class="blocco">
         <div class="metriche-toggle">
           <div class="blocco-header" style="margin-bottom:0">Metriche settimanali</div>
-          <button type="button" class="metriche-toggle-btn" onclick="toggleMetriche()" id="btnToggleMetriche">▲ Chiudi</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <a href="storico-metriche.html" class="metriche-toggle-btn" style="text-decoration:none">📈 Storico</a>
+            <button type="button" class="metriche-toggle-btn" onclick="toggleMetriche()" id="btnToggleMetriche">▲ Chiudi</button>
+          </div>
         </div>
 
         <div class="metriche-body aperto" id="metricheBody">
@@ -596,7 +599,7 @@
     // METRICHE
     const goal = { contatti: 16, incarichi: 2, transazioni: 1 };
     const campi = ['vendite','incarichi_e','incarichi_ne','valutazioni','visita','coll_int','coll_ext','x_incarico','contatti','telefonate','ribassi','proposte_rit'];
-    const etichette = { transazioni:'Transazioni', incarichi_e:'Inc. E.', incarichi_ne:'Inc. N.E.', valutazioni:'Valutazioni', visita:'Visite', coll_int:'Coll. Int.', coll_ext:'Coll. Ext.', x_incarico:'App. Incarico', contatti:'Contatti', telefonate:'Telefonate', ribassi:'Ribassi', proposte_rit:'Prop. Ritirate' };
+    const etichette = { vendite:'Vendite', incarichi_e:'Inc. E.', incarichi_ne:'Inc. N.E.', valutazioni:'Valutazioni', visita:'Visite', coll_int:'Coll. Int.', coll_ext:'Coll. Ext.', x_incarico:'App. Incarico', contatti:'Contatti', telefonate:'Telefonate', ribassi:'Ribassi', proposte_rit:'Prop. Ritirate' };
 
     function caricaCorrente() { return JSON.parse(localStorage.getItem('metrica_corrente') || '{}'); }
     function salvaCorrente(r) { localStorage.setItem('metrica_corrente', JSON.stringify(r)); }
