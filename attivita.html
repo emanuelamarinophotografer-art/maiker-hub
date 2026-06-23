@@ -544,8 +544,8 @@
         if (!STATI_DA_CONTATTARE.has(r.stato_cliente)) return false;
         return r.prossimo_follow <= oggiStr;
       });
-      const rispondere = attive.filter(r => r.stato_follow === 'Bozza creata' || r.stato_follow === 'Da rispondere' || (r.stato_cliente === 'Nuova richiesta' && r.stato_follow === 'Nuovo'));
-      const bozze = attive.filter(r => r.stato_follow === 'Da generare');
+      const rispondere = attive.filter(r => r.stato_follow === 'Da rispondere' || (r.stato_cliente === 'Nuova richiesta' && r.stato_follow === 'Nuovo'));
+      const bozze = attive.filter(r => r.stato_follow === 'Bozza creata' || r.stato_follow === 'Da generare');
 
       const totale = tutte.length;
       const nAttive = tutte.filter(r => !['Annullato','Perso','Venduto'].includes(r.stato_cliente)).length;
