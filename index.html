@@ -596,12 +596,13 @@
             .forEach(r => azioni.push({ tipo: 'bozza', label: '✉️ Rispondi', nome: r.nome_cliente || '—', sub: r.immobile || r.stato_follow, urgenza: 0 }));
         }
 
-        // 2. Follow-up scaduti (prossimo_follow < oggi, stato attivo)
+        // 2. Follow-up scaduti — solo stati che richiedono azione attiva
+        const STATI_DA_CONTATTARE = new Set(['Risposto','Follow-up 1','Follow-up 2','Follow-up 3','Da richiamare','In attesa risposta']);
         if (Array.isArray(richAll)) {
-          richAll.filter(r => r.prossimo_follow && r.prossimo_follow < oggi && !STATI_CHIUSI.has(r.stato_cliente))
+          richAll.filter(r => r.prossimo_follow && r.prossimo_follow < oggi && STATI_DA_CONTATTARE.has(r.stato_cliente))
             .forEach(r => {
               const gg = Math.floor((Date.now() - new Date(r.prossimo_follow)) / 86400000);
-              azioni.push({ tipo: 'scaduto', label: `⏰ Follow scaduto (${gg}gg)`, nome: r.nome_cliente || '—', sub: r.stato_cliente + (r.immobile ? ' · ' + r.immobile : ''), urgenza: 1 });
+              azioni.push({ tipo: 'scaduto', label: `⏰ Da contattare (${gg}gg)`, nome: r.nome_cliente || '—', sub: r.stato_cliente + (r.immobile ? ' · ' + r.immobile : ''), urgenza: 1 });
             });
         }
 
