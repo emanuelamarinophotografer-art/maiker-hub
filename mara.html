@@ -140,6 +140,23 @@
     .skill-step-num { font-weight: 700; color: var(--accent); margin-right: 4px; }
     .empty-state { text-align: center; padding: 30px 20px; color: var(--text-muted); font-size: 0.85rem; }
 
+    /* VITA & CASA */
+    .vc-cat-header { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
+    .vc-spesa-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; }
+    .vc-spesa-data { font-size: 0.8rem; font-weight: 600; color: var(--text); min-width: 80px; }
+    .vc-spesa-desc { flex: 1; font-size: 0.82rem; color: var(--text-muted); }
+    .vc-spesa-cat { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; }
+    .vc-cat-casa { background: #eaf4fb; color: #1565C0; } .vc-cat-lavori { background: #fff3e0; color: #E65100; }
+    .vc-cat-utenze { background: #f3e5f5; color: #6A1B9A; } .vc-cat-mutuo { background: #e8f5e9; color: #2E7D32; }
+    .vc-cat-altro { background: #fef9e7; color: #b7860b; }
+    .vc-spesa-importo { font-size: 0.95rem; font-weight: 700; color: #c0392b; }
+    .vc-saldo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    .vc-lavoro-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; }
+    .vc-lavoro-nome { flex: 1; font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .vc-lavoro-costo { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); min-width: 90px; text-align: right; }
+    .vc-lavoro-stato { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+    .vc-stato-pianificato { background: #eaf4fb; color: #1565C0; } .vc-stato-in_corso { background: #fff3e0; color: #E65100; } .vc-stato-completato { background: #e8f5e9; color: #2E7D32; }
+
     /* INSIGHT */
     .mara-insight { background: #1a2e42; border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
     .mara-insight-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #8aaec4; font-weight: 700; margin-bottom: 8px; }
@@ -224,6 +241,7 @@
         <button type="button" class="mara-tab active" onclick="switchTab('lavoro', this)">📋 Lavoro</button>
         <button type="button" class="mara-tab" onclick="switchTab('finanze', this)">💰 Finanze</button>
         <button type="button" class="mara-tab" onclick="switchTab('mercato', this)">🔭 Mercato & Report</button>
+        <button type="button" class="mara-tab" onclick="switchTab('vita', this)">🏠 Vita & Casa</button>
       </div>
 
       <!-- ═══════ TAB LAVORO ═══════ -->
@@ -469,6 +487,111 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- ═══════ TAB VITA & CASA ═══════ -->
+      <div class="mara-panel" id="panel-vita">
+
+        <!-- SALDI PERSONALI -->
+        <div class="vc-saldo-grid">
+          <div class="saldo-card">
+            <div><div class="saldo-label">Entrate lavoro (mese)</div><div class="saldo-val positivo" id="vc_entrate_lavoro">€ 0</div></div>
+            <span style="font-size:1.6rem">💼</span>
+          </div>
+          <div class="saldo-card">
+            <div><div class="saldo-label">Spese vita & casa</div><div class="saldo-val negativo" id="vc_spese_tot">€ 0</div></div>
+            <span style="font-size:1.6rem">🏠</span>
+          </div>
+          <div class="saldo-card">
+            <div><div class="saldo-label">Saldo disponibile</div><div class="saldo-val" id="vc_saldo">€ 0</div></div>
+            <span style="font-size:1.6rem">⚖️</span>
+          </div>
+        </div>
+
+        <div class="mara-grid">
+
+          <!-- SPESE PERSONALI -->
+          <div>
+            <div class="blocco" style="margin-bottom:16px">
+              <div class="blocco-header">Spese Vita & Casa <span id="vcContSpese"></span></div>
+              <div id="vcSpeseList"><div class="placeholder">Nessuna spesa registrata.</div></div>
+              <div class="aggiungi-fin-form" style="margin-top:10px">
+                <div class="aggiungi-fin-title">+ Aggiungi spesa</div>
+                <div class="aggiungi-fin-row">
+                  <div class="fin-field wide"><label>Descrizione</label><input type="text" id="vc_desc" placeholder="es. Bolletta luce" /></div>
+                  <div class="fin-field sm"><label>Importo (€)</label><input type="number" id="vc_importo" placeholder="0" /></div>
+                  <div class="fin-field">
+                    <label>Categoria</label>
+                    <select id="vc_cat">
+                      <option value="mutuo">🏠 Mutuo/Affitto</option>
+                      <option value="utenze">💡 Utenze</option>
+                      <option value="casa">🛋 Casa</option>
+                      <option value="lavori">🔨 Lavori</option>
+                      <option value="altro">📋 Altro</option>
+                    </select>
+                  </div>
+                  <div class="fin-field sm"><label>Data</label><input type="date" id="vc_data" /></div>
+                  <div class="fin-field" style="justify-content:flex-end"><label>&nbsp;</label><button type="button" class="btn-fin" onclick="aggiungiSpesaVita()">Aggiungi</button></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BUDGET MENSILE -->
+            <div class="blocco">
+              <div class="fin-sezione-label">Budget mensile personale</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:380px;margin-bottom:12px">
+                <div class="fin-field">
+                  <label>Budget mensile (€)</label>
+                  <input type="number" class="fin-input" id="vc_budget" placeholder="es. 2500" oninput="salvaVcBudget()" />
+                </div>
+                <div class="fin-field">
+                  <label>% utilizzato</label>
+                  <input type="text" class="fin-input" id="vc_budget_pct" readonly style="background:var(--bg-card);color:var(--accent)" />
+                </div>
+              </div>
+              <div class="goal-track" style="height:12px">
+                <div class="goal-fill" id="vc_budget_bar" style="width:0%;background:#c0392b"></div>
+              </div>
+              <div id="vc_budget_insight" class="mara-insight" style="display:none;margin-top:12px">
+                <div class="mara-insight-label">— Mara 📊</div>
+                <div class="mara-insight-text" id="vc_budget_insight_text"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LAVORI CASA -->
+          <div>
+            <div class="blocco">
+              <div class="blocco-header" style="display:flex;justify-content:space-between;align-items:center">
+                <span>Lavori casa <span id="vcContLavori"></span></span>
+                <button type="button" class="btn-fin" style="font-size:0.78rem;padding:5px 12px" onclick="toggleFormLavoro()">+ Aggiungi</button>
+              </div>
+              <div class="form-aggiungi" id="formLavoro" style="margin-bottom:10px">
+                <div class="form-row">
+                  <div class="form-field wide"><label>Lavoro</label><input type="text" id="lav_nome" placeholder="es. Rifacimento impianto elettrico" /></div>
+                  <div class="form-field sm"><label>Costo stimato (€)</label><input type="number" id="lav_costo" placeholder="0" /></div>
+                  <div class="form-field sm">
+                    <label>Stato</label>
+                    <select id="lav_stato">
+                      <option value="pianificato">📅 Pianificato</option>
+                      <option value="in_corso">🔨 In corso</option>
+                      <option value="completato">✅ Completato</option>
+                    </select>
+                  </div>
+                  <div class="form-field sm"><label>Data prevista</label><input type="date" id="lav_data" /></div>
+                </div>
+                <button type="button" class="btn-fin" onclick="aggiungiLavoro()">Salva</button>
+              </div>
+              <div id="vcLavoriList"><div class="placeholder">Nessun lavoro pianificato.</div></div>
+
+              <div style="margin-top:20px">
+                <div class="vc-cat-header">Previsioni fine mese</div>
+                <div id="vcPrevisioni"><div class="placeholder">Inserisci entrate e spese per vedere la proiezione.</div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
     </div>
@@ -766,9 +889,165 @@
       document.getElementById('calc_result').style.display = '';
     }
 
+    // ── VITA & CASA ──
+    const VC_SPESE_KEY = 'vita_spese';
+    const VC_LAVORI_KEY = 'vita_lavori';
+
+    function caricaVcSpese() { return JSON.parse(localStorage.getItem(VC_SPESE_KEY) || '[]'); }
+    function salvaVcSpese(lista) { localStorage.setItem(VC_SPESE_KEY, JSON.stringify(lista)); }
+    function caricaVcLavori() { return JSON.parse(localStorage.getItem(VC_LAVORI_KEY) || '[]'); }
+    function salvaVcLavori(lista) { localStorage.setItem(VC_LAVORI_KEY, JSON.stringify(lista)); }
+
+    const vcCatLabel = { mutuo:'Mutuo/Affitto', utenze:'Utenze', casa:'Casa', lavori:'Lavori', altro:'Altro' };
+    const vcCatCls   = { mutuo:'vc-cat-mutuo', utenze:'vc-cat-utenze', casa:'vc-cat-casa', lavori:'vc-cat-lavori', altro:'vc-cat-altro' };
+    const vcLavStatoCls = { pianificato:'vc-stato-pianificato', in_corso:'vc-stato-in_corso', completato:'vc-stato-completato' };
+    const vcLavStatoLabel = { pianificato:'📅 Pianificato', in_corso:'🔨 In corso', completato:'✅ Completato' };
+
+    function aggiungiSpesaVita() {
+      const desc = document.getElementById('vc_desc').value.trim();
+      const importo = parseFloat(document.getElementById('vc_importo').value) || 0;
+      const cat = document.getElementById('vc_cat').value;
+      const data = document.getElementById('vc_data').value || new Date().toISOString().split('T')[0];
+      if (!desc || importo <= 0) return;
+      const lista = caricaVcSpese();
+      lista.unshift({ id: Date.now(), desc, importo, cat, data });
+      salvaVcSpese(lista);
+      document.getElementById('vc_desc').value = '';
+      document.getElementById('vc_importo').value = '';
+      renderVitaCasa();
+    }
+
+    function eliminaSpesaVita(id) {
+      salvaVcSpese(caricaVcSpese().filter(s => s.id !== id));
+      renderVitaCasa();
+    }
+
+    function salvaVcBudget() {
+      localStorage.setItem('vc_budget', document.getElementById('vc_budget').value);
+      renderVitaCasa();
+    }
+
+    function toggleFormLavoro() { document.getElementById('formLavoro').classList.toggle('aperta'); }
+
+    function aggiungiLavoro() {
+      const nome = document.getElementById('lav_nome').value.trim();
+      const costo = parseFloat(document.getElementById('lav_costo').value) || 0;
+      const stato = document.getElementById('lav_stato').value;
+      const data = document.getElementById('lav_data').value;
+      if (!nome) return;
+      const lista = caricaVcLavori();
+      lista.unshift({ id: Date.now(), nome, costo, stato, data });
+      salvaVcLavori(lista);
+      document.getElementById('lav_nome').value = '';
+      document.getElementById('lav_costo').value = '';
+      document.getElementById('formLavoro').classList.remove('aperta');
+      renderVitaCasa();
+    }
+
+    function cambiaStatoLavoro(id, stato) {
+      const lista = caricaVcLavori().map(l => l.id === id ? { ...l, stato } : l);
+      salvaVcLavori(lista);
+      renderVitaCasa();
+    }
+
+    function eliminaLavoro(id) {
+      salvaVcLavori(caricaVcLavori().filter(l => l.id !== id));
+      renderVitaCasa();
+    }
+
+    function renderVitaCasa() {
+      const spese = caricaVcSpese();
+      const lavori = caricaVcLavori();
+      const budget = parseFloat(localStorage.getItem('vc_budget')) || 0;
+
+      // Saldi
+      const totSpese = spese.reduce((s, sp) => s + (sp.importo || 0), 0);
+      const entrateLavoro = (JSON.parse(localStorage.getItem('movimenti') || '[]'))
+        .filter(m => m.tipo !== 'spesa').reduce((s, m) => s + (m.importo || 0), 0);
+      // Leggi entrate da Supabase se disponibili, altrimenti 0
+      const entrateEl = document.getElementById('fin_tot_entrate');
+      const entrateNum = entrateEl ? parseFloat(entrateEl.textContent.replace(/[^0-9]/g,'')) || 0 : 0;
+      const saldo = entrateNum - totSpese;
+
+      document.getElementById('vc_entrate_lavoro').textContent = fmtEur(entrateNum);
+      document.getElementById('vc_spese_tot').textContent = fmtEur(totSpese);
+      const saldoEl = document.getElementById('vc_saldo');
+      saldoEl.textContent = fmtEur(saldo);
+      saldoEl.className = 'saldo-val ' + (saldo >= 0 ? 'positivo' : 'negativo');
+
+      // Lista spese
+      const speseEl = document.getElementById('vcSpeseList');
+      document.getElementById('vcContSpese').textContent = spese.length > 0 ? `(${spese.length})` : '';
+      if (spese.length === 0) {
+        speseEl.innerHTML = '<div class="placeholder">Nessuna spesa registrata.</div>';
+      } else {
+        speseEl.innerHTML = spese.map(s => `
+          <div class="vc-spesa-item">
+            <div class="vc-spesa-data">${fmtData(s.data)}</div>
+            <div class="vc-spesa-desc">${s.desc}</div>
+            <span class="vc-spesa-cat ${vcCatCls[s.cat]||'vc-cat-altro'}">${vcCatLabel[s.cat]||s.cat}</span>
+            <div class="vc-spesa-importo">- ${fmtEur(s.importo)}</div>
+            <button type="button" class="btn-del-fin" onclick="eliminaSpesaVita(${s.id})">✕</button>
+          </div>`).join('');
+      }
+
+      // Budget bar
+      if (budget > 0) {
+        const usato = Math.min(pct(totSpese, budget), 100);
+        document.getElementById('vc_budget_pct').value = usato + '%';
+        document.getElementById('vc_budget_bar').style.width = usato + '%';
+        document.getElementById('vc_budget_bar').style.background = usato > 90 ? '#c0392b' : usato > 70 ? '#c07040' : '#27ae60';
+        const insight = document.getElementById('vc_budget_insight');
+        if (usato > 80) {
+          document.getElementById('vc_budget_insight_text').textContent = `Hai usato il ${usato}% del budget mensile (${fmtEur(totSpese)} su ${fmtEur(budget)}). Mancano ${fmtEur(budget - totSpese)}.`;
+          insight.style.display = '';
+        } else {
+          insight.style.display = 'none';
+        }
+      } else {
+        document.getElementById('vc_budget_pct').value = '—';
+      }
+
+      // Lista lavori
+      const lavoriEl = document.getElementById('vcLavoriList');
+      document.getElementById('vcContLavori').textContent = lavori.length > 0 ? `(${lavori.length})` : '';
+      if (lavori.length === 0) {
+        lavoriEl.innerHTML = '<div class="placeholder">Nessun lavoro pianificato.</div>';
+      } else {
+        lavoriEl.innerHTML = lavori.map(l => `
+          <div class="vc-lavoro-item">
+            <div class="vc-lavoro-nome">${l.nome}${l.data ? ' · <span style="color:var(--text-muted);font-size:0.75rem">' + fmtData(l.data) + '</span>' : ''}</div>
+            <div class="vc-lavoro-costo">${l.costo > 0 ? fmtEur(l.costo) : '—'}</div>
+            <select class="vc-lavoro-stato ${vcLavStatoCls[l.stato]||''}" onchange="cambiaStatoLavoro(${l.id}, this.value)" style="border:none;background:transparent;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">
+              ${['pianificato','in_corso','completato'].map(s => `<option value="${s}" ${l.stato===s?'selected':''}>${vcLavStatoLabel[s]}</option>`).join('')}
+            </select>
+            <button type="button" class="btn-del-fin" onclick="eliminaLavoro(${l.id})">✕</button>
+          </div>`).join('');
+      }
+
+      // Previsioni
+      const costoLavoriPianificati = lavori.filter(l => l.stato !== 'completato').reduce((s, l) => s + (l.costo || 0), 0);
+      const prevEl = document.getElementById('vcPrevisioni');
+      if (entrateNum === 0 && totSpese === 0) {
+        prevEl.innerHTML = '<div class="placeholder">Inserisci entrate e spese per vedere la proiezione.</div>';
+      } else {
+        const saldoDopoLavori = saldo - costoLavoriPianificati;
+        prevEl.innerHTML = `
+          <div class="mara-insight">
+            <div class="mara-insight-label">— Mara 📊</div>
+            <div class="mara-insight-text">
+              Entrate lavoro: <strong>${fmtEur(entrateNum)}</strong> · Spese vita: <strong>${fmtEur(totSpese)}</strong> → saldo <strong>${fmtEur(saldo)}</strong>.
+              ${costoLavoriPianificati > 0 ? ` Lavori casa pianificati: <strong>${fmtEur(costoLavoriPianificati)}</strong>. Saldo residuo post-lavori: <strong style="color:${saldoDopoLavori>=0?'#27ae60':'#c0392b'}">${fmtEur(saldoDopoLavori)}</strong>.` : ''}
+              ${budget > 0 ? ` Budget mensile: ${fmtEur(budget)} — ${totSpese > budget ? '⚠️ sforato di ' + fmtEur(totSpese - budget) : 'nei limiti ✅'}.` : ''}
+            </div>
+          </div>`;
+      }
+    }
+
     // ── INIT ──
     const finGoal = localStorage.getItem('fin_goal_annuo') || '';
     document.getElementById('fin_goal_annuo').value = finGoal;
+    document.getElementById('vc_budget').value = localStorage.getItem('vc_budget') || '';
 
     caricaFunnel();
     caricaGoal();
