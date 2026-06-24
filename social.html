@@ -513,7 +513,7 @@
         <label>Stato</label>
         <select class="form-select" id="p_stato">
           <option value="bozza">Bozza</option>
-          <option value="in-produzione">In produzione</option>
+          <option value="in-produzione">Prodotto</option>
           <option value="pubblicato">Pubblicato ✅</option>
         </select>
       </div>
@@ -819,7 +819,7 @@
           item.className = 'pannello-post-item';
           const dataFmt = p.data ? new Date(p.data + 'T00:00:00').toLocaleDateString('it-IT', {day:'2-digit',month:'short'}) : '—';
           const statoClass = p.stato === 'pubblicato' ? 'stato-pubblicato' : p.stato === 'in-produzione' ? 'stato-in-produzione' : 'stato-bozza';
-          const statoLabel = p.stato === 'pubblicato' ? 'Pubblicato' : p.stato === 'in-produzione' ? 'In produzione' : 'Bozza';
+          const statoLabel = p.stato === 'pubblicato' ? 'Pubblicato' : p.stato === 'in-produzione' ? 'Prodotto' : 'Bozza';
           item.innerHTML = `
             <span class="pannello-post-data">${dataFmt}</span>
             <span class="pannello-post-testo">${rubrToDot(p.rubrica)} ${p.titolo || 'Post'}</span>
@@ -875,7 +875,7 @@
         </div>
         <div class="stato-col">
           <div class="stato-col-header stato-prod-header">
-            In produzione <span class="count-badge">${prod.length}</span>
+            Prodotto <span class="count-badge">${prod.length}</span>
           </div>
           <div class="stato-items">${prod.length ? prod.map(p => statoItem(p)).join('') : '<div class="stato-empty">Nessun contenuto in produzione</div>'}</div>
         </div>
