@@ -740,6 +740,9 @@
       }
     }
 
+    // Variabile condivisa tra Finanze e Vita & Casa
+    let _totEntrate = 0;
+
     // ── FINANZE (Supabase) ──
     async function caricaMovimenti() {
       try {
@@ -779,6 +782,7 @@
       const entrate = lista.filter(m=>m.tipo!=='spesa').reduce((s,m)=>s+(m.importo||0),0);
       const spese   = lista.filter(m=>m.tipo==='spesa').reduce((s,m)=>s+(m.importo||0),0);
       const saldo   = entrate - spese;
+      _totEntrate = entrate;
       document.getElementById('fin_tot_entrate').textContent = fmtEur(entrate);
       document.getElementById('fin_tot_spese').textContent   = fmtEur(spese);
       const saldoEl = document.getElementById('fin_saldo');
@@ -811,6 +815,7 @@
           <button type="button" class="btn-del-fin" onclick="eliminaMovimento('${m.id}')">✕</button>
         </div>`).join('');
       aggiornaFinSaldi(lista);
+      renderVitaCasa();
     }
 
     // ── REPORT (localStorage) ──
@@ -962,11 +967,7 @@
 
       // Saldi
       const totSpese = spese.reduce((s, sp) => s + (sp.importo || 0), 0);
-      const entrateLavoro = (JSON.parse(localStorage.getItem('movimenti') || '[]'))
-        .filter(m => m.tipo !== 'spesa').reduce((s, m) => s + (m.importo || 0), 0);
-      // Leggi entrate da Supabase se disponibili, altrimenti 0
-      const entrateEl = document.getElementById('fin_tot_entrate');
-      const entrateNum = entrateEl ? parseFloat(entrateEl.textContent.replace(/[^0-9]/g,'')) || 0 : 0;
+      const entrateNum = _totEntrate;
       const saldo = entrateNum - totSpese;
 
       document.getElementById('vc_entrate_lavoro').textContent = fmtEur(entrateNum);
