@@ -174,6 +174,31 @@
     .trend-field textarea { min-height: 56px; resize: vertical; }
     .trend-settimana { font-size: 0.62rem; font-weight: 700; color: var(--text-faint); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; }
 
+
+    /* PANNELLO CHICCA */
+    .chicca-panel { background: var(--bg-card); border: 1.5px solid var(--accent); border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; }
+    .chicca-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .chicca-panel-titolo { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    .chicca-panel-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .chicca-panel-week { font-size: 0.72rem; font-weight: 600; color: var(--accent); background: var(--accent-bg, #fdf6ec); padding: 4px 12px; border-radius: 10px; white-space: nowrap; }
+    .chicca-panel-body { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 20px; }
+    .chicca-col-label { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .chicca-brief-col textarea { width: 100%; min-height: 148px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; font-family: inherit; color: var(--text); resize: vertical; outline: none; line-height: 1.5; box-sizing: border-box; }
+    .chicca-brief-col textarea:focus { border-color: var(--accent); }
+    .chicca-mix { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+    .mix-row { font-size: 0.82rem; color: var(--text); display: flex; align-items: center; gap: 7px; }
+    .mix-row strong { margin-left: auto; color: var(--accent); }
+    .chicca-signals { display: flex; flex-direction: column; gap: 5px; }
+    .signal-item { font-size: 0.74rem; color: var(--text-muted); padding: 5px 9px; background: var(--bg); border-radius: 6px; border-left: 2px solid var(--accent); line-height: 1.4; }
+    .chicca-agenti-note { display: flex; flex-direction: column; gap: 8px; }
+    .chicca-agente-nota { display: flex; align-items: flex-start; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s; }
+    .chicca-agente-nota:hover { border-color: var(--accent); }
+    .chicca-nota-avatar { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .chicca-nota-nome { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .chicca-nota-preview { font-size: 0.71rem; color: var(--text-muted); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; font-style: italic; }
+    .chicca-panel-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+    @media (max-width: 1100px) { .chicca-panel-body { grid-template-columns: 1fr 1fr; } .chicca-agenti-col { grid-column: 1/-1; } }
+    @media (max-width: 700px) { .chicca-panel-body { grid-template-columns: 1fr; } }
     @media (max-width: 1100px) { .team-grid { grid-template-columns: 1fr 1fr; } .piani-grid { grid-template-columns: 1fr; } .stati-grid { grid-template-columns: 1fr; } .trend-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 700px) { .team-grid { grid-template-columns: 1fr; } }
   </style>
@@ -250,6 +275,73 @@
           <div class="agente-nome">Il Produttore</div>
           <div class="agente-ruolo">HeyGen, Higgsfield, Remotion, Canva — produzione contenuti finiti</div>
           <span class="agente-tag tag-prod">Produzione</span>
+        </div>
+      </div>
+
+
+      <!-- PANNELLO CONTROLLO CHICCA -->
+      <div class="chicca-panel">
+        <div class="chicca-panel-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:1.3rem">📱</span>
+            <div>
+              <div class="chicca-panel-titolo">Pannello Chicca — Capo Area Social</div>
+              <div class="chicca-panel-sub">Brief settimanale e direttive per il team</div>
+            </div>
+          </div>
+          <span class="chicca-panel-week" id="chicca-week-label"></span>
+        </div>
+        <div class="chicca-panel-body">
+          <div class="chicca-brief-col">
+            <div class="chicca-col-label">📋 Brief della settimana</div>
+            <textarea id="chiccaBrief" placeholder="Scrivi qui il brief settimanale — focus, priorità, indicazioni per gli agenti…"></textarea>
+          </div>
+          <div class="chicca-signals-col">
+            <div class="chicca-col-label">🎯 Mix obiettivo</div>
+            <div class="chicca-mix">
+              <div class="mix-row"><span class="dot-post dot-oro" style="display:inline-block"></span> Territorio <strong>40%</strong></div>
+              <div class="mix-row"><span class="dot-post dot-bianco" style="display:inline-block;border:1px solid #aaa;border-radius:50%"></span> Personal Brand <strong>25%</strong></div>
+              <div class="mix-row"><span class="dot-post dot-grigio" style="display:inline-block"></span> Educativo <strong>20%</strong></div>
+              <div class="mix-row"><span class="dot-post dot-nero" style="display:inline-block"></span> Proprietà <strong>15%</strong></div>
+            </div>
+            <div class="chicca-col-label">📡 Segnali IG</div>
+            <div class="chicca-signals">
+              <div class="signal-item">Watch time — priorità Reels</div>
+              <div class="signal-item">DM shares — caption che invitano a condividere</div>
+              <div class="signal-item">Max 5 hashtag — no generici</div>
+              <div class="signal-item">Originality score — no watermark, no riciclo</div>
+            </div>
+          </div>
+          <div class="chicca-agenti-col">
+            <div class="chicca-col-label">👥 Spunti per gli agenti</div>
+            <div class="chicca-agenti-note" id="chicca-agenti-note">
+              <div class="chicca-agente-nota" onclick="apriPannello('trendista')">
+                <span class="chicca-nota-avatar">🔥</span>
+                <div style="flex:1;min-width:0">
+                  <div class="chicca-nota-nome">La Trendista</div>
+                  <div class="chicca-nota-preview" id="nota-preview-trendista">Clicca per aggiungere note…</div>
+                </div>
+              </div>
+              <div class="chicca-agente-nota" onclick="apriPannello('pianificatrice')">
+                <span class="chicca-nota-avatar">✍️</span>
+                <div style="flex:1;min-width:0">
+                  <div class="chicca-nota-nome">La Pianificatrice</div>
+                  <div class="chicca-nota-preview" id="nota-preview-pianificatrice">Clicca per aggiungere note…</div>
+                </div>
+              </div>
+              <div class="chicca-agente-nota" onclick="apriPannello('produttore')">
+                <span class="chicca-nota-avatar">🎬</span>
+                <div style="flex:1;min-width:0">
+                  <div class="chicca-nota-nome">Il Produttore</div>
+                  <div class="chicca-nota-preview" id="nota-preview-produttore">Clicca per aggiungere note…</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chicca-panel-footer">
+          <span class="salva-ok" id="chiccaSalvaCfm" style="display:none">✓ Brief salvato</span>
+          <button class="btn-salva-appunti" onclick="salvaChiccaBrief()">Salva brief</button>
         </div>
       </div>
 
@@ -760,6 +852,7 @@
       const cfm = document.getElementById('salvaCfm');
       cfm.style.display = 'inline';
       setTimeout(() => cfm.style.display = 'none', 2000);
+      caricaChiccaBrief();
     }
 
     /* ── STATI ── */
@@ -897,11 +990,35 @@
         </div>`).join('');
     }
 
+
+    /* ── CHICCA BRIEF ── */
+    function caricaChiccaBrief() {
+      document.getElementById('chiccaBrief').value = localStorage.getItem('chicca_brief') || '';
+      const lun = lunediDi(oggi);
+      const dom = new Date(lun); dom.setDate(lun.getDate() + 6);
+      const wl = document.getElementById('chicca-week-label');
+      if (wl) wl.textContent = 'Sett. ' + lun.getDate() + '–' + dom.getDate() + ' ' + MESI_LABEL[dom.getMonth()];
+      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
+      ['trendista','pianificatrice','produttore'].forEach(id => {
+        const el = document.getElementById('nota-preview-' + id);
+        if (!el) return;
+        const t = (appunti[id] || '').trim();
+        el.textContent = t ? (t.length > 65 ? t.substring(0,65)+'…' : t) : 'Clicca per aggiungere note…';
+      });
+    }
+
+    function salvaChiccaBrief() {
+      localStorage.setItem('chicca_brief', document.getElementById('chiccaBrief').value);
+      const cfm = document.getElementById('chiccaSalvaCfm');
+      cfm.style.display = 'inline'; setTimeout(() => cfm.style.display = 'none', 2000);
+    }
+
     /* ── INIT ── */
     renderSettimana();
     renderMese();
     renderStati();
     renderTrend();
+    caricaChiccaBrief();
   </script>
 
 <script src="bottom-nav.js"></script>
