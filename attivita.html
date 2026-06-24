@@ -868,6 +868,16 @@
     async function toggleIncassata(id, val) {
       await fetch(`${SB_URL}/rest/v1/vendite?id=eq.${id}`, { method: 'PATCH', headers: SB_H_W, body: JSON.stringify({ incassata: val }) });
       _vendite = _vendite.map(v => v.id === id ? { ...v, incassata: val } : v);
+      // Se segno come incassata, creo movimento in Mara
+      if (val) {
+        const v = _vendite.find(v => v.id === id);
+        if (v) {
+          const incasso = calcolaIncasso(v.prezzo, v.doppia);
+          const desc = `Provvigione — ${v.immobile}`;
+          const oggi = new Date().toISOString().split('T')[0];
+          await fetch(`${SB_URL}/rest/v1/movimenti`, { method: 'POST', headers: SB_H_W, body: JSON.stringify({ descrizione: desc, importo: Math.round(incasso), tipo: 'provvigione', data: oggi }) });
+        }
+      }
       renderVendite();
     }
 
