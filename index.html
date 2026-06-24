@@ -374,15 +374,6 @@
 
         <div class="semaforo-card">
           <div class="semaforo-header">
-            <div class="semaforo-title">⏰ Follow-up scaduti</div>
-            <div class="semaforo-count warn" id="countFollowScaduti">0</div>
-          </div>
-          <div id="followScadutiList"><div class="placeholder">Nessun follow-up scaduto.</div></div>
-          <a href="richieste.html" class="link-goto">→ Vai alle Richieste</a>
-        </div>
-
-        <div class="semaforo-card">
-          <div class="semaforo-header">
             <div class="semaforo-title">✉️ Bozze da inviare</div>
             <div class="semaforo-count" id="countBozze">0</div>
           </div>
@@ -540,7 +531,7 @@
         const richList = Array.isArray(richAll) ? richAll.filter(r => !STATI_CHIUSI.has(r.stato_cliente)) : [];
         const richEl = document.getElementById('richiesteList');
         document.getElementById('countNuoveRichieste').textContent = richList.length;
-        const richMostRecent = richList.slice(-4).reverse(); // le 4 più nuove
+        const richMostRecent = [...richList].sort((a,b) => new Date(b.data_richiesta) - new Date(a.data_richiesta)).slice(0,4);
         const STATO_COLORE = {
           'Nuova richiesta': '#e74c3c',
           'Risposto': '#e67e22', 'Follow-up 1': '#e67e22', 'Follow-up 2': '#e67e22', 'Follow-up 3': '#e67e22',
@@ -566,24 +557,6 @@
           }).join('');
         } else {
           richEl.innerHTML = '<div class="placeholder">Nessuna richiesta aperta.</div>';
-        }
-
-        // SEMAFORO: Follow-up scaduti dettaglio
-        const rFD = await fetch(`${SB_URL}/rest/v1/richieste?stato_cliente=in.("Risposto","Follow-up 1","Follow-up 2")&ultimo_contatto=lte.${treStr}&order=ultimo_contatto.asc&limit=5`, { headers: SB_H });
-        const fdList = await rFD.json();
-        const fdEl = document.getElementById('followScadutiList');
-        document.getElementById('countFollowScaduti').textContent = Array.isArray(fdList) ? fdList.length : 0;
-        if (Array.isArray(fdList) && fdList.length > 0) {
-          fdEl.innerHTML = fdList.map(r => `
-            <div class="lista-item">
-              <div class="dot dot-warn"></div>
-              <div style="flex:1">
-                <div class="lista-testo">${r.nome_cliente || '—'}</div>
-                <div class="lista-sub">${r.stato_cliente} · ${r.ultimo_contatto || ''}</div>
-              </div>
-            </div>`).join('');
-        } else {
-          fdEl.innerHTML = '<div class="placeholder">Nessun follow-up scaduto.</div>';
         }
 
         // ── DA FARE OGGI: aggregato da tutte le fonti ──
