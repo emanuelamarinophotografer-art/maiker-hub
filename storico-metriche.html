@@ -146,34 +146,41 @@
       render();
     }
 
-    function render() {
-      const settimane = _settimane;
-      const mesi = _mesi;
+    function aggregaPerMese(settimane) {
+      // Raggruppa le settimane per mese/anno e somma i campi
+      const mappa = {};
+      settimane.forEach(r => {
+        // data_inizio formato DD/MM/YYYY
+        const parts = (r.data_inizio || '').split('/');
+        const mese = parts.length === 3 ? parseInt(parts[1]) - 1 : null; // 0-based
+        const anno = parts.length === 3 ? parseInt(parts[2]) : null;
+        if (mese === null || isNaN(mese)) return;
+        const key = `${anno}-${mese}`;
+        if (!mappa[key]) { mappa[key] = { mese, anno, _key: key }; campi.forEach(c => mappa[key][c] = 0); }
+        campi.forEach(c => { mappa[key][c] += r[c] || 0; });
+      });
+      return Object.values(mappa).sort((a, b) => (b.anno * 12 + b.mese) - (a.anno * 12 + a.mese));
+    }
 
-      // KPI totali
-      const tutti = [
-        ...settimane.map(r => ({ ...r, _tipo: 'sett' })),
-        ...mesi.map(r => ({ ...r, _tipo: 'mese' }))
-      ];
+    function render() {
+      // Aggrega settimane per mese
+      const mesiDaSettimane = aggregaPerMese(_settimane);
+
+      // KPI totali (su tutte le settimane)
       const totali = {};
-      campi.forEach(c => { totali[c] = tutti.reduce((s, r) => s + (r[c] || 0), 0); });
+      campi.forEach(c => { totali[c] = _settimane.reduce((s, r) => s + (r[c] || 0), 0); });
       document.getElementById('kpiStrip').innerHTML = campiPrincipali.map(c => `
         <div class="kpi-mini">
           <div class="kpi-mini-val">${totali[c] || 0}</div>
           <div class="kpi-mini-label">${etichette[c]}</div>
         </div>`).join('');
 
-      // Tabella
-      let righe = [];
-      if (filtroAttivo !== 'mensili') {
-        settimane.forEach(r => righe.push({ ...r, _tipo: 'sett', _label: (r.data_inizio || '—') + ' → ' + (r.data_fine || '—') }));
-      }
-      if (filtroAttivo !== 'settimanali') {
-        mesi.forEach(r => righe.push({ ...r, _tipo: 'mese', _label: nomiMesi[r.mese] + ' ' + r.anno }));
-      }
+      // Righe = mesi aggregati
+      const righe = mesiDaSettimane.map(r => ({
+        ...r, _tipo: 'mese', _label: nomiMesi[r.mese] + ' ' + r.anno
+      }));
 
-      const titoli = { tutti: 'Tutti i periodi', settimanali: 'Settimane', mensili: 'Mesi' };
-      document.getElementById('titoloTabella').textContent = titoli[filtroAttivo] + ' (' + righe.length + ')';
+      document.getElementById('titoloTabella').textContent = `Storico per mese (${righe.length})`;
 
       const el = document.getElementById('contenutoTabella');
       if (righe.length === 0) {
@@ -181,7 +188,6 @@
         return;
       }
 
-      // Totali riga
       const tot = {};
       campi.forEach(c => { tot[c] = righe.reduce((s, r) => s + (r[c] || 0), 0); });
 
@@ -189,24 +195,19 @@
         <table class="storico-table">
           <thead>
             <tr>
-              <th>Periodo</th>
-              <th></th>
+              <th>Mese</th>
               ${campi.map(c => `<th style="text-align:center">${etichette[c]}</th>`).join('')}
-              <th></th>
             </tr>
           </thead>
           <tbody>
-            ${righe.map((r, i) => `
+            ${righe.map(r => `
               <tr>
                 <td class="td-periodo">${r._label}</td>
-                <td><span class="td-tipo ${r._tipo === 'sett' ? 'tipo-sett' : 'tipo-mese'}">${r._tipo === 'sett' ? 'Sett.' : 'Mese'}</span></td>
                 ${campi.map(c => `<td class="td-num ${(r[c]||0)===0?'zero':''} ${campiPrincipali.includes(c)&&(r[c]||0)>0?'highlight':''}">${r[c]||0}</td>`).join('')}
-                <td class="td-actions"><button class="btn-del" onclick="elimina('${r._tipo}', ${r.ts || 0})">✕</button></td>
               </tr>`).join('')}
             <tr class="totali-row">
-              <td colspan="2"><strong>TOTALE</strong></td>
+              <td><strong>TOTALE</strong></td>
               ${campi.map(c => `<td class="td-num">${tot[c]}</td>`).join('')}
-              <td></td>
             </tr>
           </tbody>
         </table>`;
