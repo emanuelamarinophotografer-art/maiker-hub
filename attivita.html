@@ -816,9 +816,8 @@
     inizializzaMesi();
 
     // ── VENDITE ──
-    const V_KEY = 'vendite_in_corso';
-    function caricaVendite() { return JSON.parse(localStorage.getItem(V_KEY) || '[]'); }
-    function salvaVendite(lista) { localStorage.setItem(V_KEY, JSON.stringify(lista)); }
+    // VENDITE — su Supabase
+    let _vendite = [];
 
     function calcolaIncasso(prezzo, doppia) {
       const p = parseFloat(prezzo) || 0;
@@ -843,17 +842,16 @@
       f.style.display = f.style.display === 'none' || f.style.display === '' ? 'block' : 'none';
     }
 
-    function aggiungiVendita() {
-      const cliente = document.getElementById('v_cliente').value.trim();
+    async function aggiungiVendita() {
       const immobile = document.getElementById('v_immobile').value.trim();
       const prezzo = parseFloat(document.getElementById('v_prezzo').value) || 0;
       const tipo = document.getElementById('v_tipo').value;
       const stato = document.getElementById('v_stato').value;
-      if (!cliente || !prezzo) { alert('Inserisci almeno cliente e prezzo.'); return; }
-      const lista = caricaVendite();
-      lista.unshift({ id: Date.now(), cliente, immobile, prezzo, tipo, stato, data: new Date().toISOString().split('T')[0] });
-      salvaVendite(lista);
-      document.getElementById('v_cliente').value = '';
+      if (!immobile || !prezzo) { alert('Inserisci almeno immobile e prezzo.'); return; }
+      const body = { ts: Date.now(), immobile, prezzo, stato, doppia: tipo === 'doppia', lato: tipo !== 'doppia' ? tipo : 'Doppia', incassata: false };
+      const r = await fetch(`${SB_URL}/rest/v1/vendite`, { method: 'POST', headers: SB_H_W, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (d[0]) _vendite.unshift(d[0]);
       document.getElementById('v_immobile').value = '';
       document.getElementById('v_prezzo').value = '';
       document.getElementById('v_preview').textContent = '';
@@ -861,44 +859,66 @@
       renderVendite();
     }
 
-    function cambiaStatoVendita(id, stato) {
-      const lista = caricaVendite().map(v => v.id === id ? { ...v, stato } : v);
-      salvaVendite(lista);
+    async function cambiaStatoVendita(id, stato) {
+      await fetch(`${SB_URL}/rest/v1/vendite?id=eq.${id}`, { method: 'PATCH', headers: SB_H_W, body: JSON.stringify({ stato }) });
+      _vendite = _vendite.map(v => v.id === id ? { ...v, stato } : v);
       renderVendite();
     }
 
-    function eliminaVendita(id) {
+    async function toggleIncassata(id, val) {
+      await fetch(`${SB_URL}/rest/v1/vendite?id=eq.${id}`, { method: 'PATCH', headers: SB_H_W, body: JSON.stringify({ incassata: val }) });
+      _vendite = _vendite.map(v => v.id === id ? { ...v, incassata: val } : v);
+      renderVendite();
+    }
+
+    async function eliminaVendita(id) {
       if (!confirm('Eliminare questa vendita?')) return;
-      salvaVendite(caricaVendite().filter(v => v.id !== id));
+      await fetch(`${SB_URL}/rest/v1/vendite?id=eq.${id}`, { method: 'DELETE', headers: SB_H_R });
+      _vendite = _vendite.filter(v => v.id !== id);
+      renderVendite();
+    }
+
+    async function inizializzaVendite() {
+      const r = await fetch(`${SB_URL}/rest/v1/vendite?select=*&order=ts.desc`, { headers: SB_H_R });
+      _vendite = await r.json();
       renderVendite();
     }
 
     function renderVendite() {
-      const lista = caricaVendite();
-      document.getElementById('contVendite').textContent = lista.length;
+      document.getElementById('contVendite').textContent = _vendite.length;
       const el = document.getElementById('listaVendite');
-      if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna vendita in corso.</div>'; return; }
-      const statoLabel = { proposta: 'Proposta firmata', rogito: 'Rogito fissato', conclusa: 'Conclusa ✓' };
-      const statoCls = { proposta: 'stato-proposta', rogito: 'stato-rogito', conclusa: 'stato-conclusa' };
-      el.innerHTML = lista.map(v => {
-        const incasso = calcolaIncasso(v.prezzo, v.tipo === 'doppia');
-        return `<div class="vendita-item">
+      if (_vendite.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna vendita in corso.</div>'; return; }
+      const statoCls = { 'Proposta': 'stato-proposta', 'Rogitata': 'stato-rogito', 'Conclusa': 'stato-conclusa' };
+      const totIncassato = _vendite.filter(v => v.incassata).reduce((s,v) => s + calcolaIncasso(v.prezzo, v.doppia), 0);
+      const totAtteso = _vendite.filter(v => !v.incassata).reduce((s,v) => s + calcolaIncasso(v.prezzo, v.doppia), 0);
+      el.innerHTML = `
+        <div style="display:flex;gap:16px;margin-bottom:12px;font-size:0.78rem">
+          <span style="color:#27ae60;font-weight:700">✓ Incassato: ${fmtEur(totIncassato)}</span>
+          <span style="color:var(--text-muted)">⏳ Atteso: ${fmtEur(totAtteso)}</span>
+        </div>` +
+      _vendite.map(v => {
+        const incasso = calcolaIncasso(v.prezzo, v.doppia);
+        const cls = statoCls[v.stato] || 'stato-proposta';
+        return `<div class="vendita-item" style="${v.incassata ? 'opacity:0.6' : ''}">
           <div class="vendita-info">
-            <div class="vendita-nome">${v.cliente}</div>
-            <div class="vendita-sub">${v.immobile || '—'} · ${fmtEur(v.prezzo)} · ${v.tipo === 'doppia' ? 'Doppia transazione' : 'Singola'}</div>
+            <div class="vendita-nome">${v.immobile}</div>
+            <div class="vendita-sub">${fmtEur(v.prezzo)} · ${v.doppia ? 'Doppia' : v.lato || 'Singola'}${v.data_rogito ? ' · Rogito: ' + v.data_rogito : ''}</div>
           </div>
-          <select class="vendita-stato ${statoCls[v.stato]}" onchange="cambiaStatoVendita(${v.id}, this.value)">
-            <option value="proposta" ${v.stato==='proposta'?'selected':''}>Proposta firmata</option>
-            <option value="rogito" ${v.stato==='rogito'?'selected':''}>Rogito fissato</option>
-            <option value="conclusa" ${v.stato==='conclusa'?'selected':''}>Conclusa ✓</option>
+          <select class="vendita-stato ${cls}" onchange="cambiaStatoVendita(${v.id}, this.value)">
+            <option value="Proposta" ${v.stato==='Proposta'?'selected':''}>Proposta</option>
+            <option value="Rogitata" ${v.stato==='Rogitata'?'selected':''}>Rogitata</option>
+            <option value="Conclusa" ${v.stato==='Conclusa'?'selected':''}>Conclusa ✓</option>
           </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.72rem;color:var(--text-muted);cursor:pointer;flex-shrink:0">
+            <input type="checkbox" ${v.incassata?'checked':''} onchange="toggleIncassata(${v.id}, this.checked)" style="cursor:pointer"> Incassata
+          </label>
           <div class="vendita-incasso">${fmtEur(incasso)}</div>
           <button class="btn-elimina" onclick="eliminaVendita(${v.id})">✕</button>
         </div>`;
       }).join('');
     }
 
-    renderVendite();
+    inizializzaVendite();
   </script>
 
 <script src="bottom-nav.js"></script>
