@@ -492,7 +492,7 @@
             .split(/\n/)
             .map(line => {
               const trimmed = line.trim();
-              if (/^\d+[\.\)]/.test(trimmed)) return `<div style="margin-bottom:10px;padding-left:4px">${trimmed}</div>`;
+              if (/^\d+[\.\)]/.test(trimmed)) return `<div style="margin-top:12px;padding-left:4px">${trimmed}</div>`;
               if (trimmed === '') return '';
               return `<div>${trimmed}</div>`;
             })
