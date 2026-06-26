@@ -120,24 +120,34 @@
     .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
     .leg-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-muted); }
 
-    /* STATI */
-    .stati-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 28px; }
-    .stato-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-    .stato-col-header { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-    .stato-col-header .count-badge { font-size: 0.62rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-    .stato-bozza-header { color: #555; }
-    .stato-bozza-header .count-badge { background: #e8e8e8; color: #555; }
-    .stato-prod-header { color: #6b3d00; }
-    .stato-prod-header .count-badge { background: #fdebc8; color: #6b3d00; }
-    .stato-pub-header { color: #145a30; }
-    .stato-pub-header .count-badge { background: #c8f0d8; color: #145a30; }
-    .stato-items { display: flex; flex-direction: column; gap: 6px; }
-    .stato-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s; }
-    .stato-item:hover { border-color: var(--accent); }
-    .stato-item-data { font-size: 0.68rem; color: var(--text-muted); margin-bottom: 3px; }
-    .stato-item-titolo { font-size: 0.82rem; color: var(--text); line-height: 1.3; }
-    .stato-item-meta { font-size: 0.65rem; color: var(--text-faint); margin-top: 4px; }
-    .stato-empty { font-size: 0.8rem; color: var(--text-faint); font-style: italic; }
+    /* LISTA CONTENUTI */
+    .lista-contenuti { margin-top: 28px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .lista-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .lista-header-titolo { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+    .lista-filtri { display: flex; gap: 6px; flex-wrap: wrap; }
+    .lista-filtro { padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: 0.75rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .lista-filtro.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .lista-rows { display: flex; flex-direction: column; }
+    .lista-row { display: grid; grid-template-columns: 72px 1fr 90px 90px 80px; align-items: center; gap: 12px; padding: 11px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.12s; }
+    .lista-row:last-child { border-bottom: none; }
+    .lista-row:hover { background: var(--accent-bg, #fdf6ec); }
+    .lista-data { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+    .lista-titolo { font-size: 0.85rem; color: var(--text); line-height: 1.3; }
+    .badge-formato { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; white-space: nowrap; }
+    .fmt-reel    { background: #2a2a2a; color: #fff; }
+    .fmt-carosello { background: #e0e7ff; color: #3730a3; }
+    .fmt-foto    { background: #f0fdf4; color: #166534; border: 1px solid #a3d9b1; }
+    .fmt-stories { background: #fdf4ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+    .badge-rubrica { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600; padding: 3px 9px; border-radius: 8px; white-space: nowrap; }
+    .rubr-nero   { background: #f0f0f0; color: #2a2a2a; }
+    .rubr-oro    { background: #fef9e7; color: #7a5c00; }
+    .rubr-bianco { background: #f5f5f5; color: #555; }
+    .rubr-grigio { background: #e8e8e8; color: #555; }
+    .badge-stato { font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; white-space: nowrap; text-align: center; }
+    .st-bozza       { background: #e8e8e8; color: #555; }
+    .st-in-produzione { background: #fdebc8; color: #6b3d00; }
+    .st-pubblicato  { background: #c8f0d8; color: #145a30; }
+    .lista-empty { padding: 24px 20px; font-size: 0.82rem; color: var(--text-faint); font-style: italic; }
 
     /* TRENDISTA */
     .trend-header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
@@ -444,8 +454,21 @@
         </div>
       </div>
 
-      <!-- STATI -->
-      <div class="stati-grid" id="gridStati"></div>
+      <!-- LISTA CONTENUTI -->
+      <div class="lista-contenuti">
+        <div class="lista-header">
+          <span class="lista-header-titolo">📋 Tutti i contenuti</span>
+          <div class="lista-filtri">
+            <button class="lista-filtro active" onclick="setListaFiltro('tutti',this)">Tutti</button>
+            <button class="lista-filtro" onclick="setListaFiltro('reel',this)">🎬 Reel</button>
+            <button class="lista-filtro" onclick="setListaFiltro('carosello',this)">🖼 Carosello</button>
+            <button class="lista-filtro" onclick="setListaFiltro('bozza',this)">Bozza</button>
+            <button class="lista-filtro" onclick="setListaFiltro('in-produzione',this)">In produzione</button>
+            <button class="lista-filtro" onclick="setListaFiltro('pubblicato',this)">Pubblicato</button>
+          </div>
+        </div>
+        <div class="lista-rows" id="listaRows"></div>
+      </div>
 
     </div>
   </main>
@@ -855,52 +878,65 @@
       caricaChiccaBrief();
     }
 
-    /* ── STATI ── */
+    /* ── LISTA CONTENUTI ── */
     const FORMATO_LABEL = { reel: 'Reel', carosello: 'Carosello', foto: 'Foto', stories: 'Stories' };
-    const RUBRICA_DOT = { nero: '⬛', bianco: '⬜', oro: '🟡', grigio: '🔲' };
+    const FORMATO_CLS   = { reel: 'fmt-reel', carosello: 'fmt-carosello', foto: 'fmt-foto', stories: 'fmt-stories' };
+    const FORMATO_ICON  = { reel: '🎬', carosello: '🖼', foto: '📷', stories: '📱' };
+    const RUBRICA_LABEL = { nero: 'Proprietà', oro: 'Territorio', bianco: 'Personal', grigio: 'Educativo' };
+    const RUBRICA_CLS   = { nero: 'rubr-nero', oro: 'rubr-oro', bianco: 'rubr-bianco', grigio: 'rubr-grigio' };
+    const STATO_CLS     = { bozza: 'st-bozza', 'in-produzione': 'st-in-produzione', pubblicato: 'st-pubblicato' };
+    const STATO_LABEL   = { bozza: 'Bozza', 'in-produzione': 'Produzione', pubblicato: 'Pubblicato' };
+    const RUBRICA_DOT   = { nero: '⬛', bianco: '⬜', oro: '🟡', grigio: '🔲' };
 
-    async function renderStati() {
+    let listaFiltro = 'tutti';
+    let cachedPostsAll = null;
+
+    function setListaFiltro(f, btn) {
+      listaFiltro = f;
+      document.querySelectorAll('.lista-filtro').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLista();
+    }
+
+    async function renderLista() {
       const posts = await loadPosts();
-      const bozze    = posts.filter(p => p.stato === 'bozza');
-      const prod     = posts.filter(p => p.stato === 'in-produzione');
-      const pub      = posts.filter(p => p.stato === 'pubblicato');
+      cachedPostsAll = posts;
+      let filtrati = [...posts].sort((a,b) => (a.data||'').localeCompare(b.data||''));
+      if (listaFiltro === 'reel') filtrati = filtrati.filter(p => p.formato === 'reel');
+      else if (listaFiltro === 'carosello') filtrati = filtrati.filter(p => p.formato === 'carosello');
+      else if (listaFiltro === 'bozza') filtrati = filtrati.filter(p => p.stato === 'bozza');
+      else if (listaFiltro === 'in-produzione') filtrati = filtrati.filter(p => p.stato === 'in-produzione');
+      else if (listaFiltro === 'pubblicato') filtrati = filtrati.filter(p => p.stato === 'pubblicato');
 
-      const el = document.getElementById('gridStati');
-      el.innerHTML = `
-        <div class="stato-col">
-          <div class="stato-col-header stato-bozza-header">
-            Bozza <span class="count-badge">${bozze.length}</span>
-          </div>
-          <div class="stato-items">${bozze.length ? bozze.map(p => statoItem(p)).join('') : '<div class="stato-empty">Nessuna bozza</div>'}</div>
-        </div>
-        <div class="stato-col">
-          <div class="stato-col-header stato-prod-header">
-            Prodotto <span class="count-badge">${prod.length}</span>
-          </div>
-          <div class="stato-items">${prod.length ? prod.map(p => statoItem(p)).join('') : '<div class="stato-empty">Nessun contenuto in produzione</div>'}</div>
-        </div>
-        <div class="stato-col">
-          <div class="stato-col-header stato-pub-header">
-            Pubblicato <span class="count-badge">${pub.length}</span>
-          </div>
-          <div class="stato-items">${pub.length ? pub.map(p => statoItem(p)).join('') : '<div class="stato-empty">Nessun contenuto pubblicato</div>'}</div>
+      const el = document.getElementById('listaRows');
+      if (!filtrati.length) { el.innerHTML = '<div class="lista-empty">Nessun contenuto trovato.</div>'; return; }
+
+      el.innerHTML = filtrati.map(p => {
+        const dataFmt = p.data ? new Date(p.data + 'T00:00:00').toLocaleDateString('it-IT', {day:'2-digit', month:'short'}) : '—';
+        const fmtCls  = FORMATO_CLS[p.formato] || 'fmt-foto';
+        const fmtIcon = FORMATO_ICON[p.formato] || '📄';
+        const fmtLbl  = FORMATO_LABEL[p.formato] || p.formato;
+        const rubCls  = RUBRICA_CLS[p.rubrica] || 'rubr-grigio';
+        const rubLbl  = RUBRICA_LABEL[p.rubrica] || p.rubrica;
+        const stCls   = STATO_CLS[p.stato] || 'st-bozza';
+        const stLbl   = STATO_LABEL[p.stato] || p.stato;
+        return `<div class="lista-row" data-id="${p.id}">
+          <div class="lista-data">${dataFmt}</div>
+          <div class="lista-titolo">${p.titolo || 'Post senza titolo'}</div>
+          <div><span class="badge-formato ${fmtCls}">${fmtIcon} ${fmtLbl}</span></div>
+          <div><span class="badge-rubrica ${rubCls}">${rubLbl}</span></div>
+          <div><span class="badge-stato ${stCls}">${stLbl}</span></div>
         </div>`;
+      }).join('');
 
-      el.querySelectorAll('.stato-item').forEach(item => {
-        const id = parseInt(item.dataset.id);
+      el.querySelectorAll('.lista-row').forEach(row => {
+        const id = parseInt(row.dataset.id);
         const post = posts.find(p => p.id === id);
-        if (post) item.onclick = () => apriModal(post);
+        if (post) row.onclick = () => apriModal(post);
       });
     }
 
-    function statoItem(p) {
-      const dataFmt = p.data ? new Date(p.data + 'T00:00:00').toLocaleDateString('it-IT', {day:'2-digit', month:'short'}) : '—';
-      return `<div class="stato-item" data-id="${p.id}">
-        <div class="stato-item-data">${dataFmt}</div>
-        <div class="stato-item-titolo">${p.titolo || 'Post senza titolo'}</div>
-        <div class="stato-item-meta">${RUBRICA_DOT[p.rubrica] || '●'} ${FORMATO_LABEL[p.formato] || p.formato}</div>
-      </div>`;
-    }
+    async function renderStati() { await renderLista(); }
 
     /* ── TRENDISTA ── */
     const TREND_KEY = 'trend_idee';
