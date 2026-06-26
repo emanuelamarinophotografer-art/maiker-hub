@@ -264,11 +264,11 @@
           <div class="agente-ruolo">Trend virali, format divertenti, audio Instagram — ogni lunedì</div>
           <span class="agente-tag tag-trend">Trend & Ispirazione</span>
         </div>
-        <div class="agente-card" onclick="apriPannello('pianificatrice')">
-          <div class="agente-avatar">✍️</div>
-          <div class="agente-nome">La Pianificatrice</div>
-          <div class="agente-ruolo">Personal branding, storytelling, script reel e caroselli</div>
-          <span class="agente-tag tag-piano">Piano & Script</span>
+        <div class="agente-card" onclick="apriPannello('pusher')">
+          <div class="agente-avatar">🚀</div>
+          <div class="agente-nome">Il Pusher</div>
+          <div class="agente-ruolo">Schedula i contenuti pronti su Publer ogni mattina — automatico</div>
+          <span class="agente-tag tag-prod">Pubblicazione</span>
         </div>
         <div class="agente-card" onclick="apriPannello('produttore')">
           <div class="agente-avatar">🎬</div>
@@ -322,11 +322,11 @@
                   <div class="chicca-nota-preview" id="nota-preview-trendista">Clicca per aggiungere note…</div>
                 </div>
               </div>
-              <div class="chicca-agente-nota" onclick="apriPannello('pianificatrice')">
-                <span class="chicca-nota-avatar">✍️</span>
+              <div class="chicca-agente-nota" onclick="apriPannello('pusher')">
+                <span class="chicca-nota-avatar">🚀</span>
                 <div style="flex:1;min-width:0">
-                  <div class="chicca-nota-nome">La Pianificatrice</div>
-                  <div class="chicca-nota-preview" id="nota-preview-pianificatrice">Clicca per aggiungere note…</div>
+                  <div class="chicca-nota-nome">Il Pusher</div>
+                  <div class="chicca-nota-preview" id="nota-preview-pusher">Schedula automaticamente ogni mattina</div>
                 </div>
               </div>
               <div class="chicca-agente-nota" onclick="apriPannello('produttore')">
@@ -349,7 +349,7 @@
       <div class="brainstorm-bar">
         <div class="brainstorm-bar-testo">
           <strong>🧠 Brainstorming a 4</strong>
-          <span>Chicca coordina Trendista + Pianificatrice + Produttore — idee, format, fattibilità in una sessione</span>
+          <span>Chicca coordina Trendista + Produttore — idee, format, fattibilità in una sessione</span>
         </div>
         <button class="btn-brainstorm" onclick="avviabrainstorm()">▶ Avvia sessione</button>
       </div>
@@ -767,7 +767,7 @@
 
     /* ── BRAINSTORMING ── */
     function avviabrainstorm() {
-      alert('Apri Claude Code e scrivi a Chicca:\n"facciamo un brainstorming"\n\nLei coordinerà Trendista, Pianificatrice e Produttore.');
+      alert('Apri Claude Code e scrivi a Chicca:\n"facciamo un brainstorming"\n\nLei coordinerà Trendista e Produttore.');
     }
 
     /* ── MODAL OVERLAY CLICK ── */
@@ -785,9 +785,9 @@
         avatar: '🔥', nome: 'La Trendista', ruolo: 'Trend virali, format divertenti, audio Instagram',
         rubriche: ['nero','bianco','oro','grigio']
       },
-      pianificatrice: {
-        avatar: '✍️', nome: 'La Pianificatrice', ruolo: 'Personal branding, storytelling, script reel e caroselli',
-        rubriche: ['bianco','grigio']
+      pusher: {
+        avatar: '🚀', nome: 'Il Pusher', ruolo: 'Schedula i contenuti pronti su Publer ogni mattina',
+        rubriche: ['nero','bianco','oro','grigio']
       },
       produttore: {
         avatar: '🎬', nome: 'Il Produttore', ruolo: 'HeyGen, Higgsfield, Remotion, Canva — produzione contenuti finiti',
@@ -999,7 +999,7 @@
       const wl = document.getElementById('chicca-week-label');
       if (wl) wl.textContent = 'Sett. ' + lun.getDate() + '–' + dom.getDate() + ' ' + MESI_LABEL[dom.getMonth()];
       const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
-      ['trendista','pianificatrice','produttore'].forEach(id => {
+      ['trendista','pusher','produttore'].forEach(id => {
         const el = document.getElementById('nota-preview-' + id);
         if (!el) return;
         const t = (appunti[id] || '').trim();
