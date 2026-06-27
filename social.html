@@ -861,8 +861,11 @@
       }
 
       // Appunti salvati
-      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
-      document.getElementById('pAppunti').value = appunti[id] || '';
+      fetch(`${SB_URL}/rest/v1/social_appunti?chiave=eq.agente_${id}&limit=1`, { headers: SB_H })
+        .then(r => r.json()).then(rows => {
+          document.getElementById('pAppunti').value = rows[0]?.valore || '';
+        });
+      document.getElementById('pAppunti').value = '';
       document.getElementById('salvaCfm').style.display = 'none';
 
       document.getElementById('pannelloOverlay').classList.add('open');
@@ -875,11 +878,9 @@
       pannelloAgente = null;
     }
 
-    function salvaAppunti() {
+    async function salvaAppunti() {
       if (!pannelloAgente) return;
-      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
-      appunti[pannelloAgente] = document.getElementById('pAppunti').value;
-      localStorage.setItem('appunti_agenti', JSON.stringify(appunti));
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave: 'agente_' + pannelloAgente, valore: document.getElementById('pAppunti').value }) });
       const cfm = document.getElementById('salvaCfm');
       cfm.style.display = 'inline';
       setTimeout(() => cfm.style.display = 'none', 2000);
@@ -1036,23 +1037,25 @@
 
 
     /* ── CHICCA BRIEF ── */
-    function caricaChiccaBrief() {
-      document.getElementById('chiccaBrief').value = localStorage.getItem('chicca_brief') || '';
+    async function caricaChiccaBrief() {
       const lun = lunediDi(oggi);
       const dom = new Date(lun); dom.setDate(lun.getDate() + 6);
       const wl = document.getElementById('chicca-week-label');
       if (wl) wl.textContent = 'Sett. ' + lun.getDate() + '–' + dom.getDate() + ' ' + MESI_LABEL[dom.getMonth()];
-      const appunti = JSON.parse(localStorage.getItem('appunti_agenti') || '{}');
+      const rows = await fetch(`${SB_URL}/rest/v1/social_appunti?chiave=in.(chicca_brief,agente_trendista,agente_pusher,agente_produttore)`, { headers: SB_H }).then(r => r.json());
+      const map = {};
+      rows.forEach(r => { map[r.chiave] = r.valore; });
+      document.getElementById('chiccaBrief').value = map['chicca_brief'] || '';
       ['trendista','pusher','produttore'].forEach(id => {
         const el = document.getElementById('nota-preview-' + id);
         if (!el) return;
-        const t = (appunti[id] || '').trim();
+        const t = (map['agente_' + id] || '').trim();
         el.textContent = t ? (t.length > 65 ? t.substring(0,65)+'…' : t) : 'Clicca per aggiungere note…';
       });
     }
 
-    function salvaChiccaBrief() {
-      localStorage.setItem('chicca_brief', document.getElementById('chiccaBrief').value);
+    async function salvaChiccaBrief() {
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'chicca_brief', valore: document.getElementById('chiccaBrief').value }) });
       const cfm = document.getElementById('chiccaSalvaCfm');
       cfm.style.display = 'inline'; setTimeout(() => cfm.style.display = 'none', 2000);
     }
@@ -1060,7 +1063,7 @@
     /* ── INIT ── */
     renderSettimana();
     renderMese();
-    renderStati();
+    renderLista();
     renderTrend();
     caricaChiccaBrief();
   </script>

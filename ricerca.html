@@ -196,6 +196,10 @@
     document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
     document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
 
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
     const STATI = {
       in_valutazione: { label: 'In valutazione', cls: 'badge-stato-val' },
       contattato:     { label: 'Contattato',      cls: 'badge-stato-cont' },
@@ -205,9 +209,52 @@
     const FILTRI = ['Tutti', 'In valutazione', 'Contattato', 'Incarico preso', 'Archiviato'];
     let filtroAttivo = 'Tutti';
     let idSelezionato = null;
+    let _cache = null;
 
-    function carica() { return JSON.parse(localStorage.getItem('ricerca_immobili') || '[]'); }
-    function salva(lista) { localStorage.setItem('ricerca_immobili', JSON.stringify(lista)); }
+    async function carica() {
+      if (_cache) return _cache;
+      const r = await fetch(`${SB_URL}/rest/v1/ricerca_schede?order=created_at.desc&limit=500`, { headers: SB_H });
+      const rows = await r.json();
+      _cache = rows.map(r => ({ ...r.dati, id: r.id, stato_scheda: r.stato_scheda, nome: r.nome, note: r.note, data: r.data }));
+      return _cache;
+    }
+
+    async function salvaRecord(obj) {
+      const body = {
+        nome: obj.nome || 'Senza nome',
+        comune: obj.comuneLabel || '',
+        zona: obj.zonaLabel || '',
+        tipologia: obj.tipoLabel || '',
+        stato_scheda: obj.stato_scheda || 'in_valutazione',
+        score: obj.score || 0,
+        prezzo_richiesto: obj.prezzoRichiesto || null,
+        giorni_mercato: obj.giorniMercato || null,
+        tot_min: obj.totMin || null,
+        tot_max: obj.totMax || null,
+        mq: obj.mq || null,
+        note: obj.note || '',
+        data: obj.data || new Date().toLocaleDateString('it-IT'),
+        dati: obj
+      };
+      if (obj.id && typeof obj.id === 'number') {
+        await fetch(`${SB_URL}/rest/v1/ricerca_schede?id=eq.${obj.id}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify(body) });
+      } else {
+        const r = await fetch(`${SB_URL}/rest/v1/ricerca_schede`, { method: 'POST', headers: SB_H, body: JSON.stringify(body) });
+        const res = await r.json();
+        if (res[0]) obj.id = res[0].id;
+      }
+      _cache = null;
+    }
+
+    async function eliminaRecord(id) {
+      await fetch(`${SB_URL}/rest/v1/ricerca_schede?id=eq.${id}`, { method: 'DELETE', headers: SB_H });
+      _cache = null;
+    }
+
+    async function aggiornaStato(id, nuovoStato) {
+      await fetch(`${SB_URL}/rest/v1/ricerca_schede?id=eq.${id}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify({ stato_scheda: nuovoStato }) });
+      _cache = null;
+    }
 
     function fmt(n) { return Math.round(n).toLocaleString('it-IT') + ' €'; }
 
@@ -222,8 +269,7 @@
       return '#c0392b';
     }
 
-    function renderFiltri() {
-      const lista = carica();
+    async function renderFiltri(lista) {
       const conteggiFiltro = {
         'Tutti': lista.length,
         'In valutazione': lista.filter(x => x.stato_scheda === 'in_valutazione').length,
@@ -243,9 +289,9 @@
       render();
     }
 
-    function render() {
-      renderFiltri();
-      let lista = carica();
+    async function render() {
+      let lista = await carica();
+      renderFiltri(lista);
       const q = document.getElementById('searchInput').value.toLowerCase();
       if (filtroAttivo !== 'Tutti') {
         const mapFiltro = { 'In valutazione':'in_valutazione','Contattato':'contattato','Incarico preso':'incarico','Archiviato':'archiviato' };
@@ -303,64 +349,46 @@
       }).join('');
     }
 
-    function apriModalStato(id) {
+    async function apriModalStato(id) {
       idSelezionato = id;
-      const s = carica().find(x => x.id === id);
+      const lista = await carica();
+      const s = lista.find(x => x.id === id);
       document.getElementById('modalStatoTitolo').textContent = s ? s.nome : 'Cambia stato';
       document.getElementById('modalStato').classList.add('open');
     }
 
-    function cambiaStato(nuovoStato) {
-      const lista = carica();
-      const i = lista.findIndex(x => x.id === idSelezionato);
-      if (i >= 0) {
-        const vecchioStato = lista[i].stato_scheda;
-        lista[i].stato_scheda = nuovoStato;
-        salva(lista);
-        if (nuovoStato === 'incarico') {
-          promuoviIncarico(idSelezionato, true);
-        } else if (vecchioStato === 'incarico') {
-          // Rimuovi dalla lista Proprietà se si torna indietro
-          const proprieta = JSON.parse(localStorage.getItem('proprieta') || '[]');
-          localStorage.setItem('proprieta', JSON.stringify(proprieta.filter(p => p.id !== idSelezionato)));
-        }
-      }
+    async function cambiaStato(nuovoStato) {
+      await aggiornaStato(idSelezionato, nuovoStato);
+      if (nuovoStato === 'incarico') await promuoviIncarico(idSelezionato);
       document.getElementById('modalStato').classList.remove('open');
       render();
     }
 
-    function promuoviIncarico(id, soloProprietà = false) {
-      const lista = carica();
-      const i = lista.findIndex(x => x.id === id);
-      if (i < 0) return;
-      const s = lista[i];
-
-      // Aggiorna stato scheda
-      if (!soloProprietà) { lista[i].stato_scheda = 'incarico'; salva(lista); }
-
-      // Crea voce in Proprietà
-      const proprieta = JSON.parse(localStorage.getItem('proprieta') || '[]');
-      const esiste = proprieta.find(p => p.id === id);
-      if (!esiste) {
-        proprieta.push({
-          id,
-          titolo: s.nome,
-          tipo: s.tipoLabel || '',
-          stato: 'Incarico preso',
-          zona: s.comuneLabel || '',
-          prezzo: s.prezzoRichiesto ? fmt(s.prezzoRichiesto) : '',
-          mq: s.mq ? s.mq + ' mq' : '',
-          note: `Valutazione: ${s.totMin ? fmt(s.totMin) : ''} – ${s.totMax ? fmt(s.totMax) : ''} · Vendibilità: ${s.score || 0}/100\n${s.note || ''}`,
-          aggiornato: new Date().toLocaleDateString('it-IT')
-        });
-        localStorage.setItem('proprieta', JSON.stringify(proprieta));
+    async function promuoviIncarico(id) {
+      const lista = await carica();
+      const s = lista.find(x => x.id === id);
+      if (!s) return;
+      const check = await fetch(`${SB_URL}/rest/v1/proprieta?note=like.*Ricerca%20${id}*&select=id`, { headers: SB_H });
+      const esiste = await check.json();
+      if (!esiste.length) {
+        await fetch(`${SB_URL}/rest/v1/proprieta`, { method: 'POST', headers: SB_H, body: JSON.stringify({
+          nome: s.nome,
+          tipologia: s.tipoLabel || '',
+          stato: 'disponibile',
+          comune: s.comuneLabel || '',
+          zona: s.zonaLabel || '',
+          prezzo: s.prezzoRichiesto ? String(Math.round(s.prezzoRichiesto)) : '',
+          mq: s.mq ? Math.round(s.mq) : null,
+          note: `Valutazione: ${s.totMin ? fmt(s.totMin) : ''} – ${s.totMax ? fmt(s.totMax) : ''} · Vendibilità: ${s.score || 0}/100 · Ricerca ${id}\n${s.note || ''}`,
+          inserimento: new Date().toISOString().split('T')[0]
+        }) });
       }
-      render();
     }
 
-    function apriModifica(id) {
+    async function apriModifica(id) {
       idSelezionato = id;
-      const s = carica().find(x => x.id === id);
+      const lista = await carica();
+      const s = lista.find(x => x.id === id);
       if (!s) return;
       document.getElementById('edit_nome').value = s.nome || '';
       document.getElementById('edit_prezzo').value = s.prezzoRichiesto || '';
@@ -369,22 +397,32 @@
       document.getElementById('modalModifica').classList.add('open');
     }
 
-    function salvaModifica() {
-      const lista = carica();
-      const i = lista.findIndex(x => x.id === idSelezionato);
-      if (i < 0) return;
-      lista[i].nome = document.getElementById('edit_nome').value.trim() || lista[i].nome;
-      lista[i].prezzoRichiesto = parseFloat(document.getElementById('edit_prezzo').value) || 0;
-      lista[i].giorniMercato = parseInt(document.getElementById('edit_giorni').value) || 0;
-      lista[i].note = document.getElementById('edit_note').value.trim();
-      salva(lista);
+    async function salvaModifica() {
+      const lista = await carica();
+      const s = lista.find(x => x.id === idSelezionato);
+      if (!s) return;
+      const aggiornato = {
+        ...s,
+        nome: document.getElementById('edit_nome').value.trim() || s.nome,
+        prezzoRichiesto: parseFloat(document.getElementById('edit_prezzo').value) || 0,
+        giorniMercato: parseInt(document.getElementById('edit_giorni').value) || 0,
+        note: document.getElementById('edit_note').value.trim()
+      };
+      await fetch(`${SB_URL}/rest/v1/ricerca_schede?id=eq.${idSelezionato}`, { method: 'PATCH', headers: SB_H, body: JSON.stringify({
+        nome: aggiornato.nome,
+        prezzo_richiesto: aggiornato.prezzoRichiesto,
+        giorni_mercato: aggiornato.giorniMercato,
+        note: aggiornato.note,
+        dati: aggiornato
+      }) });
+      _cache = null;
       document.getElementById('modalModifica').classList.remove('open');
       render();
     }
 
-    function elimina(id) {
+    async function elimina(id) {
       if (!confirm('Eliminare questa scheda?')) return;
-      salva(carica().filter(x => x.id !== id));
+      await eliminaRecord(id);
       render();
     }
 

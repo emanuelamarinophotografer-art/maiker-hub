@@ -268,13 +268,35 @@
     }
     document.getElementById('prossoLunedi').textContent = prossimoLunedi();
 
-    /* ---- STORAGE ---- */
+    /* ---- STORAGE (Supabase radar_sessione) ---- */
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' };
+
+    async function sbRadarGet(chiave) {
+      const r = await fetch(`${SB_URL}/rest/v1/radar_sessione?chiave=eq.${chiave}&limit=1`, { headers: SB_H });
+      const rows = await r.json();
+      return rows[0]?.valore ?? null;
+    }
+    async function sbRadarSet(chiave, valore) {
+      await fetch(`${SB_URL}/rest/v1/radar_sessione`, { method:'POST', headers: SB_H, body: JSON.stringify({ chiave, valore }) });
+    }
+
     function loadParams() { return JSON.parse(localStorage.getItem('radar_params') || 'null'); }
-    function saveParams(p) { localStorage.setItem('radar_params', JSON.stringify(p)); }
+    function saveParams(p) { localStorage.setItem('radar_params', JSON.stringify(p)); sbRadarSet('params', p); }
     function loadAnnunci() { return JSON.parse(localStorage.getItem('radar_annunci') || '[]'); }
-    function saveAnnunci(a) { localStorage.setItem('radar_annunci', JSON.stringify(a)); }
+    function saveAnnunci(a) { localStorage.setItem('radar_annunci', JSON.stringify(a)); sbRadarSet('annunci', a); }
     function loadPortali() { return JSON.parse(localStorage.getItem('radar_portali') || 'null'); }
-    function savePortali(p) { localStorage.setItem('radar_portali', JSON.stringify(p)); }
+    function savePortali(p) { localStorage.setItem('radar_portali', JSON.stringify(p)); sbRadarSet('portali', p); }
+
+    async function syncRadarFromCloud() {
+      const [params, annunci, portali] = await Promise.all([
+        sbRadarGet('params'), sbRadarGet('annunci'), sbRadarGet('portali')
+      ]);
+      if (params) localStorage.setItem('radar_params', JSON.stringify(params));
+      if (annunci) localStorage.setItem('radar_annunci', JSON.stringify(annunci));
+      if (portali) localStorage.setItem('radar_portali', JSON.stringify(portali));
+    }
 
     /* ---- CHIPS ---- */
     document.querySelectorAll('.chip').forEach(c => {
@@ -513,9 +535,11 @@
     }
 
     /* ---- INIT ---- */
-    caricaParams();
-    renderPortali();
-    renderLog();
+    syncRadarFromCloud().then(() => {
+      caricaParams();
+      renderPortali();
+      renderLog();
+    });
 
     const ultima = localStorage.getItem('radar_ultima_sessione');
     if (ultima) document.getElementById('ultimaSess').textContent = ultima;

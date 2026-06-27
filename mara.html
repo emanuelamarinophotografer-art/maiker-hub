@@ -655,10 +655,21 @@
       }
     }
 
-    // ── GOAL (localStorage) ──
-    function caricaGoal() {
-      const corrente = JSON.parse(localStorage.getItem('metrica_corrente') || '{}');
-      const storico  = JSON.parse(localStorage.getItem('metriche_storico') || '[]');
+    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+    async function sbGet(path) { const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: SB_H }); return r.json(); }
+    async function sbPost(path, body) { const r = await fetch(`${SB_URL}/rest/v1/${path}`, { method:'POST', headers: SB_H, body: JSON.stringify(body) }); return r.json(); }
+    async function sbPatch(path, body) { await fetch(`${SB_URL}/rest/v1/${path}`, { method:'PATCH', headers: SB_H, body: JSON.stringify(body) }); }
+    async function sbDelete(path) { await fetch(`${SB_URL}/rest/v1/${path}`, { method:'DELETE', headers: SB_H }); }
+
+    // ── GOAL (Supabase) ──
+    async function caricaGoal() {
+      const [correnteArr, storico] = await Promise.all([
+        sbGet('metriche_corrente?limit=1'),
+        sbGet('metriche_storico?order=ts.asc')
+      ]);
+      const corrente = correnteArr[0] || {};
       const campi = ['vendite','incarichi_e','incarichi_ne','contatti'];
       const goal = { contatti:16, incarichi_e:1, incarichi_ne:1, vendite:1 };
       const totali = {};
@@ -690,9 +701,10 @@
       }
     }
 
-    // ── PORTAFOGLIO (localStorage) ──
-    function caricaPortafoglio() {
-      const lista = JSON.parse(localStorage.getItem('ricerca_immobili') || '[]');
+    // ── PORTAFOGLIO (Supabase) ──
+    async function caricaPortafoglio() {
+      const rows = await sbGet('ricerca_schede?order=created_at.desc&limit=500');
+      const lista = rows.map(r => ({ ...r.dati, id: r.id, stato_scheda: r.stato_scheda, nome: r.nome, note: r.note }));
       document.getElementById('kpi_immobili').textContent = lista.length;
       const stati = { in_valutazione:0, contattato:0, incarico:0, archiviato:0 };
       let prezzoTot = 0, conPrezzo = 0;
@@ -713,9 +725,9 @@
       document.getElementById('portInsight').innerHTML = ins;
     }
 
-    // ── SOCIAL (localStorage) ──
-    function caricaSocial() {
-      const posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
+    // ── SOCIAL (Supabase) ──
+    async function caricaSocial() {
+      const posts = await sbGet('piano_editoriale?order=data.desc&limit=200');
       if (posts.length===0) return;
       const rubriche = { proprieta:{nome:'Proprietà',colore:'#222',count:0}, personal:{nome:'Personal Brand',colore:'#aaa',count:0}, territorio:{nome:'Territorio',colore:'#c9a84c',count:0}, educativo:{nome:'Educativo',colore:'#888',count:0} };
       posts.forEach(p => {
@@ -773,8 +785,9 @@
       await renderMovimenti();
     }
 
-    function salvaFinGoal() {
-      localStorage.setItem('fin_goal_annuo', document.getElementById('fin_goal_annuo').value);
+    async function salvaFinGoal() {
+      const val = document.getElementById('fin_goal_annuo').value;
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'fin_goal_annuo', valore: val }) });
       aggiornaFinSaldi([]);
     }
 
@@ -789,7 +802,7 @@
       saldoEl.textContent = fmtEur(saldo);
       saldoEl.className = 'saldo-val ' + (saldo>=0?'positivo':'negativo');
       document.getElementById('kpi_provv_incassata').textContent = fmtEur(entrate);
-      const goal = parseFloat(localStorage.getItem('fin_goal_annuo')) || 0;
+      const goal = parseFloat(document.getElementById('fin_goal_annuo').value) || 0;
       if (goal>0) {
         const p = Math.min(pct(entrate,goal),100);
         document.getElementById('fin_goal_pct').value = p+'%';
@@ -818,26 +831,23 @@
       renderVitaCasa();
     }
 
-    // ── REPORT (localStorage) ──
-    const RPT_KEY = 'osservatorio_report';
+    // ── REPORT (Supabase mara_rpt) ──
     let filtroReport = 'tutti';
 
     function toggleFormAggiungi() { document.getElementById('formAggiungi').classList.toggle('aperta'); }
 
-    function salvaReport() {
+    async function salvaReport() {
       const codice = document.getElementById('inp-codice').value.trim();
       if (!codice) { alert('Inserisci il codice immobile'); return; }
-      const lista = JSON.parse(localStorage.getItem(RPT_KEY)||'[]');
-      lista.unshift({ id: Date.now(), codice, tipo: document.getElementById('inp-tipo').value.trim(), decisione: document.getElementById('inp-decisione').value, link: document.getElementById('inp-link').value.trim(), data: new Date().toLocaleDateString('it-IT') });
-      localStorage.setItem(RPT_KEY, JSON.stringify(lista));
+      await sbPost('mara_rpt', { codice, tipo: document.getElementById('inp-tipo').value.trim(), decisione: document.getElementById('inp-decisione').value, link: document.getElementById('inp-link').value.trim(), data: new Date().toLocaleDateString('it-IT') });
       document.getElementById('inp-codice').value=''; document.getElementById('inp-tipo').value=''; document.getElementById('inp-link').value='';
       document.getElementById('formAggiungi').classList.remove('aperta');
       renderReport(filtroReport);
     }
 
-    function eliminaReport(id) {
+    async function eliminaReport(id) {
       if (!confirm('Eliminare?')) return;
-      localStorage.setItem(RPT_KEY, JSON.stringify(JSON.parse(localStorage.getItem(RPT_KEY)||'[]').filter(r=>r.id!==id)));
+      await sbDelete(`mara_rpt?id=eq.${id}`);
       renderReport(filtroReport);
     }
 
@@ -851,9 +861,10 @@
     const decLabel = { monitorare:'↗ Monitorare', ottimizzare:'⚠ Ottimizzare', intervenire:'🔴 Intervenire', performante:'✅ Performante' };
     const decClass = { monitorare:'dec-monitorare', ottimizzare:'dec-ottimizzare', intervenire:'dec-intervenire', performante:'dec-performante' };
 
-    function renderReport(cat) {
+    async function renderReport(cat) {
       const el = document.getElementById('reportList');
-      let lista = JSON.parse(localStorage.getItem(RPT_KEY)||'[]');
+      el.innerHTML = '<div class="empty-state">Caricamento…</div>';
+      let lista = await sbGet('mara_rpt?order=created_at.desc&limit=200');
       if (cat!=='tutti') lista = lista.filter(r=>r.decisione===cat);
       if (lista.length===0) { el.innerHTML='<div class="empty-state">Nessun report salvato. Usa <strong>/analisi-mercato</strong> e aggiungi il link con +.</div>'; return; }
       el.innerHTML = lista.map(r=>`
@@ -868,10 +879,10 @@
         </div>`).join('');
     }
 
-    // Precarica report esempio
-    function precaricaEsempio() {
-      if (JSON.parse(localStorage.getItem(RPT_KEY)||'[]').length>0) return;
-      localStorage.setItem(RPT_KEY, JSON.stringify([{ id:1750000000000, codice:'33541050-144', tipo:'Villa bifamiliare · Grosseto', decisione:'monitorare', link:'https://drive.google.com/file/d/1n34jwq4NqNTT_xw0DsGZvGxsQw2vBox7/view', data:'17/06/2026' }]));
+    async function precaricaEsempio() {
+      const lista = await sbGet('mara_rpt?limit=1');
+      if (lista.length > 0) return;
+      await sbPost('mara_rpt', { codice:'33541050-144', tipo:'Villa bifamiliare · Grosseto', decisione:'monitorare', link:'https://drive.google.com/file/d/1n34jwq4NqNTT_xw0DsGZvGxsQw2vBox7/view', data:'17/06/2026' });
     }
 
     // ── CALCOLATORE PROVVIGIONE ──
@@ -894,76 +905,69 @@
       document.getElementById('calc_result').style.display = '';
     }
 
-    // ── VITA & CASA ──
-    const VC_SPESE_KEY = 'vita_spese';
-    const VC_LAVORI_KEY = 'vita_lavori';
-
-    function caricaVcSpese() { return JSON.parse(localStorage.getItem(VC_SPESE_KEY) || '[]'); }
-    function salvaVcSpese(lista) { localStorage.setItem(VC_SPESE_KEY, JSON.stringify(lista)); }
-    function caricaVcLavori() { return JSON.parse(localStorage.getItem(VC_LAVORI_KEY) || '[]'); }
-    function salvaVcLavori(lista) { localStorage.setItem(VC_LAVORI_KEY, JSON.stringify(lista)); }
+    // ── VITA & CASA (Supabase mara_vc) ──
+    async function caricaVcSpese() { return sbGet('mara_vc?categoria=eq.spesa&order=created_at.desc'); }
+    async function caricaVcLavori() { return sbGet('mara_vc?categoria=eq.lavoro&order=created_at.desc'); }
 
     const vcCatLabel = { mutuo:'Mutuo/Affitto', utenze:'Utenze', casa:'Casa', lavori:'Lavori', altro:'Altro' };
     const vcCatCls   = { mutuo:'vc-cat-mutuo', utenze:'vc-cat-utenze', casa:'vc-cat-casa', lavori:'vc-cat-lavori', altro:'vc-cat-altro' };
     const vcLavStatoCls = { pianificato:'vc-stato-pianificato', in_corso:'vc-stato-in_corso', completato:'vc-stato-completato' };
     const vcLavStatoLabel = { pianificato:'📅 Pianificato', in_corso:'🔨 In corso', completato:'✅ Completato' };
 
-    function aggiungiSpesaVita() {
+    async function aggiungiSpesaVita() {
       const desc = document.getElementById('vc_desc').value.trim();
       const importo = parseFloat(document.getElementById('vc_importo').value) || 0;
       const cat = document.getElementById('vc_cat').value;
-      const data = document.getElementById('vc_data').value || new Date().toISOString().split('T')[0];
       if (!desc || importo <= 0) return;
-      const lista = caricaVcSpese();
-      lista.unshift({ id: Date.now(), desc, importo, cat, data });
-      salvaVcSpese(lista);
+      await sbPost('mara_vc', { categoria:'spesa', descrizione: desc, importo, budget: cat });
       document.getElementById('vc_desc').value = '';
       document.getElementById('vc_importo').value = '';
       renderVitaCasa();
     }
 
-    function eliminaSpesaVita(id) {
-      salvaVcSpese(caricaVcSpese().filter(s => s.id !== id));
+    async function eliminaSpesaVita(id) {
+      await sbDelete(`mara_vc?id=eq.${id}`);
       renderVitaCasa();
     }
 
-    function salvaVcBudget() {
-      localStorage.setItem('vc_budget', document.getElementById('vc_budget').value);
+    async function salvaVcBudget() {
+      const val = document.getElementById('vc_budget').value;
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'vc_budget', valore: val }) });
       renderVitaCasa();
     }
 
     function toggleFormLavoro() { document.getElementById('formLavoro').classList.toggle('aperta'); }
 
-    function aggiungiLavoro() {
+    async function aggiungiLavoro() {
       const nome = document.getElementById('lav_nome').value.trim();
       const costo = parseFloat(document.getElementById('lav_costo').value) || 0;
       const stato = document.getElementById('lav_stato').value;
-      const data = document.getElementById('lav_data').value;
       if (!nome) return;
-      const lista = caricaVcLavori();
-      lista.unshift({ id: Date.now(), nome, costo, stato, data });
-      salvaVcLavori(lista);
+      await sbPost('mara_vc', { categoria:'lavoro', descrizione: nome, importo: costo, budget: stato });
       document.getElementById('lav_nome').value = '';
       document.getElementById('lav_costo').value = '';
       document.getElementById('formLavoro').classList.remove('aperta');
       renderVitaCasa();
     }
 
-    function cambiaStatoLavoro(id, stato) {
-      const lista = caricaVcLavori().map(l => l.id === id ? { ...l, stato } : l);
-      salvaVcLavori(lista);
+    async function cambiaStatoLavoro(id, stato) {
+      await sbPatch(`mara_vc?id=eq.${id}`, { budget: stato });
       renderVitaCasa();
     }
 
-    function eliminaLavoro(id) {
-      salvaVcLavori(caricaVcLavori().filter(l => l.id !== id));
+    async function eliminaLavoro(id) {
+      await sbDelete(`mara_vc?id=eq.${id}`);
       renderVitaCasa();
     }
 
-    function renderVitaCasa() {
-      const spese = caricaVcSpese();
-      const lavori = caricaVcLavori();
-      const budget = parseFloat(localStorage.getItem('vc_budget')) || 0;
+    async function renderVitaCasa() {
+      const [spese, lavori, budgetRow] = await Promise.all([
+        caricaVcSpese(),
+        caricaVcLavori(),
+        sbGet('social_appunti?chiave=eq.vc_budget&limit=1')
+      ]);
+      const budget = parseFloat((budgetRow[0] || {}).valore) || 0;
+      document.getElementById('vc_budget').value = budgetRow[0]?.valore || '';
 
       // Saldi
       const totSpese = spese.reduce((s, sp) => s + (sp.importo || 0), 0);
@@ -984,9 +988,9 @@
       } else {
         speseEl.innerHTML = spese.map(s => `
           <div class="vc-spesa-item">
-            <div class="vc-spesa-data">${fmtData(s.data)}</div>
-            <div class="vc-spesa-desc">${s.desc}</div>
-            <span class="vc-spesa-cat ${vcCatCls[s.cat]||'vc-cat-altro'}">${vcCatLabel[s.cat]||s.cat}</span>
+            <div class="vc-spesa-data">${fmtData(s.created_at?.split('T')[0])}</div>
+            <div class="vc-spesa-desc">${s.descrizione||''}</div>
+            <span class="vc-spesa-cat ${vcCatCls[s.budget]||'vc-cat-altro'}">${vcCatLabel[s.budget]||s.budget||'—'}</span>
             <div class="vc-spesa-importo">- ${fmtEur(s.importo)}</div>
             <button type="button" class="btn-del-fin" onclick="eliminaSpesaVita(${s.id})">✕</button>
           </div>`).join('');
@@ -1017,17 +1021,17 @@
       } else {
         lavoriEl.innerHTML = lavori.map(l => `
           <div class="vc-lavoro-item">
-            <div class="vc-lavoro-nome">${l.nome}${l.data ? ' · <span style="color:var(--text-muted);font-size:0.75rem">' + fmtData(l.data) + '</span>' : ''}</div>
-            <div class="vc-lavoro-costo">${l.costo > 0 ? fmtEur(l.costo) : '—'}</div>
-            <select class="vc-lavoro-stato ${vcLavStatoCls[l.stato]||''}" onchange="cambiaStatoLavoro(${l.id}, this.value)" style="border:none;background:transparent;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">
-              ${['pianificato','in_corso','completato'].map(s => `<option value="${s}" ${l.stato===s?'selected':''}>${vcLavStatoLabel[s]}</option>`).join('')}
+            <div class="vc-lavoro-nome">${l.descrizione||''}</div>
+            <div class="vc-lavoro-costo">${l.importo > 0 ? fmtEur(l.importo) : '—'}</div>
+            <select class="vc-lavoro-stato ${vcLavStatoCls[l.budget]||''}" onchange="cambiaStatoLavoro(${l.id}, this.value)" style="border:none;background:transparent;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit">
+              ${['pianificato','in_corso','completato'].map(s => `<option value="${s}" ${l.budget===s?'selected':''}>${vcLavStatoLabel[s]}</option>`).join('')}
             </select>
             <button type="button" class="btn-del-fin" onclick="eliminaLavoro(${l.id})">✕</button>
           </div>`).join('');
       }
 
       // Previsioni
-      const costoLavoriPianificati = lavori.filter(l => l.stato !== 'completato').reduce((s, l) => s + (l.costo || 0), 0);
+      const costoLavoriPianificati = lavori.filter(l => l.budget !== 'completato').reduce((s, l) => s + (l.importo || 0), 0);
       const prevEl = document.getElementById('vcPrevisioni');
       if (entrateNum === 0 && totSpese === 0) {
         prevEl.innerHTML = '<div class="placeholder">Inserisci entrate e spese per vedere la proiezione.</div>';
@@ -1046,17 +1050,26 @@
     }
 
     // ── INIT ──
-    const finGoal = localStorage.getItem('fin_goal_annuo') || '';
-    document.getElementById('fin_goal_annuo').value = finGoal;
-    document.getElementById('vc_budget').value = localStorage.getItem('vc_budget') || '';
+    async function init() {
+      const [finGoalRow] = await Promise.all([
+        sbGet('social_appunti?chiave=eq.fin_goal_annuo&limit=1')
+      ]);
+      document.getElementById('fin_goal_annuo').value = finGoalRow[0]?.valore || '';
+      caricaFunnel();
+      caricaGoal();
+      caricaPortafoglio();
+      caricaSocial();
+      renderMovimenti();
+      await precaricaEsempio();
+      renderReport('tutti');
+      renderVitaCasa();
+    }
+    init();
 
-    caricaFunnel();
-    caricaGoal();
-    caricaPortafoglio();
-    caricaSocial();
-    renderMovimenti();
-    precaricaEsempio();
-    renderReport('tutti');
+    document.getElementById('fin_goal_annuo').addEventListener('change', async function() {
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'fin_goal_annuo', valore: this.value }) });
+      renderFinanziario();
+    });
   </script>
 
 <script src="bottom-nav.js"></script>
