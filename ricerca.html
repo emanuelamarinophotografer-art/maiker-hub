@@ -311,8 +311,17 @@
 
       el.innerHTML = lista.map(s => {
         const statoInfo = STATI[s.stato_scheda] || STATI.in_valutazione;
-        const vc = vendClass(s.score || 0);
-        const col = vendColor(s.score || 0);
+        // fallback su colonne dirette se dati JSON non disponibile
+        const score = s.score || 0;
+        const mq = s.mq || null;
+        const totMin = s.totMin || s.tot_min || null;
+        const totMax = s.totMax || s.tot_max || null;
+        const prezzoRichiesto = s.prezzoRichiesto || s.prezzo_richiesto || null;
+        const comuneLabel = s.comuneLabel || s.comune || '';
+        const zonaLabel = s.zonaLabel || s.zona || '';
+        const tipoLabel = s.tipoLabel || s.tipologia || '';
+        const vc = vendClass(score);
+        const col = vendColor(score);
         const plusLabel = (s.plus || []).slice(0,3).map(p => {
           const map = {piscina:'🏊',giardino:'🌿',pannelli:'☀️',pompa:'🌡️',pozzo:'💧',irrigazione:'🚿',cappotto:'🧱',infissi:'🪟',pavimento:'🔆',garage:'🚗',cancello:'🔐',agriturismo:'🏷️'};
           return map[p] || p;
@@ -324,23 +333,23 @@
               <div class="ric-nome">${s.nome}</div>
               <div class="ric-data">${s.data || ''}</div>
             </div>
-            <div class="ric-zona">📍 ${s.comuneLabel || ''} · ${s.zonaLabel || ''}</div>
+            <div class="ric-zona">📍 ${comuneLabel}${zonaLabel ? ' · ' + zonaLabel : ''}</div>
             <div class="ric-badges">
               <span class="badge ${statoInfo.cls}">${statoInfo.label}</span>
-              ${s.tipoLabel ? `<span class="badge" style="background:var(--bg);border:1px solid var(--border);color:var(--text-muted)">${s.tipoLabel}</span>` : ''}
+              ${tipoLabel ? `<span class="badge" style="background:var(--bg);border:1px solid var(--border);color:var(--text-muted)">${tipoLabel}</span>` : ''}
               ${s.classeEnergetica && s.classeEnergetica !== 'nd' ? `<span class="badge" style="background:#f5eef8;color:#7b4ccc">Cl. ${s.classeEnergetica}</span>` : ''}
               ${plusLabel ? `<span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">${plusLabel}</span>` : ''}
             </div>
             <div class="ric-numeri">
-              ${s.mq ? `<span><strong>${s.mq} mq</strong>Superficie</span>` : ''}
-              ${s.totMin ? `<span><strong>${fmt(s.totMin)}</strong>Stima min</span>` : ''}
-              ${s.prezzoRichiesto ? `<span><strong>${fmt(s.prezzoRichiesto)}</strong>Prezzo richiesto</span>` : ''}
+              ${mq ? `<span><strong>${mq} mq</strong>Superficie</span>` : ''}
+              ${totMin ? `<span><strong>${fmt(totMin)}</strong>Stima min</span>` : ''}
+              ${prezzoRichiesto ? `<span><strong>${fmt(prezzoRichiesto)}</strong>Prezzo richiesto</span>` : ''}
             </div>
-            <div class="vend-mini">
-              <span class="vend-mini-badge ${vc}">${s.score || 0}/100</span>
-              <div class="vend-barra"><div class="vend-barra-fill" style="width:${s.score||0}%;background:${col}"></div></div>
-              <span style="font-size:0.72rem;color:${col};font-weight:600">${(s.score||0) >= 72 ? '🟢' : (s.score||0) >= 45 ? '🟡' : '🔴'}</span>
-            </div>
+            ${score > 0 ? `<div class="vend-mini">
+              <span class="vend-mini-badge ${vc}">${score}/100</span>
+              <div class="vend-barra"><div class="vend-barra-fill" style="width:${score}%;background:${col}"></div></div>
+              <span style="font-size:0.72rem;color:${col};font-weight:600">${score >= 72 ? '🟢' : score >= 45 ? '🟡' : '🔴'}</span>
+            </div>` : ''}
             ${s.note ? `<div class="ric-note">📝 ${s.note}</div>` : ''}
             <div class="ric-actions">
               <button type="button" class="btn-card" onclick="apriModalStato(${s.id})">📋 Stato</button>

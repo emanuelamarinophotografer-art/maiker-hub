@@ -162,6 +162,35 @@
 
     <div class="content">
 
+      <!-- PANNELLO VALUTAZIONE (visibile solo se aperta da Ricerca Immobili) -->
+      <div id="pannelloValutazione" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;padding:16px 20px;margin-bottom:18px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--accent);letter-spacing:.05em;margin-bottom:10px;">📊 VALUTAZIONE DI PARTENZA</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">Stima di mercato</div>
+            <div id="pv_stima" style="font-size:1.05rem;font-weight:700;color:var(--text)">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">Prezzo richiesto dal proprietario</div>
+            <div id="pv_prezzo" style="font-size:1.05rem;font-weight:700;color:var(--text)">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">Score vendibilità</div>
+            <div id="pv_score" style="font-size:1.05rem;font-weight:700">—</div>
+          </div>
+          <div style="margin-left:auto;">
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Prezzo incarico concordato</div>
+            <input id="pv_prezzo_incarico" type="number" placeholder="€ es. 290000"
+              style="border:1px solid var(--accent);border-radius:8px;padding:7px 12px;font-size:0.95rem;font-family:inherit;background:var(--bg);color:var(--text);width:160px"
+              oninput="aggiornaDelta()" />
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">Δ rispetto alla stima</div>
+            <div id="pv_delta" style="font-size:1rem;font-weight:700;color:var(--text-muted)">—</div>
+          </div>
+        </div>
+      </div>
+
       <!-- LISTA SCHEDE SALVATE -->
       <div id="listaSchedeSection">
         <div class="lista-schede-header">
@@ -758,12 +787,30 @@
     let schedaId = params.get('id') ? parseInt(params.get('id')) : null;
     const fromRicercaId = params.get('from_ricerca') ? parseInt(params.get('from_ricerca')) : null;
 
+    let _valutazioneDaRicerca = {};
+
+    function fmt(n) { return n ? '€ ' + Math.round(n).toLocaleString('it-IT') : '—'; }
+
+    function aggiornaDelta() {
+      const v = _valutazioneDaRicerca;
+      const stimaMed = ((v.totMin || 0) + (v.totMax || 0)) / 2;
+      const prezzoInc = parseFloat(document.getElementById('pv_prezzo_incarico').value) || 0;
+      const deltaEl = document.getElementById('pv_delta');
+      if (!stimaMed || !prezzoInc) { deltaEl.textContent = '—'; deltaEl.style.color = 'var(--text-muted)'; return; }
+      const delta = prezzoInc - stimaMed;
+      const pct = ((delta / stimaMed) * 100).toFixed(1);
+      deltaEl.textContent = (delta >= 0 ? '+' : '') + fmt(delta) + ` (${pct}%)`;
+      deltaEl.style.color = delta > 0 ? '#e05' : delta < -stimaMed * 0.1 ? '#e74c3c' : '#27ae60';
+    }
+
     async function prefillDaRicerca(id) {
       const res = await fetch(`${SB_URL}/rest/v1/ricerca_schede?id=eq.${id}&select=*`, { headers: SB_H });
       const rows = await res.json();
       if (!rows.length) return;
       const r = rows[0];
       const d = r.dati ? JSON.parse(r.dati) : {};
+      _valutazioneDaRicerca = { ...d, totMin: d.totMin || r.tot_min, totMax: d.totMax || r.tot_max, score: d.score || r.score };
+
       const set = (elId, val) => { const el = document.getElementById(elId); if (el && val != null && val !== '') el.value = val; };
       set('h_nome', r.nome || d.comuneLabel || '');
       set('h_comune', r.comune || d.comuneLabel || '');
@@ -777,9 +824,20 @@
       set('t_stato_manutentivo', d.statoLabel || '');
       set('t_classe_energetica', d.classeEnergetica || '');
       set('t_riscaldamento', d.riscaldamento || '');
-      // note dalla scheda valutazione
       const noteEl = document.getElementById('q_note_qualifica');
       if (noteEl) noteEl.value = [r.note || '', d.score ? `Score vendibilità: ${d.score}/100` : ''].filter(Boolean).join('\n');
+
+      // pannello valutazione
+      const totMin = d.totMin || r.tot_min;
+      const totMax = d.totMax || r.tot_max;
+      const score = d.score || r.score || 0;
+      const prezzoRich = d.prezzoRichiesto || r.prezzo_richiesto;
+      document.getElementById('pv_stima').textContent = (totMin && totMax) ? `${fmt(totMin)} – ${fmt(totMax)}` : totMin ? fmt(totMin) : '—';
+      document.getElementById('pv_prezzo').textContent = prezzoRich ? fmt(prezzoRich) : '—';
+      const scoreEl = document.getElementById('pv_score');
+      scoreEl.textContent = score ? `${score}/100` : '—';
+      scoreEl.style.color = score >= 72 ? '#27ae60' : score >= 45 ? '#e67e22' : '#e74c3c';
+      document.getElementById('pannelloValutazione').style.display = 'block';
     }
 
     if (fromRicercaId) prefillDaRicerca(fromRicercaId);
@@ -982,16 +1040,27 @@
           const est = ESITO_STYLE[s.esito] || { bg: '#e8e8e8', color: '#555', label: s.esito || '—' };
           const dataFmt = s.created_at ? new Date(s.created_at).toLocaleDateString('it-IT', {day:'2-digit', month:'short', year:'numeric'}) : '—';
           const attiva = schedaId === s.id ? ' style="border-color:var(--accent)"' : '';
-          return `<div class="scheda-card"${attiva} onclick="apriScheda(${s.id})">
-            <div class="scheda-card-nome">${s.nome || 'Scheda senza nome'}</div>
-            <div class="scheda-card-sub">${[s.comune, s.tipologia].filter(Boolean).join(' · ')}</div>
-            <div class="scheda-card-footer">
-              <span class="scheda-card-esito" style="background:${est.bg};color:${est.color}">${est.label}</span>
-              <span class="scheda-card-data">${dataFmt}</span>
+          return `<div class="scheda-card"${attiva}>
+            <div onclick="apriScheda(${s.id})" style="cursor:pointer">
+              <div class="scheda-card-nome">${s.nome || 'Scheda senza nome'}</div>
+              <div class="scheda-card-sub">${[s.comune, s.tipologia].filter(Boolean).join(' · ')}</div>
+              <div class="scheda-card-footer">
+                <span class="scheda-card-esito" style="background:${est.bg};color:${est.color}">${est.label}</span>
+                <span class="scheda-card-data">${dataFmt}</span>
+              </div>
             </div>
+            <button onclick="eliminaScheda(${s.id}, event)" style="margin-top:8px;width:100%;background:none;border:1px solid #e0e0e0;border-radius:6px;padding:4px;font-size:0.72rem;color:var(--text-muted);cursor:pointer;font-family:inherit" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='#e0e0e0';this.style.color='var(--text-muted)'">✕ Elimina</button>
           </div>`;
         }).join('');
       } catch(e) { grid.innerHTML = '<div class="schede-empty">Errore caricamento schede.</div>'; }
+    }
+
+    async function eliminaScheda(id, e) {
+      e.stopPropagation();
+      if (!confirm('Eliminare questa scheda? L\'operazione non è reversibile.')) return;
+      await fetch(`${SB_URL}/rest/v1/scheda_qualifica?id=eq.${id}`, { method: 'DELETE', headers: SB_H });
+      if (schedaId === id) { schedaId = null; history.replaceState(null, '', location.pathname); }
+      caricaListaSchede();
     }
 
     async function apriScheda(id) {
