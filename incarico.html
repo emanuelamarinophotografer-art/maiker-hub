@@ -1208,7 +1208,8 @@
         tel_proprietario: s.referente_tel || '',
         stato: 'Incarico preso',
         data_incarico: oggi,
-        note: s.note || ''
+        note: s.note || '',
+        id_scheda_qualifica: schedaId
       };
 
       const res = await fetch(`${SB_URL}/rest/v1/proprieta`, {
