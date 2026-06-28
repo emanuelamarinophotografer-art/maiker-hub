@@ -269,6 +269,7 @@
               <span class="stato-badge ${classeStato[p.stato] || ''}">${p.stato || ''}</span>
               ${p.flag_mercato ? `<span class="flag-badge">${p.flag_mercato}</span>` : ''}
               <button type="button" class="btn-ghost" onclick="apriModal()">✏️ Modifica</button>
+              <a class="btn-ghost" href="report-proprieta.html?ref=${encodeURIComponent(p.ref)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">📄 Report PDF</a>
               <a class="btn-back" href="proprieta.html">← Torna</a>
             </div>
           </div>

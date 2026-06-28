@@ -706,7 +706,7 @@
         sbGet('proprieta?order=created_at.desc'),
         sbGet('vendite?incassata=eq.false')
       ]);
-      const inPortaleCount = props.filter(p => p.stato === 'In portale').length;
+      const inPortaleCount = props.filter(p => p.stato === 'Attivo').length;
       document.getElementById('kpi_immobili').textContent = inPortaleCount;
       function calcolaIncasso(prezzo, doppia) { let p=parseFloat(prezzo)||0,provv=p<100000?3000:p*0.03; if(doppia)provv*=2; return (provv-provv*0.08)/2; }
       const provvAttesa = venditeRows.reduce((s,v)=>s+calcolaIncasso(v.prezzo,v.doppia),0);
@@ -715,9 +715,9 @@
       const stati = { 'Attivo':0, 'Venduto':0, 'Ritirato':0 };
       let prezzoTot = 0, conPrezzo = 0, mqTot = 0, conMq = 0, eurMqTot = 0, conEurMq = 0;
       props.forEach(p => {
-        const k = p.stato === 'In portale' ? 'Attivo' : (stati[p.stato]!==undefined ? p.stato : null);
+        const k = p.stato === 'Attivo' ? 'Attivo' : (stati[p.stato]!==undefined ? p.stato : null);
         if (k) stati[k]++;
-        if (p.stato === 'In portale') {
+        if (p.stato === 'Attivo') {
           const pr = parseFloat(p.prezzo)||0;
           const mq = parseFloat(p.mq)||0;
           if (pr>0) { prezzoTot+=pr; conPrezzo++; }
@@ -935,11 +935,22 @@
       const rows = parseCSV(text);
       status.textContent = `Importazione ${rows.length} righe…`;
       let ok = 0, err = 0;
+      // Carica tutti i ref del DB per fare il match (CSV ha solo numero, DB ha "016 - numero")
+      const allProps = await sbGet('proprieta?select=ref&limit=500');
+      const refMap = {};
+      allProps.forEach(p => {
+        if (!p.ref) return;
+        const clean = p.ref.replace(/^[\d\s\-]+/, '').trim(); // rimuove prefisso "016 - "
+        refMap[clean] = p.ref;
+      });
+
       for (const r of rows) {
-        const ref = (r.riferimento_interno || '').trim();
-        if (!ref) continue;
+        const refCSV = (r.riferimento_interno || '').trim();
+        if (!refCSV) continue;
+        // Trova il ref completo nel DB che termina con il ref del CSV
+        const refDB = refMap[refCSV] || Object.values(refMap).find(v => v.includes(refCSV)) || refCSV;
         const record = {
-          ref, mese,
+          ref: refDB, mese,
           presente_idealista: r.presente_idealista === '1',
           presente_immobiliare: r.presente_immobiliare === '1',
           idealista_codice: r.idealista_codice,
@@ -989,7 +1000,7 @@
       document.getElementById('mercato_mese_label').textContent = meseTarget;
       // Carica proprietà attive + metriche
       const [props, portale] = await Promise.all([
-        sbGet('proprieta?stato=eq.In portale&order=created_at.desc'),
+        sbGet('proprieta?stato=eq.Attivo&order=created_at.desc'),
         sbGet(`analisi_portale?mese=eq.${meseTarget}&order=ref.asc`)
       ]);
       const portaleMap = {};
