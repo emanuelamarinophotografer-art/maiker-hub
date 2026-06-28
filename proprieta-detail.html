@@ -240,6 +240,7 @@
     let _prop = null;
     let _propCliente = null;
     let _tuttiProprietari = [];
+    let _valutazione = null; // dati da ricerca_schede: { totMin, totMax, score, prezzoRichiesto }
 
     function fmt(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('it-IT', {day:'2-digit',month:'short',year:'numeric'}); }
     function fmtEuro(n) { if (!n) return '—'; return '€ ' + Number(n).toLocaleString('it-IT'); }
@@ -364,6 +365,7 @@
             const totMax = parseFloat(d.totMax || r.tot_max) || null;
             const score = d.score || r.score || 0;
             const prezzoRich = parseFloat(d.prezzoRichiesto || r.prezzo_richiesto) || null;
+            _valutazione = { totMin, totMax, score, prezzoRichiesto: prezzoRich };
             const prezzoVendita = parseFloat(p.prezzo) || null;
             const riferimento = totMax || totMin;
             const fmtV = n => n ? '€ ' + Math.round(n).toLocaleString('it-IT') : '—';
@@ -475,46 +477,71 @@
       const txt = document.getElementById('maraAnalisiText');
       box.style.display = 'block';
 
-      const prezzoMq = p.mq && p.prezzo ? Math.round(p.prezzo / p.mq) : null;
-      const bench = p.benchmark_mq || null;
-      const scarto = p.scarto_pct !== undefined && p.scarto_pct !== null ? p.scarto_pct
-                   : (prezzoMq && bench ? Math.round(((prezzoMq - bench) / bench) * 100) : null);
+      const prezzo = parseFloat(p.prezzo) || null;
+      const mq = parseFloat(p.mq) || null;
+      const prezzoMq = prezzo && mq ? Math.round(prezzo / mq) : null;
+
+      // Fonte primaria: dati dalla scheda valutazione (ricerca_schede)
+      const v = _valutazione;
+      const totMax = v ? v.totMax : null;
+      const totMin = v ? v.totMin : null;
+      const score = v ? v.score : null;
+
+      // Fonte secondaria: benchmark_mq da Supabase
+      const benchDb = p.benchmark_mq ? parseFloat(p.benchmark_mq) : null;
+      const benchMq = totMax && mq ? Math.round(totMax / mq) : benchDb;
+
+      // Scarto prezzo vs stima massima OMI
+      const riferimento = totMax || (benchDb && mq ? benchDb * mq : null);
+      let scartoPct = null;
+      if (riferimento && prezzo) scartoPct = Math.round(((prezzo - riferimento) / riferimento) * 100);
+
+      // Semaforo
+      let semaforo = '';
+      if (scartoPct !== null) {
+        if (scartoPct <= 5) semaforo = '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#27ae60;margin-right:6px;vertical-align:middle"></span>';
+        else if (scartoPct <= 20) semaforo = '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e67e22;margin-right:6px;vertical-align:middle"></span>';
+        else semaforo = '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e74c3c;margin-right:6px;vertical-align:middle"></span>';
+      }
 
       let righe = [];
 
-      // Prezzo/mq sempre se disponibile
+      // Riga prezzi
       if (prezzoMq) {
-        if (bench) {
-          righe.push(`Prezzo richiesto: <strong>${fmtEuro(prezzoMq)}/mq</strong> &nbsp;·&nbsp; Benchmark OMI zona: <strong>${fmtEuro(bench)}/mq</strong>.`);
-        } else {
-          righe.push(`Prezzo richiesto: <strong>${fmtEuro(prezzoMq)}/mq</strong> &nbsp;·&nbsp; <span style="color:#f0c060">Benchmark OMI non ancora compilato per questa proprietà.</span>`);
-        }
-      } else if (!p.prezzo && !p.mq) {
-        righe.push('⚠️ Prezzo e superficie non presenti — compila la scheda per abilitare l\'analisi.');
-        txt.innerHTML = righe.join('<br><br>');
-        return;
+        let benchStr = benchMq ? ` &nbsp;·&nbsp; Stima OMI massima: <strong>${fmtEuro(totMax)}</strong> (<strong>${fmtEuro(benchMq)}/mq</strong>)` : '';
+        righe.push(`Prezzo richiesto: <strong>${fmtEuro(prezzo)}</strong> — <strong>${fmtEuro(prezzoMq)}/mq</strong>${benchStr}.`);
       }
 
-      // Scarto se disponibile
-      if (scarto !== null) {
-        if (scarto > 40) {
-          righe.push(`⚠️ Scarto <strong>${scarto}%</strong> sopra mercato: posizionamento elevato. La proprietà rischia tempi lunghi. Valuta con il proprietario una revisione del prezzo.`);
-        } else if (scarto > 15) {
-          righe.push(`⚡ Scarto <strong>${scarto}%</strong>: prezzo leggermente alto rispetto alla zona. Monitora visite e feedback — una trattativa è probabile.`);
-        } else if (scarto >= -10) {
-          righe.push(`✅ Scarto <strong>${scarto}%</strong>: prezzo allineato al mercato. Buona competitività, profilo acquirente coerente con la zona.`);
+      // Riga range stima
+      if (totMin && totMax) {
+        righe.push(`Stima di mercato calcolata in valutazione: <strong>${fmtEuro(totMin)} – ${fmtEuro(totMax)}</strong>.`);
+      }
+
+      // Lettura scarto
+      if (scartoPct !== null) {
+        const delta = prezzo - riferimento;
+        const deltaStr = (delta >= 0 ? '+' : '') + fmtEuro(Math.abs(Math.round(delta)));
+        if (scartoPct <= 5) {
+          righe.push(`${semaforo}<strong>Prezzo in linea con il mercato</strong> (scarto ${scartoPct > 0 ? '+' : ''}${scartoPct}%). Posizionamento corretto, buona competitività.`);
+        } else if (scartoPct <= 20) {
+          righe.push(`${semaforo}<strong>Prezzo leggermente sopra la stima massima</strong> (+${scartoPct}%, ${deltaStr}). Monitora i feedback dopo le prime visite — una trattativa è probabile.`);
         } else {
-          righe.push(`🟢 Prezzo inferiore al mercato (<strong>${scarto}%</strong>). Opportunità di vendita rapida, possibile interesse da più acquirenti.`);
+          righe.push(`${semaforo}<strong>Prezzo significativamente sopra la stima OMI</strong> (+${scartoPct}%, ${deltaStr}). La proprietà rischia tempi lunghi. Valuta di portare il proprietario verso una revisione.`);
         }
-      } else if (!bench) {
-        // no benchmark → suggerisci Valutazione OMI
+      } else if (!totMax && !benchDb) {
         const comune = encodeURIComponent(p.comune || p.zona || '');
-        righe.push(`Per calcolare lo scarto dal mercato, esegui la <a href="valutazione.html?comune=${comune}&prezzo=${p.prezzo||''}&mq=${p.mq||''}" style="color:#7eb8f7;text-decoration:underline">Valutazione OMI</a> e poi aggiorna il campo Benchmark €/mq in questa scheda.`);
+        righe.push(`Nessuna valutazione OMI disponibile. Esegui la <a href="valutazione.html?comune=${comune}&prezzo=${prezzo||''}&mq=${mq||''}" style="color:#7eb8f7;text-decoration:underline">Valutazione OMI</a> per questa proprietà.`);
       }
 
-      // Terreno se disponibile
-      if (p.prezzo_terreno_stimato && p.prezzo) {
-        const pct = Math.round((p.prezzo_terreno_stimato / p.prezzo) * 100);
+      // Score vendibilità
+      if (score) {
+        const colScore = score >= 72 ? '#27ae60' : score >= 45 ? '#e67e22' : '#e74c3c';
+        righe.push(`Score vendibilità dalla scheda qualifica: <strong style="color:${colScore}">${score}/100</strong>.`);
+      }
+
+      // Terreno
+      if (p.prezzo_terreno_stimato && prezzo) {
+        const pct = Math.round((parseFloat(p.prezzo_terreno_stimato) / prezzo) * 100);
         righe.push(`Il terreno incide per circa il <strong>${pct}%</strong> del prezzo totale${p.ettari_terreno ? ` (${p.ettari_terreno} ha)` : ''}.`);
       }
 
