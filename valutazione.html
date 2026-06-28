@@ -1013,23 +1013,41 @@
       setTimeout(() => document.getElementById('nomeScheda').focus(), 100);
     }
 
-    function confermaSalva() {
+    async function confermaSalva() {
       const nome = document.getElementById('nomeScheda').value.trim();
       if (!nome) { alert('Inserisci un nome per la scheda.'); return; }
       const note = document.getElementById('noteScheda').value.trim();
-      const lista = JSON.parse(localStorage.getItem('ricerca_immobili') || '[]');
-      lista.unshift({
-        id: Date.now(),
+      const val = window._ultimaValutazione || {};
+      const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
+      const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
+      const record = {
         nome,
         note,
         stato_scheda: 'in_valutazione',
-        ...(window._ultimaValutazione || {})
+        comune: val.comuneLabel || val.comune || '',
+        zona: val.comuneLabel || '',
+        tipologia: val.tipoLabel || val.tipo || '',
+        score: val.score || 0,
+        prezzo_richiesto: val.prezzoRichiesto || null,
+        mq: val.mq || null,
+        tot_min: val.totMin || null,
+        tot_max: val.totMax || null,
+        giorni_mercato: val.giorniMercato || null,
+        data: new Date().toISOString().split('T')[0],
+        dati: JSON.stringify(val)
+      };
+      const res = await fetch(`${SB_URL}/rest/v1/ricerca_schede`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(record)
       });
-      localStorage.setItem('ricerca_immobili', JSON.stringify(lista));
       document.getElementById('modalSalva').classList.remove('open');
-      // Feedback visivo
       const btn = document.querySelector('.btn-salva-ris');
-      if (btn) { btn.textContent = '✅ Salvata in Ricerca Immobili'; btn.disabled = true; btn.style.background = '#27ae60'; }
+      if (res.ok) {
+        if (btn) { btn.textContent = '✅ Salvata in Ricerca Immobili'; btn.disabled = true; btn.style.background = '#27ae60'; }
+      } else {
+        alert('Errore nel salvataggio. Riprova.');
+      }
     }
 
     document.getElementById('modalSalva').addEventListener('click', e => {
