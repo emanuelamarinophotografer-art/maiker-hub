@@ -722,27 +722,35 @@
 
     // ── PORTAFOGLIO (Supabase) ──
     async function caricaPortafoglio() {
-      const rows = await sbGet('ricerca_schede?order=created_at.desc&limit=500');
-      const lista = rows.map(r => ({ ...r.dati, id: r.id, stato_scheda: r.stato_scheda, nome: r.nome, note: r.note }));
-      document.getElementById('kpi_immobili').textContent = lista.length;
-      const stati = { in_valutazione:0, contattato:0, incarico:0, archiviato:0 };
-      let prezzoTot = 0, conPrezzo = 0;
-      lista.forEach(s => { if (stati[s.stato_scheda]!==undefined) stati[s.stato_scheda]++; if (s.prezzoRichiesto>0){prezzoTot+=s.prezzoRichiesto;conPrezzo++;} });
-      // Provv attesa: da vendite non incassate (stessa formula di Attività)
-      const venditeRows = await sbGet('vendite?incassata=eq.false');
+      const [props, venditeRows] = await Promise.all([
+        sbGet('proprieta?order=created_at.desc'),
+        sbGet('vendite?incassata=eq.false')
+      ]);
+      const attive = props.filter(p => !['Venduto','Ritirato'].includes(p.stato));
+      document.getElementById('kpi_immobili').textContent = attive.length;
       function calcolaIncasso(prezzo, doppia) { let p=parseFloat(prezzo)||0,provv=p<100000?3000:p*0.03; if(doppia)provv*=2; return (provv-provv*0.08)/2; }
       const provvAttesa = venditeRows.reduce((s,v)=>s+calcolaIncasso(v.prezzo,v.doppia),0);
       document.getElementById('kpi_provv_attesa').textContent = fmtEur(provvAttesa);
-      if (lista.length===0) return;
-      const colori = { in_valutazione:'#2980b9', contattato:'#b7860b', incarico:'#27ae60', archiviato:'#888' };
-      const label  = { in_valutazione:'In valutazione', contattato:'Contattato', incarico:'Incarico', archiviato:'Archiviato' };
-      document.getElementById('portKpi').innerHTML = Object.entries(stati).map(([k,v]) =>
-        `<div class="kpi-card"><div class="kpi-val" style="color:${colori[k]};font-size:1.4rem">${v}</div><div class="kpi-label">${label[k]}</div></div>`).join('');
+      if (props.length===0) return;
+      const stati = { 'Valutazione':0, 'Incarico preso':0, 'In portale':0, 'In trattativa':0, 'Venduto':0, 'Ritirato':0 };
+      let prezzoTot = 0, conPrezzo = 0;
+      props.forEach(p => {
+        if (stati[p.stato]!==undefined) stati[p.stato]++;
+        const pr = parseFloat(p.prezzo)||0;
+        if (pr>0 && !['Venduto','Ritirato'].includes(p.stato)) { prezzoTot+=pr; conPrezzo++; }
+      });
+      const colori = { 'Valutazione':'#2980b9', 'Incarico preso':'#27ae60', 'In portale':'#8e44ad', 'In trattativa':'#c07040', 'Venduto':'#27ae60', 'Ritirato':'#888' };
+      document.getElementById('portKpi').innerHTML = Object.entries(stati)
+        .filter(([k,v]) => v > 0)
+        .map(([k,v]) => `<div class="kpi-card"><div class="kpi-val" style="color:${colori[k]||'#888'};font-size:1.4rem">${v}</div><div class="kpi-label">${k}</div></div>`).join('');
       const prezzoMedio = conPrezzo>0 ? prezzoTot/conPrezzo : 0;
-      const fuoriMercato = lista.filter(s=>s.prezzoRichiesto>0&&s.totMax>0&&s.prezzoRichiesto>s.totMax*1.15).length;
-      let ins = `<div class="mara-insight"><div class="mara-insight-label">— Mara 📊</div><div class="mara-insight-text">Portafoglio: ${lista.length} schede · prezzo medio ${fmtEur(prezzoMedio)}.`;
-      if (fuoriMercato>0) ins += ` <strong style="color:#f4a460">⚠️ ${fuoriMercato} immobil${fuoriMercato>1?'i':'e'} >15% sopra stima OMI.</strong>`;
-      if (provvAttesa>0) ins += ` Provvigione attesa (vendite in corso): ${fmtEur(provvAttesa)}.`;
+      const inPortale = stati['In portale'] || 0;
+      const inTrattativa = stati['In trattativa'] || 0;
+      let ins = `<div class="mara-insight"><div class="mara-insight-label">— Mara 📊</div><div class="mara-insight-text">`;
+      ins += `${attive.length} immobili attivi · prezzo medio ${fmtEur(prezzoMedio)}.`;
+      if (inPortale>0) ins += ` ${inPortale} in portale.`;
+      if (inTrattativa>0) ins += ` <strong style="color:#c07040">${inTrattativa} in trattativa</strong>.`;
+      if (provvAttesa>0) ins += ` Provvigione attesa: ${fmtEur(provvAttesa)}.`;
       ins += `</div></div>`;
       document.getElementById('portInsight').innerHTML = ins;
     }
