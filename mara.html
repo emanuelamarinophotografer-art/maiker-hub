@@ -159,6 +159,8 @@
 
     /* INSIGHT */
     .mara-insight { background: #1a2e42; border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+    .chicca-insight { background: #2e1a3a; border-radius: 10px; padding: 14px 16px; margin-top: 10px; }
+    .hidden { display: none; }
     .mara-insight-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #8aaec4; font-weight: 700; margin-bottom: 8px; }
     .mara-insight-text { font-size: 0.82rem; color: #c8daea; line-height: 1.6; }
 
@@ -290,6 +292,17 @@
               <div class="mara-insight" id="igInsight" style="display:none;margin-top:12px">
                 <div class="mara-insight-label">— Mara 📊</div>
                 <div class="mara-insight-text" id="igInsightText"></div>
+              </div>
+            </div>
+            <div class="blocco hidden" id="bloccoMaraChicca">
+              <div class="blocco-header">Analisi Mara · Chicca</div>
+              <div class="mara-insight" style="margin-bottom:10px">
+                <div class="mara-insight-label">📊 Mara — Numeri</div>
+                <div class="mara-insight-text" id="mcMaraText"></div>
+              </div>
+              <div class="chicca-insight">
+                <div class="mara-insight-label">✨ Chicca — Strategia</div>
+                <div class="mara-insight-text" id="mcChiccaText"></div>
               </div>
             </div>
           </div>
@@ -717,7 +730,56 @@
           document.getElementById('igInsightText').innerHTML = insights.map(i => `<div style="margin-bottom:6px">• ${i}</div>`).join('');
           document.getElementById('igInsight').style.display = '';
         }
+
+        // ── ANALISI MARA · CHICCA ──
+        renderMaraChicca(m);
+
       } catch(e) { document.getElementById('igMetriche').innerHTML = '<div class="placeholder">Errore caricamento metriche.</div>'; }
+    }
+
+    function renderMaraChicca(m) {
+      const engRate = m.visualizzazioni_reel > 0
+        ? ((m.mi_piace + m.salvataggi + m.condivisioni) / m.visualizzazioni_reel * 100)
+        : 0;
+      const saveRate = m.visualizzazioni_reel > 0
+        ? (m.salvataggi / m.visualizzazioni_reel * 100)
+        : 0;
+      const prezzoMq = m.visualizzazioni_reel > 0 ? (m.contatti_generati || 0) : 0;
+
+      // Mara: sintesi numerica
+      const maraLines = [];
+      maraLines.push(`Periodo: ${m.periodo_inizio} → ${m.periodo_fine} · ${m.follower} follower.`);
+      maraLines.push(`Engagement reel: ${engRate.toFixed(1)}% (like+salvataggi+condivisioni / views). Benchmark soglia: 5% buono, 2-5% medio, <2% basso.`);
+      maraLines.push(`Save rate: ${saveRate.toFixed(1)}% — ${saveRate >= 5 ? 'alto: il contenuto viene percepito utile o da rivedere.' : 'basso: i reel non generano abbastanza salvataggi.'}`);
+      maraLines.push(`Pubblico: ${m.eta_top || '—'} · ${m.genere_donne_pct ? m.genere_donne_pct + '% donne' : '—'} · ${m.paese_top || '—'} · città: ${m.citta_top || '—'}.`);
+
+      // Chicca: lettura strategica
+      const chiccaLines = [];
+      if (engRate >= 50) {
+        chiccaLines.push(`Engagement sopra il 50%: il formato sta funzionando. Non cambiare la struttura dei reel — varia solo i temi.`);
+      } else if (engRate >= 5) {
+        chiccaLines.push(`Engagement nella fascia buona. Punta su reel con struttura domanda-risposta o "prima/dopo" per aumentare i salvataggi.`);
+      } else {
+        chiccaLines.push(`Engagement basso. Priorità: lavorare sul primo secondo del reel — il gancio visivo decide se si ferma o scorre.`);
+      }
+      if (saveRate >= 5) {
+        chiccaLines.push(`Save rate alto: il pubblico trova valore nei tuoi contenuti educativi o informativi. Continua su questo registro — è la rubrica 🔵 grigia (educativo) che funziona di più.`);
+      } else {
+        chiccaLines.push(`Save rate basso: prova contenuti "lista utile" — es. "5 cose da sapere prima di comprare in Maremma" o "quanto costa ristrutturare un casale". Questi generano salvataggi.`);
+      }
+      if (m.genere_donne_pct > 50) {
+        chiccaLines.push(`Pubblico >50% femminile: tono caldo e lifestyle funzionano. Inserisci più contenuti ⚪ personal brand che mostrano Emanuela nel territorio.`);
+      }
+      if (m.citta_top && m.citta_top.includes('Roma')) {
+        chiccaLines.push(`Roma è il tuo bacino principale: usa caption che parlano di fuga dal caos urbano, ritmo lento, natura. È il trigger d'acquisto di chi cerca in Maremma da città.`);
+      }
+      if (m.follower < 500) {
+        chiccaLines.push(`Fase crescita (< 500 follower): obiettivo ora non è viralità ma consistenza. 3 post/settimana, stesso orario, mix rubriche rispettato.`);
+      }
+
+      document.getElementById('mcMaraText').innerHTML = maraLines.map(l => `<div style="margin-bottom:5px">• ${l}</div>`).join('');
+      document.getElementById('mcChiccaText').innerHTML = chiccaLines.map(l => `<div style="margin-bottom:5px">• ${l}</div>`).join('');
+      document.getElementById('bloccoMaraChicca').classList.remove('hidden');
     }
 
     // Variabile condivisa tra Finanze e Vita & Casa
