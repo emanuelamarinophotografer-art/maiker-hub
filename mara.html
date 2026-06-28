@@ -854,6 +854,7 @@
     }
 
     function aggiornaFinSaldi(lista) {
+      console.log('[mara] aggiornaFinSaldi lista:', lista.length, lista.map(m=>({tipo:m.tipo,importo:m.importo})));
       const entrate = lista.filter(m=>m.tipo!=='spesa').reduce((s,m)=>s+parseFloat(m.importo||0),0);
       const spese   = lista.filter(m=>m.tipo==='spesa').reduce((s,m)=>s+parseFloat(m.importo||0),0);
       const saldo   = entrate - spese;
@@ -1123,7 +1124,7 @@
       caricaPortafoglio();
       caricaSocial();
       caricaMetricheIG();
-      renderMovimenti();
+      await renderMovimenti();
       await precaricaEsempio();
       renderReport('tutti');
       renderVitaCasa();
