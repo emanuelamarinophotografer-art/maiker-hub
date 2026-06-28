@@ -692,7 +692,7 @@
       const campi = ['vendite','incarichi_e','incarichi_ne','contatti'];
       const goal = { contatti:16, incarichi_e:1, incarichi_ne:1, vendite:1 };
       const totali = {};
-      campi.forEach(c => { totali[c] = (corrente[c]||0) + storico.reduce((s,r) => s+(r[c]||0), 0); });
+      campi.forEach(c => { totali[c] = corrente[c] || 0; });
       const inc_tot = (totali.incarichi_e||0) + (totali.incarichi_ne||0);
       document.getElementById('kpi_contatti').textContent = totali.contatti || 0;
       document.getElementById('kpi_incarichi').textContent = inc_tot;
