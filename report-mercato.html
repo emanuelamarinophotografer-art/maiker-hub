@@ -332,7 +332,7 @@
       return `<a class="pf-row ${gapBg(gap)}" href="report-proprieta.html?ref=${encodeURIComponent(refReport)}&mese=${MESE_CORRENTE}" target="_blank">
         <div class="pf-main">
           <div class="pf-titolo">${cleanTitolo(p.titolo)}</div>
-          <div class="pf-meta">${p.comune || '—'} · ${fmtEur(p.prezzo)} · ${p.mq ? p.mq + ' mq' : '—'}${prezzoMq ? ' · ' + prezzoMq.toLocaleString('it-IT') + ' €/mq' : ''}</div>
+          <div class="pf-meta">${refCorto || p.ref} · ${p.comune || '—'} · ${fmtEur(p.prezzo)} · ${p.mq ? p.mq + ' mq' : '—'}${prezzoMq ? ' · ' + prezzoMq.toLocaleString('it-IT') + ' €/mq' : ''}</div>
           ${!port ? '<div class="pf-no-dati">Dati portale non disponibili per questo mese</div>' : ''}
         </div>
         <div class="pf-kpi">
