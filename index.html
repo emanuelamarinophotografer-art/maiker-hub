@@ -487,7 +487,7 @@
         const coloreRubrica = { nero: '#222', bianco: '#888', oro: '#c9a227', grigio: '#666' };
         const emojiStato = { bozza: '📋', prodotto: '🔧', pubblicato: '✅' };
         const giorniCortissimi = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-        if (Array.isArray(pianoData) && pianoData.length > 0) {
+        if (socialEl && Array.isArray(pianoData) && pianoData.length > 0) {
           socialEl.innerHTML = pianoData.map(p => {
             const dp = new Date(p.data + 'T12:00:00');
             const col = coloreRubrica[p.rubrica] || '#888';
@@ -501,7 +501,7 @@
               <div style="font-size:0.85rem">${st}</div>
             </div>`;
           }).join('');
-        } else {
+        } else if (socialEl) {
           socialEl.innerHTML = '<div class="placeholder">Nessun contenuto questa settimana.</div>';
         }
 
