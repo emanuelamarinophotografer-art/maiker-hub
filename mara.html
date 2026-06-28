@@ -703,8 +703,8 @@
       document.getElementById('kpi_contatti').textContent = totali.contatti || 0;
       document.getElementById('kpi_incarichi').textContent = inc_tot;
       const el = document.getElementById('goalSection');
-      el.innerHTML = `<div style="font-size:0.7rem;color:red;padding:4px">DBG corrente.contatti=${corrente.contatti} | storico totale=${storico.length} | storicoMese=${storicoMese.length} | totali.contatti=${totali.contatti}</div>`;
-      if (!corrente.dataInizio && storico.length === 0) { el.innerHTML += '<div class="placeholder">Nessuna metrica inserita. Vai su Attività.</div>'; return; }
+      const dbg = `<div style="font-size:0.7rem;color:red;padding:4px;margin-bottom:6px">DBG corrente.contatti=${corrente.contatti} | storico totale=${storico.length} | storicoMese=${storicoMese.length} | totali.contatti=${totali.contatti}</div>`;
+      if (!corrente.dataInizio && storico.length === 0) { el.innerHTML = dbg + '<div class="placeholder">Nessuna metrica inserita. Vai su Attività.</div>'; return; }
       const giornoMese = d.getDate();
       const giorniTotali = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
       const avanzamento = giornoMese / giorniTotali;
@@ -713,7 +713,7 @@
         { nome:'Incarichi (E.+N.E.)', valore:inc_tot, goal:goal.incarichi_e+goal.incarichi_ne },
         { nome:'Vendite', valore:totali.vendite, goal:goal.vendite },
       ];
-      el.innerHTML = items.map(item => {
+      el.innerHTML = dbg + items.map(item => {
         const p = Math.min(pct(item.valore, item.goal), 100);
         const ok = item.valore >= item.goal;
         const proiez = avanzamento > 0 ? Math.round(item.valore / avanzamento) : item.valore;
