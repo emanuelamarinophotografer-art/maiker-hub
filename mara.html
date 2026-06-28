@@ -143,12 +143,12 @@
     /* VITA & CASA */
     .vc-cat-header { font-size: 0.67rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
     .vc-fisse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .vc-fisse-tot-e { margin: 0; color: #27ae60; }
-    .vc-fisse-tot-u { margin: 0; color: #c0392b; }
+    .vc-fisse-tot-e { font-size: 0.85rem; font-weight: 700; color: #27ae60; }
+    .vc-fisse-tot-u { font-size: 0.85rem; font-weight: 700; color: #c0392b; }
     .vc-fisse-add { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
-    .vc-fisse-add .fin-input { width: auto; }
-    .vc-fisse-add .fin-input.flex { flex: 1; min-width: 100px; }
-    .vc-fisse-add .fin-input.sm { width: 72px; }
+    .vc-input-desc { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 0.85rem; font-family: inherit; color: var(--text); min-width: 0; }
+    .vc-input-eur { width: 70px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 8px; font-size: 0.85rem; font-family: inherit; color: var(--text); text-align: right; }
+    .vc-input-desc:focus, .vc-input-eur:focus { outline: none; border-color: var(--accent); }
     .vc-fisse-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; padding: 6px 0; border-bottom: 1px solid var(--border); }
     .vc-fisse-item:last-child { border-bottom: none; }
     .vc-fisse-importo { font-weight: 700; color: var(--text); }
@@ -438,12 +438,12 @@
           <div class="blocco">
             <div class="blocco-header blocco-header-row">
               <span>📥 Entrate fisse mensili</span>
-              <span class="fin-sezione-label vc-fisse-tot-e" id="vc_ef_tot">€ 0</span>
+              <span class="vc-fisse-tot-e" id="vc_ef_tot">€ 0</span>
             </div>
             <div id="vc_ef_list"><div class="placeholder">Nessuna entrata fissa.</div></div>
             <div class="vc-fisse-add">
-              <input type="text" class="fin-input flex" id="vc_ef_desc" placeholder="es. Stipendio, affitto attivo…" />
-              <input type="number" class="fin-input sm" id="vc_ef_importo" placeholder="€" />
+              <input type="text" class="vc-input-desc" id="vc_ef_desc" placeholder="es. Stipendio, affitto attivo…" />
+              <input type="number" class="vc-input-eur" id="vc_ef_importo" placeholder="€" />
               <button type="button" class="btn-fin" onclick="aggiungiEF()">+</button>
             </div>
           </div>
@@ -452,12 +452,12 @@
           <div class="blocco">
             <div class="blocco-header blocco-header-row">
               <span>📤 Uscite fisse mensili</span>
-              <span class="fin-sezione-label vc-fisse-tot-u" id="vc_uf_tot">€ 0</span>
+              <span class="vc-fisse-tot-u" id="vc_uf_tot">€ 0</span>
             </div>
             <div id="vc_uf_list"><div class="placeholder">Nessuna uscita fissa.</div></div>
             <div class="vc-fisse-add">
-              <input type="text" class="fin-input flex" id="vc_uf_desc" placeholder="es. Mutuo, abbonamenti…" />
-              <input type="number" class="fin-input sm" id="vc_uf_importo" placeholder="€" />
+              <input type="text" class="vc-input-desc" id="vc_uf_desc" placeholder="es. Mutuo, abbonamenti…" />
+              <input type="number" class="vc-input-eur" id="vc_uf_importo" placeholder="€" />
               <button type="button" class="btn-fin" onclick="aggiungiUF()">+</button>
             </div>
           </div>
