@@ -693,7 +693,8 @@
       const goal = { contatti:16, incarichi_e:1, incarichi_ne:1, vendite:1 };
       const meseOra = d.getMonth(), annoOra = d.getFullYear();
       const storicoMese = storico.filter(r => {
-        if (r.ts) { const t = new Date(r.ts); return t.getMonth()===meseOra && t.getFullYear()===annoOra; }
+        if (r.ts) { const t = new Date(parseInt(r.ts)); return t.getMonth()===meseOra && t.getFullYear()===annoOra; }
+        if (r.data_fine) { const [dd,mm,yy] = r.data_fine.split('/'); return parseInt(mm)-1===meseOra && parseInt(yy)===annoOra; }
         return false;
       });
       const totali = {};
