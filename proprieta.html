@@ -132,6 +132,9 @@
           <option value="600000-99999999">oltre €600k</option>
         </select>
         <button id="btnAttivi" class="filtro-btn" onclick="toggleAttivi(this)" style="border-radius:20px">Solo attivi</button>
+        <button class="filtro-btn" id="fs-ok"   onclick="setFiltroScarto('ok',this)"  style="border-radius:20px">🟢 Allineati</button>
+        <button class="filtro-btn" id="fs-warn" onclick="setFiltroScarto('warn',this)" style="border-radius:20px">🟠 Alti</button>
+        <button class="filtro-btn" id="fs-bad"  onclick="setFiltroScarto('bad',this)"  style="border-radius:20px">🔴 Fuori mercato</button>
       </div>
 
       <div class="prop-grid" id="propGrid">
@@ -258,6 +261,21 @@
 
     let filtroStato = 'Tutti';
     let filtroAttivi = false;
+    let filtroScarto = ''; // '' | 'ok' | 'warn' | 'bad'
+
+    function scartoLabel(s) {
+      if (s === null || s === undefined) return '';
+      if (s <= 15) return 'ok';
+      if (s <= 40) return 'warn';
+      return 'bad';
+    }
+    function semaforo(p) {
+      const lbl = scartoLabel(p.scarto_pct);
+      if (!lbl) return '';
+      const col = lbl === 'ok' ? '#27ae60' : lbl === 'warn' ? '#e67e22' : '#e74c3c';
+      const title = lbl === 'ok' ? 'Allineato ≤15%' : lbl === 'warn' ? 'Alto 16-40%' : 'Fuori mercato >40%';
+      return `<span title="${title}" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col};margin-left:6px;vertical-align:middle;flex-shrink:0"></span>`;
+    }
     let _lista = [];
 
     function toggleAttivi(btn) {
@@ -280,6 +298,13 @@
       }).join('');
     }
 
+    function setFiltroScarto(val, el) {
+      filtroScarto = filtroScarto === val ? '' : val;
+      ['fs-ok','fs-warn','fs-bad'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+      if (filtroScarto) el.classList.add('active');
+      renderLista();
+    }
+
     function setFiltro(stato, el) {
       filtroStato = stato;
       document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
@@ -298,6 +323,7 @@
         const [min, max] = prezzoFascia.split('-').map(Number);
         lista = lista.filter(p => { const pr = Number(p.prezzo)||0; return pr >= min && pr <= max; });
       }
+      if (filtroScarto) lista = lista.filter(p => scartoLabel(p.scarto_pct) === filtroScarto);
 
       const el = document.getElementById('propGrid');
       if (lista.length === 0) { el.innerHTML = '<div class="placeholder">Nessuna proprietà trovata.</div>'; return; }
@@ -314,8 +340,7 @@
           </div>
           <span class="prop-stato ${classeStato[p.stato] || ''}">${p.stato || ''}</span>
           <div class="prop-numeri">
-            ${p.prezzo ? '<span><strong>€ ' + Number(p.prezzo).toLocaleString('it-IT') + '</strong>Prezzo</span>' : ''}
-            ${p.flag_mercato ? '<span style="font-size:0.7rem;color:var(--text-muted)">' + p.flag_mercato + '</span>' : ''}
+            ${p.prezzo ? '<span><strong>€ ' + Number(p.prezzo).toLocaleString('it-IT') + '</strong>' + semaforo(p) + '<br><span style="font-size:0.68rem;color:var(--text-muted)">Prezzo' + (p.scarto_pct !== null && p.scarto_pct !== undefined ? ' · scarto ' + p.scarto_pct + '%' : '') + '</span></span>' : ''}
           </div>
           <div class="prop-actions" onclick="event.stopPropagation()">
             <button class="btn-card" onclick="modificaProprietà(${p.id})">✏️</button>
