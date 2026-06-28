@@ -745,6 +745,8 @@
               ['🔖 Salvataggi', m.salvataggi],
               ['↗️ Condivisioni', m.condivisioni],
               ['🔁 Repost', m.repost],
+              ['💬 DM ricevuti', m.dm_ricevuti],
+              ['👁️ Visite profilo', m.visite_profilo],
             ].map(([label,val]) => `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center">
               <div style="font-size:1.1rem;font-weight:700;color:var(--text)">${val ?? '—'}</div>
               <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">${label}</div>
@@ -797,6 +799,13 @@
       maraLines.push(`Engagement reel: ${engRate.toFixed(1)}% (like+salvataggi+condivisioni / views). Benchmark soglia: 5% buono, 2-5% medio, <2% basso.`);
       maraLines.push(`Save rate: ${saveRate.toFixed(1)}% — ${saveRate >= 5 ? 'alto: il contenuto viene percepito utile o da rivedere.' : 'basso: i reel non generano abbastanza salvataggi.'}`);
       maraLines.push(`Pubblico: ${m.eta_top || '—'} · ${m.genere_donne_pct ? m.genere_donne_pct + '% donne' : '—'} · ${m.paese_top || '—'} · città: ${m.citta_top || '—'}.`);
+      if (m.dm_ricevuti !== null && m.dm_ricevuti !== undefined) {
+        maraLines.push(`DM ricevuti: ${m.dm_ricevuti} · Visite profilo: ${m.visite_profilo ?? '—'}.`);
+        if (m.visite_profilo && m.follower) {
+          const convProfilo = (m.follower / m.visite_profilo * 100).toFixed(1);
+          maraLines.push(`Conversione visite → follow: ${convProfilo}% (${m.follower} follower su ${m.visite_profilo} visite profilo).`);
+        }
+      }
 
       // Chicca: lettura strategica
       const chiccaLines = [];
@@ -820,6 +829,19 @@
       }
       if (m.follower < 500) {
         chiccaLines.push(`Fase crescita (< 500 follower): obiettivo ora non è viralità ma consistenza. 3 post/settimana, stesso orario, mix rubriche rispettato.`);
+      }
+      if (m.dm_ricevuti > 0) {
+        chiccaLines.push(`${m.dm_ricevuti} DM ricevuti: ogni DM è un contatto caldo. Rispondi sempre entro 24h — è il touchpoint più prezioso che hai su Instagram.`);
+      } else if (m.dm_ricevuti === 0) {
+        chiccaLines.push(`Nessun DM ricevuto: aggiungi una CTA esplicita in almeno 1 reel a settimana — "scrivimi in DM per info" o "mandami un messaggio se stai cercando in Maremma".`);
+      }
+      if (m.visite_profilo) {
+        const vpp = m.follower ? (m.follower / m.visite_profilo * 100) : 0;
+        if (vpp < 5) {
+          chiccaLines.push(`Conversione visite profilo bassa (${vpp.toFixed(1)}%): chi arriva sul profilo non segue. Controlla la bio — deve dire in 3 secondi chi sei, dove operi e perché seguirti.`);
+        } else {
+          chiccaLines.push(`Conversione visite profilo ${vpp.toFixed(1)}%: il profilo convince. Bio e immagine di copertina funzionano.`);
+        }
       }
 
       document.getElementById('mcMaraText').innerHTML = maraLines.map(l => `<div style="margin-bottom:5px">• ${l}</div>`).join('');
