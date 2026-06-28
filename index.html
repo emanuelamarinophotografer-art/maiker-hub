@@ -473,38 +473,10 @@
           document.getElementById('contEvento').title = ev.titolo;
         }
 
-        // Geggi briefing
-        const rG = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.segretario&order=created_at.desc&limit=1`, { headers: SB_H });
-        const gMsg = await rG.json();
-        if (Array.isArray(gMsg) && gMsg.length > 0) {
-          document.getElementById('geggiBriefing').textContent = gMsg[0].testo;
-          const dt = new Date(gMsg[0].created_at);
-          document.getElementById('geggiData').textContent = dt.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-        }
-
         // Vendite chiuse
         const rVendite = await fetch(`${SB_URL}/rest/v1/vendite?stato=neq.annullato&select=id`, { headers: SB_H });
         const venditeData = await rVendite.json();
         document.getElementById('contVendite').textContent = Array.isArray(venditeData) ? (venditeData.length || '—') : '—';
-
-        // Richieste recenti da gestire
-        const setteGiorni = new Date(); setteGiorni.setDate(setteGiorni.getDate() - 7);
-        const rRichieste = await fetch(`${SB_URL}/rest/v1/richieste?stato_cliente=neq.Perso&stato_cliente=neq.Chiuso&data_richiesta=gte.${setteGiorni.toISOString().split('T')[0]}&order=data_richiesta.desc&limit=6`, { headers: SB_H });
-        const richiesteData = await rRichieste.json();
-        const richEl = document.getElementById('richiesteList');
-        if (Array.isArray(richiesteData) && richiesteData.length > 0) {
-          richEl.innerHTML = richiesteData.map(r => `
-            <div class="priorita-recap-item">
-              <div class="dot-p" style="background:#e67e22"></div>
-              <div style="flex:1">
-                <div class="priorita-recap-testo">${r.nome_cliente || '—'}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted)">${r.stato_cliente || ''} · ${r.immobile || r.email || ''}</div>
-              </div>
-            </div>
-          `).join('');
-        } else {
-          richEl.innerHTML = '<div class="placeholder">Nessuna richiesta recente.</div>';
-        }
 
         // Piano editoriale settimana da Supabase
         const lunedi = new Date(); lunedi.setDate(lunedi.getDate() - ((lunedi.getDay() + 6) % 7));
