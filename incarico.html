@@ -811,10 +811,10 @@
       let d = {};
       try { if (r.dati) d = JSON.parse(r.dati); } catch(e) {}
 
-      const totMin = d.totMin || r.tot_min || null;
-      const totMax = d.totMax || r.tot_max || null;
+      const totMin = parseFloat(d.totMin || r.tot_min) || null;
+      const totMax = parseFloat(d.totMax || r.tot_max) || null;
       const score = d.score || r.score || 0;
-      const prezzoRich = d.prezzoRichiesto || r.prezzo_richiesto || null;
+      const prezzoRich = parseFloat(d.prezzoRichiesto || r.prezzo_richiesto) || null;
       _valutazioneDaRicerca = { totMin, totMax, score, prezzoRich };
 
       // mappa stato valutazione → opzione select incarico
@@ -842,13 +842,17 @@
       const noteEl = document.getElementById('q_note_qualifica');
       if (noteEl) noteEl.value = [r.note || '', score ? `Score vendibilità: ${score}/100` : ''].filter(Boolean).join('\n');
 
-      // pannello confronto
-      document.getElementById('pv_stima').textContent = (totMin && totMax) ? `${fmt(totMin)} – ${fmt(totMax)}` : totMin ? fmt(totMin) : '—';
-      document.getElementById('pv_prezzo').textContent = prezzoRich ? fmt(prezzoRich) : '—';
+      mostraPannelloValutazione();
+    }
+
+    function mostraPannelloValutazione() {
+      const v = _valutazioneDaRicerca;
+      if (!v.totMin && !v.score) return;
+      document.getElementById('pv_stima').textContent = (v.totMin && v.totMax) ? `${fmt(v.totMin)} – ${fmt(v.totMax)}` : v.totMin ? fmt(v.totMin) : '—';
+      document.getElementById('pv_prezzo').textContent = v.prezzoRich ? fmt(v.prezzoRich) : '—';
       const scoreEl = document.getElementById('pv_score');
-      scoreEl.textContent = score ? `${score}/100` : '—';
-      scoreEl.style.color = score >= 72 ? '#27ae60' : score >= 45 ? '#e67e22' : '#e74c3c';
-      // sposta il pannello dentro il form, dopo i campi header
+      scoreEl.textContent = v.score ? `${v.score}/100` : '—';
+      scoreEl.style.color = v.score >= 72 ? '#27ae60' : v.score >= 45 ? '#e67e22' : '#e74c3c';
       const pannello = document.getElementById('pannelloValutazione');
       const intro = document.querySelector('.scheda-intro');
       if (intro && pannello) intro.after(pannello);
@@ -1033,6 +1037,7 @@
       const msg = document.getElementById('salvaMsg');
       if (res.ok) {
         msg.textContent = 'Salvato ' + new Date().toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'});
+        if (fromRicercaId && _valutazioneDaRicerca.totMin) mostraPannelloValutazione();
       } else {
         msg.textContent = 'Errore nel salvataggio';
       }
