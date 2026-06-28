@@ -185,7 +185,11 @@ async function init() {
         <div class="metrica"><div class="metrica-val">${fmtN(visteDetTot)}</div><div class="metrica-label">Visite scheda</div></div>
         <div class="metrica"><div class="metrica-val ${contatti>0?'ok':''}">${fmtN(contatti)}</div><div class="metrica-label">Contatti ricevuti</div></div>
         <div class="metrica"><div class="metrica-val">${fmtN(preferiti)}</div><div class="metrica-label">Salvati / Preferiti</div></div>
-        <div class="metrica"><div class="metrica-val">${p.benchmark_mq ? fmtEur(p.benchmark_mq)+'/mq' : '—'}</div><div class="metrica-label">Benchmark zona OMI</div></div>
+        <div class="metrica" title="Differenza tra il prezzo €/mq dell'immobile e il valore OMI di riferimento della zona">
+          <div class="metrica-val ${scartoClass}">${scarto !== null ? (scarto > 0 ? '+' : '') + scarto + '%' : '—'}</div>
+          <div class="metrica-label">Scarto da benchmark OMI</div>
+          ${scarto !== null ? `<div style="font-size:0.62rem;color:#888;margin-top:3px">${scarto > 0 ? 'sopra' : 'sotto'} il valore OMI di zona</div>` : ''}
+        </div>
       </div>
     </div>
 
@@ -219,8 +223,9 @@ async function init() {
       <div class="sezione-title">Posizionamento rispetto al mercato</div>
       <div class="mercato-row"><span class="lbl">Prezzo richiesto</span><span class="val">${fmtEur(p.prezzo)}</span></div>
       ${p.mq ? `<div class="mercato-row"><span class="lbl">Superficie</span><span class="val">${p.mq} mq${p.prezzo && p.mq ? ' · ' + fmtEur(Math.round(p.prezzo/p.mq)) + '/mq' : ''}</span></div>` : ''}
-      ${p.mq && p.prezzo ? `<div class="mercato-row"><span class="lbl">Prezzo €/mq immobile</span><span class="val">${fmtEur(Math.round(parseFloat(p.prezzo)/p.mq))}/mq</span></div>` : ''}
-      ${p.benchmark_mq ? `<div class="mercato-row"><span class="lbl">Benchmark zona OMI</span><span class="val">${fmtEur(p.benchmark_mq)}/mq</span></div>` : ''}
+      ${p.mq && p.prezzo ? `<div class="mercato-row"><span class="lbl">Prezzo €/mq dell'immobile</span><span class="val">${fmtEur(Math.round(parseFloat(p.prezzo)/p.mq))}/mq</span></div>` : ''}
+      ${p.benchmark_mq ? `<div class="mercato-row"><span class="lbl">Valore OMI di riferimento zona</span><span class="val">${fmtEur(p.benchmark_mq)}/mq</span></div>` : ''}
+      ${scarto !== null ? `<div class="mercato-row"><span class="lbl">Scarto dal benchmark OMI</span><span class="val ${scartoClass}" style="font-size:0.9rem">${scarto > 0 ? '+' : ''}${scarto}% ${scarto > 0 ? 'sopra' : 'sotto'} il valore OMI di zona — il benchmark OMI è il valore catastale minimo e non il prezzo di mercato effettivo</span></div>` : ''}
       ${p.data_incarico ? `<div class="mercato-row"><span class="lbl">Data incarico</span><span class="val">${fmtData(p.data_incarico)}</span></div>` : ''}
       ${p.scadenza ? `<div class="mercato-row"><span class="lbl">Scadenza incarico</span><span class="val">${fmtData(p.scadenza)}</span></div>` : ''}
     </div>
