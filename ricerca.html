@@ -215,7 +215,7 @@
       if (_cache) return _cache;
       const r = await fetch(`${SB_URL}/rest/v1/ricerca_schede?order=created_at.desc&limit=500`, { headers: SB_H });
       const rows = await r.json();
-      _cache = rows.map(r => ({ ...r.dati, id: r.id, stato_scheda: r.stato_scheda, nome: r.nome, note: r.note, data: r.data }));
+      _cache = rows.map(r => ({ ...(r.dati ? JSON.parse(r.dati) : {}), ...r, dati: undefined }));
       return _cache;
     }
 
