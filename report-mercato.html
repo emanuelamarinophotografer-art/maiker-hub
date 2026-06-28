@@ -68,37 +68,6 @@
       <h2>Report & Mercato</h2>
     </div>
 
-    <!-- IMPORT CSV -->
-    <div class="blocco">
-      <div class="blocco-header" style="display:flex;justify-content:space-between;align-items:center">
-        <span>📥 Statistiche portali</span>
-        <span id="mercato_mese_label" style="font-size:0.75rem;color:var(--text-muted)"></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-        <div>
-          <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Mese di riferimento</label>
-          <input type="month" id="csv_mese" class="fin-input" style="width:140px" />
-        </div>
-        <div style="flex:1;min-width:200px">
-          <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">File CSV dall'amministrazione</label>
-          <input type="file" id="csv_file" accept=".csv" style="font-size:0.8rem" />
-        </div>
-        <button type="button" class="btn-small" style="margin-top:18px" onclick="importaCSV()">Importa</button>
-      </div>
-      <div id="csv_status" style="font-size:0.8rem;color:var(--text-muted);min-height:18px"></div>
-    </div>
-
-    <!-- LISTA IMMOBILI -->
-    <div class="blocco">
-      <div class="blocco-header" style="display:flex;justify-content:space-between;align-items:center">
-        <span>🏡 Immobili attivi — metriche portale</span>
-        <select id="filtro_mese_portale" class="fin-input" style="width:140px;font-size:0.8rem" onchange="caricaMercato()">
-          <option value="">Ultimo disponibile</option>
-        </select>
-      </div>
-      <div id="portale_list" style="margin-top:8px"></div>
-    </div>
-
     <!-- DATI MERCATO OMI -->
     <div class="blocco">
       <div class="blocco-header">📈 Dati mercato Maremma (OMI H1 2026)</div>
@@ -154,6 +123,26 @@
         <div class="mara-insight-label">📊 Lettura Mara — Giugno 2026</div>
         <div class="mara-insight-text">Il mercato Maremma è a due velocità: la costa luxury continua ad accelerare (+69% richieste su Argentario), trainata da americani e svizzeri con budget sopra €3M. L'entroterra value (Roccastrada +18%, Cinigiano +6%) sta recuperando terreno. Il profilo dominante vuole pronto uso con giardino — chi ha un rustico da ristrutturare deve posizionarlo sul segmento investimento, non su uso immediato.</div>
       </div>
+    </div>
+
+    <!-- IMPORT CSV -->
+    <div class="blocco">
+      <div class="blocco-header" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📥 Carica statistiche portali</span>
+        <span id="mercato_mese_label" style="font-size:0.75rem;color:var(--text-muted)"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <div>
+          <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">Mese di riferimento</label>
+          <input type="month" id="csv_mese" class="fin-input" style="width:140px" />
+        </div>
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">File CSV dall'amministrazione</label>
+          <input type="file" id="csv_file" accept=".csv" style="font-size:0.8rem" />
+        </div>
+        <button type="button" class="btn-small" style="margin-top:18px" onclick="importaCSV()">Importa</button>
+      </div>
+      <div id="csv_status" style="font-size:0.8rem;color:var(--text-muted);min-height:18px"></div>
     </div>
   </main>
 
@@ -230,56 +219,11 @@
     });
     if (res.ok) {
       status.textContent = `✅ Importati ${records.length} immobili`;
-      caricaMercato();
     } else {
       const errText = await res.text();
       status.textContent = `⚠ Errore: ${errText}`;
     }
   }
-
-  async function caricaMercato() {
-    const el = document.getElementById('portale_list');
-    el.innerHTML = '<div class="empty-state">Caricamento…</div>';
-    const mesiRaw = await sbGet('analisi_portale?select=mese&order=mese.desc');
-    const mesi = [...new Set((mesiRaw||[]).map(r=>r.mese))];
-    const sel = document.getElementById('filtro_mese_portale');
-    const valAttuale = sel.value;
-    sel.innerHTML = '<option value="">Ultimo disponibile</option>' + mesi.map(m=>`<option value="${m}">${m}</option>`).join('');
-    if (valAttuale) sel.value = valAttuale;
-    const meseTarget = sel.value || mesi[0];
-    if (!meseTarget) { el.innerHTML = '<div class="empty-state">Nessun dato importato. Carica il CSV dall\'amministrazione.</div>'; return; }
-    document.getElementById('mercato_mese_label').textContent = meseTarget;
-    const [props, portale] = await Promise.all([
-      sbGet('proprieta?stato=eq.Attivo&order=created_at.desc'),
-      sbGet(`analisi_portale?mese=eq.${meseTarget}&order=ref.asc`)
-    ]);
-    const portaleMap = {};
-    portale.forEach(p => portaleMap[p.ref] = p);
-    if (props.length === 0) { el.innerHTML = '<div class="empty-state">Nessun immobile attivo.</div>'; return; }
-    // Match ref: proprieta ha "016-33541050-96", portale ha "33541050-96"
-    el.innerHTML = props.map(p => {
-      const refCorto = (p.ref||'').replace(/^[\d\s\-]+/, '').trim();
-      const m = portaleMap[refCorto] || portaleMap[p.ref] || {};
-      const visite = (m.idealista_visite_dettaglio||0) + (m.imm_visite_dettaglio||0);
-      const contatti = (m.idealista_contatti||0) + (m.imm_messaggi||0);
-      const giorni = p.data_incarico ? Math.floor((new Date()-new Date(p.data_incarico))/86400000) : null;
-      const hasDati = Object.keys(m).length > 0;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.titolo||p.ref}</div>
-          <div style="font-size:0.72rem;color:var(--text-muted)">${p.ref}${giorni!==null?' · '+giorni+' gg':''}</div>
-        </div>
-        ${hasDati ? `
-        <div style="text-align:center;min-width:48px"><div style="font-weight:700;font-size:1rem">${visite||'—'}</div><div style="font-size:0.65rem;color:var(--text-muted)">visite</div></div>
-        <div style="text-align:center;min-width:48px"><div style="font-weight:700;font-size:1rem;color:${contatti>0?'#27ae60':'var(--text)'}">${contatti||'—'}</div><div style="font-size:0.65rem;color:var(--text-muted)">contatti</div></div>
-        <div style="text-align:center;min-width:48px"><div style="font-weight:700;font-size:1rem">${m.imm_qualita_pct||'—'}<span style="font-size:0.65rem">%</span></div><div style="font-size:0.65rem;color:var(--text-muted)">qualità</div></div>
-        ` : `<div style="font-size:0.75rem;color:var(--text-muted)">nessun dato portale</div>`}
-        <a href="report-proprieta.html?ref=${encodeURIComponent(p.ref)}&mese=${meseTarget}" target="_blank" class="btn-small" style="text-decoration:none">📄 PDF</a>
-      </div>`;
-    }).join('');
-  }
-
-  caricaMercato();
 </script>
 </body>
 </html>
