@@ -371,6 +371,7 @@
               <div class="fin-field">
                 <label>Tipo</label>
                 <select id="fin_tipo">
+                  <option value="provvigione">💰 Provvigione</option>
                   <option value="spesa">📤 Spesa</option>
                   <option value="altro">📋 Altra entrata</option>
                 </select>
@@ -824,19 +825,22 @@
     // ── FINANZE (Supabase) ──
     async function caricaMovimenti() {
       try {
-        // Provvigioni: da vendite incassate (fonte unica con Attività)
+        // Movimenti manuali (provvigioni, spese, altro)
+        const resM = await fetch(`${SB}/rest/v1/movimenti?order=data.desc`, { headers: H });
+        const movimenti = resM.ok ? await resM.json() : [];
+        // Vendite incassate da Attività (quelle non già presenti in movimenti)
         const resV = await fetch(`${SB}/rest/v1/vendite?incassata=eq.true&order=ts.desc`, { headers: H });
         const vendite = resV.ok ? await resV.json() : [];
-        const provvigioni = vendite.map(v => {
+        const venditeRows = vendite.map(v => {
           let incasso = v.prezzo < 100000 ? 3000 : v.prezzo * 0.03;
           if (v.doppia) incasso *= 2;
           incasso = (incasso - incasso * 0.08) / 2;
-          return { id: 'v_' + v.id, descrizione: 'Provvigione — ' + v.immobile, importo: Math.round(incasso), tipo: 'provvigione', data: v.data_rogito || new Date(v.ts).toISOString().split('T')[0] };
+          return { id: 'v_' + v.id, descrizione: 'Provvigione — ' + v.immobile, importo: Math.round(incasso), tipo: 'provvigione', data: v.data_rogito || new Date(v.ts).toISOString().split('T')[0], _da_vendita: true };
         });
-        // Spese e altro: da movimenti manuali (escluse le provvigioni duplicate)
-        const resM = await fetch(`${SB}/rest/v1/movimenti?tipo=neq.provvigione&order=data.desc`, { headers: H });
-        const spese = resM.ok ? await resM.json() : [];
-        return [...provvigioni, ...spese].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+        // Evita duplicati: escludi vendite già presenti in movimenti con stessa descrizione
+        const descMovimenti = new Set(movimenti.filter(m=>m.tipo==='provvigione').map(m=>m.descrizione));
+        const venditeNuove = venditeRows.filter(v => !descMovimenti.has(v.descrizione));
+        return [...movimenti, ...venditeNuove].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
       } catch(e) {
         document.getElementById('fin_sb_status').textContent = '⚠️ Errore caricamento movimenti';
         return [];
