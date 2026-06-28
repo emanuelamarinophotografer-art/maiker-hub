@@ -732,23 +732,21 @@
       const provvAttesa = venditeRows.reduce((s,v)=>s+calcolaIncasso(v.prezzo,v.doppia),0);
       document.getElementById('kpi_provv_attesa').textContent = fmtEur(provvAttesa);
       if (props.length===0) return;
-      const stati = { 'Valutazione':0, 'Incarico preso':0, 'In portale':0, 'In trattativa':0, 'Venduto':0, 'Ritirato':0 };
+      const stati = { 'Attivo':0, 'Venduto':0, 'Ritirato':0 };
       let prezzoTot = 0, conPrezzo = 0;
       props.forEach(p => {
-        if (stati[p.stato]!==undefined) stati[p.stato]++;
+        const k = p.stato === 'In portale' ? 'Attivo' : (stati[p.stato]!==undefined ? p.stato : null);
+        if (k) stati[k]++;
         const pr = parseFloat(p.prezzo)||0;
-        if (pr>0 && !['Venduto','Ritirato'].includes(p.stato)) { prezzoTot+=pr; conPrezzo++; }
+        if (pr>0 && p.stato === 'In portale') { prezzoTot+=pr; conPrezzo++; }
       });
-      const colori = { 'Valutazione':'#2980b9', 'Incarico preso':'#27ae60', 'In portale':'#8e44ad', 'In trattativa':'#c07040', 'Venduto':'#27ae60', 'Ritirato':'#888' };
+      const colori = { 'Attivo':'#8e44ad', 'Venduto':'#27ae60', 'Ritirato':'#888' };
       document.getElementById('portKpi').innerHTML = Object.entries(stati)
         .filter(([k,v]) => v > 0)
-        .map(([k,v]) => `<div class="kpi-card"><div class="kpi-val" style="color:${colori[k]||'#888'};font-size:1.4rem">${v}</div><div class="kpi-label">${k}</div></div>`).join('');
+        .map(([k,v]) => `<div class="kpi-card"><div class="kpi-val" style="color:${colori[k]};font-size:1.4rem">${v}</div><div class="kpi-label">${k}</div></div>`).join('');
       const prezzoMedio = conPrezzo>0 ? prezzoTot/conPrezzo : 0;
-      const inPortale = stati['In portale'] || 0;
-      const inTrattativa = stati['In trattativa'] || 0;
       let ins = `<div class="mara-insight"><div class="mara-insight-label">— Mara 📊</div><div class="mara-insight-text">`;
-      ins += `${inPortale} in portale · prezzo medio ${fmtEur(prezzoMedio)}.`;
-      if (inTrattativa>0) ins += ` <strong style="color:#c07040">${inTrattativa} in trattativa</strong>.`;
+      ins += `${stati.Attivo} attivi · prezzo medio ${fmtEur(prezzoMedio)}.`;
       if (provvAttesa>0) ins += ` Provvigione attesa: ${fmtEur(provvAttesa)}.`;
       ins += `</div></div>`;
       document.getElementById('portInsight').innerHTML = ins;
