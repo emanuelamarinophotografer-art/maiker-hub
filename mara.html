@@ -849,7 +849,7 @@
     async function salvaFinGoal() {
       const val = document.getElementById('fin_goal_annuo').value;
       await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'fin_goal_annuo', valore: val }) });
-      aggiornaFinSaldi([]);
+      renderMovimenti();
     }
 
     function aggiornaFinSaldi(lista) {
@@ -1113,7 +1113,7 @@
     // ── INIT ──
     async function init() {
       const [finGoalRow] = await Promise.all([
-        sbGet('social_appunti?chiave=eq.fin_goal_annuo&limit=1')
+        sbGet('social_appunti?chiave=eq.fin_goal_annuo&order=id.desc&limit=1')
       ]);
       document.getElementById('fin_goal_annuo').value = finGoalRow[0]?.valore || '';
       caricaFunnel();
@@ -1130,7 +1130,7 @@
 
     document.getElementById('fin_goal_annuo').addEventListener('change', async function() {
       await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'fin_goal_annuo', valore: this.value }) });
-      renderFinanziario();
+      renderMovimenti();
     });
   </script>
 
