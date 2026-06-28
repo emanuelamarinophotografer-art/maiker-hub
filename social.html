@@ -858,7 +858,7 @@
       }
 
       // Appunti salvati
-      fetch(`${SB_URL}/rest/v1/social_appunti?chiave=eq.agente_${id}&limit=1`, { headers: SB_H })
+      fetch(`${SB_URL}/rest/v1/social_appunti?chiave=eq.agente_${id}&limit=1`, { headers: SB_HEADERS_GET })
         .then(r => r.json()).then(rows => {
           document.getElementById('pAppunti').value = rows[0]?.valore || '';
         });
@@ -877,7 +877,7 @@
 
     async function salvaAppunti() {
       if (!pannelloAgente) return;
-      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave: 'agente_' + pannelloAgente, valore: document.getElementById('pAppunti').value }) });
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_HEADERS_WRITE, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave: 'agente_' + pannelloAgente, valore: document.getElementById('pAppunti').value }) });
       const cfm = document.getElementById('salvaCfm');
       cfm.style.display = 'inline';
       setTimeout(() => cfm.style.display = 'none', 2000);
@@ -1039,7 +1039,7 @@
       const dom = new Date(lun); dom.setDate(lun.getDate() + 6);
       const wl = document.getElementById('chicca-week-label');
       if (wl) wl.textContent = 'Sett. ' + lun.getDate() + '–' + dom.getDate() + ' ' + MESI_LABEL[dom.getMonth()];
-      const rows = await fetch(`${SB_URL}/rest/v1/social_appunti?chiave=in.(chicca_brief,agente_trendista,agente_pusher,agente_produttore)`, { headers: SB_H }).then(r => r.json());
+      const rows = await fetch(`${SB_URL}/rest/v1/social_appunti?chiave=in.(chicca_brief,agente_trendista,agente_pusher,agente_produttore)`, { headers: SB_HEADERS_GET }).then(r => r.json());
       const map = {};
       rows.forEach(r => { map[r.chiave] = r.valore; });
       document.getElementById('chiccaBrief').value = map['chicca_brief'] || '';
@@ -1052,7 +1052,7 @@
     }
 
     async function salvaChiccaBrief() {
-      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_H, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'chicca_brief', valore: document.getElementById('chiccaBrief').value }) });
+      await fetch(`${SB_URL}/rest/v1/social_appunti`, { method:'POST', headers: { ...SB_HEADERS_WRITE, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify({ chiave:'chicca_brief', valore: document.getElementById('chiccaBrief').value }) });
       const cfm = document.getElementById('chiccaSalvaCfm');
       cfm.style.display = 'inline'; setTimeout(() => cfm.style.display = 'none', 2000);
     }
@@ -1061,8 +1061,8 @@
       const el = document.getElementById('maraChiccaSignals');
       try {
         const [igRows, posts] = await Promise.all([
-          fetch(`${SB_URL}/rest/v1/metriche_ig?order=periodo_fine.desc&limit=2`, { headers: SB_H }).then(r => r.json()),
-          fetch(`${SB_URL}/rest/v1/piano_editoriale?select=rubrica,stato&limit=500`, { headers: SB_H }).then(r => r.json())
+          fetch(`${SB_URL}/rest/v1/metriche_ig?order=periodo_fine.desc&limit=2`, { headers: SB_HEADERS_GET }).then(r => r.json()),
+          fetch(`${SB_URL}/rest/v1/piano_editoriale?select=rubrica,stato&limit=500`, { headers: SB_HEADERS_GET }).then(r => r.json())
         ]);
 
         const segnali = [];
