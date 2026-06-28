@@ -793,14 +793,14 @@
 
     function aggiornaDelta() {
       const v = _valutazioneDaRicerca;
-      const stimaMed = ((v.totMin || 0) + (v.totMax || 0)) / 2;
+      const stima = v.totMax ? ((v.totMin || 0) + v.totMax) / 2 : (v.totMin || 0);
       const prezzoInc = parseFloat(document.getElementById('pv_prezzo_incarico').value) || 0;
       const deltaEl = document.getElementById('pv_delta');
-      if (!stimaMed || !prezzoInc) { deltaEl.textContent = '—'; deltaEl.style.color = 'var(--text-muted)'; return; }
-      const delta = prezzoInc - stimaMed;
-      const pct = ((delta / stimaMed) * 100).toFixed(1);
+      if (!stima || !prezzoInc) { deltaEl.textContent = '—'; deltaEl.style.color = 'var(--text-muted)'; return; }
+      const delta = prezzoInc - stima;
+      const pct = ((delta / stima) * 100).toFixed(1);
       deltaEl.textContent = (delta >= 0 ? '+' : '') + fmt(delta) + ` (${pct}%)`;
-      deltaEl.style.color = delta > 0 ? '#e05' : delta < -stimaMed * 0.1 ? '#e74c3c' : '#27ae60';
+      deltaEl.style.color = delta > stima * 0.15 ? '#e74c3c' : delta < -stima * 0.1 ? '#e67e22' : '#27ae60';
     }
 
     async function prefillDaRicerca(id) {
@@ -848,7 +848,11 @@
       const scoreEl = document.getElementById('pv_score');
       scoreEl.textContent = score ? `${score}/100` : '—';
       scoreEl.style.color = score >= 72 ? '#27ae60' : score >= 45 ? '#e67e22' : '#e74c3c';
-      document.getElementById('pannelloValutazione').style.display = 'block';
+      // sposta il pannello dentro il form, dopo i campi header
+      const pannello = document.getElementById('pannelloValutazione');
+      const intro = document.querySelector('.scheda-intro');
+      if (intro && pannello) intro.after(pannello);
+      pannello.style.display = 'block';
     }
 
     // prefillDaRicerca viene chiamato dopo caricaListaSchede() in fondo alla pagina
@@ -935,10 +939,17 @@
         motivazione: leggiCampo('q_motivazione'),
         urgenza: leggiCampo('q_urgenza'),
         prezzo_richiesto: leggiCampo('q_prezzo'),
+        t_prezzo_richiesto: leggiCampo('t_prezzo_richiesto'),
         esclusiva: leggiCampo('q_esclusiva'),
         documentazione: leggiCampo('q_documentazione'),
         score: parseInt(document.getElementById('scoreNum').textContent) || 0,
         esito: esitoSel,
+        motivazione_v: chipState['q_motivazione_v'] || null,
+        urgenza_v: chipState['q_urgenza_v'] || null,
+        prezzo_v: chipState['q_prezzo_v'] || null,
+        esclusiva_v: chipState['q_esclusiva_v'] || null,
+        documentazione_v: chipState['q_documentazione_v'] || null,
+        punti_aperti: leggiCampo('q_punti_aperti'),
         prossimo_step: leggiCampo('q_prossimo_step'),
         note_qualifica: leggiCampo('q_note_qualifica'),
         // dati generali
@@ -1099,8 +1110,8 @@
         t_mutuo_residuo:'mutuo_residuo', t_tempistiche:'tempistiche',
         t_punti_forza:'punti_forza', t_lavori_eseguiti:'lavori_eseguiti', t_lavori_necessari:'lavori_necessari',
         t_note:'note', t_referente_nome:'referente_nome', t_referente_tel:'referente_tel', t_referente_email:'referente_email',
-        t_prezzo_richiesto:'prezzo_richiesto', t_motivazione:'motivazione', t_urgenza:'urgenza', t_documentazione:'documentazione',
-        t_prossimo_step:'prossimo_step', t_note_qualifica:'note_qualifica'
+        t_prezzo_richiesto:'t_prezzo_richiesto', t_motivazione:'motivazione', t_urgenza:'urgenza', t_documentazione:'documentazione',
+        t_prossimo_step:'prossimo_step', t_note_qualifica:'note_qualifica', q_punti_aperti:'punti_aperti'
       };
       Object.entries(map).forEach(([elId, field]) => {
         const el = document.getElementById(elId);
@@ -1109,9 +1120,17 @@
       // Boolean chips
       ['ascensore','balconi','garage','posti_auto','aria_condizionata','impianti_certificati','domotica','allarme','fibra','videocitofono','trattabile','mutuo','ape_disponibile'].forEach(f => {
         const val = s[f];
-        const si = document.querySelector(`.bool-chip[data-field="${f}"][data-val="si"]`);
-        const no = document.querySelector(`.bool-chip[data-field="${f}"][data-val="no"]`);
-        if (si && no) { si.classList.toggle('sel-si', val === true); no.classList.toggle('sel-no', val === false); }
+        const si = document.querySelector(`.bool-chip[data-field="t_${f}"][data-val="si"]`) || document.querySelector(`.bool-chip[data-field="${f}"][data-val="si"]`);
+        const no = document.querySelector(`.bool-chip[data-field="t_${f}"][data-val="no"]`) || document.querySelector(`.bool-chip[data-field="${f}"][data-val="no"]`);
+        if (si && no) { si.classList.toggle('sel-si', val === true); no.classList.toggle('sel-no', val === false); chipState['t_' + f] = val === true ? 'si' : val === false ? 'no' : undefined; }
+      });
+      // Val-chip (OK / ? / ✕ qualifica)
+      ['motivazione_v','urgenza_v','prezzo_v','esclusiva_v','documentazione_v'].forEach(f => {
+        const val = s[f];
+        if (!val) return;
+        chipState['q_' + f] = val;
+        const chip = document.querySelector(`.val-chip[data-field="q_${f}"][data-val="${val}"]`);
+        if (chip) { chip.closest('.val-chips').querySelectorAll('.val-chip').forEach(c => c.classList.remove('sel')); chip.classList.add('sel'); }
       });
       // Esito
       esitoSel = s.esito;
