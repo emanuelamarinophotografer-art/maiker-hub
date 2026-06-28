@@ -22,6 +22,33 @@
     .mara-insight { background: var(--bg); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 14px; }
     .mara-insight-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 5px; }
     .mara-insight-text { font-size: 0.82rem; line-height: 1.6; color: var(--text); }
+
+    /* PORTAFOGLIO */
+    .pf-filtri { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pf-filtro { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+    .pf-filtro.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .pf-lista { display: flex; flex-direction: column; gap: 8px; }
+    .pf-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-decoration: none; color: inherit; transition: border-color 0.15s; }
+    .pf-row:hover { border-color: var(--accent); }
+    .pf-main { display: flex; flex-direction: column; gap: 4px; }
+    .pf-titolo { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .pf-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .pf-kpi { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .pf-kpi-item { text-align: right; }
+    .pf-kpi-val { font-size: 0.88rem; font-weight: 700; }
+    .pf-kpi-lbl { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .pf-gap-ok { color: #27ae60; }
+    .pf-gap-warn { color: #e67e22; }
+    .pf-gap-bad { color: #c0392b; }
+    .pf-loading { color: var(--text-muted); font-size: 0.82rem; padding: 20px 0; text-align: center; }
+    .pf-strip { display: flex; gap: 20px; margin-bottom: 14px; flex-wrap: wrap; }
+    .pf-stat { font-size: 0.8rem; color: var(--text-muted); }
+    .pf-stat strong { color: var(--text); }
+    .pf-no-dati { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
+    .blocco-header-row { display: flex; justify-content: space-between; align-items: center; }
+    .blocco-mese-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+    .pf-mara-hidden { display: none; }
+    .btn-small-top { margin-top: 18px; }
   </style>
 </head>
 <body>
@@ -127,9 +154,9 @@
 
     <!-- IMPORT CSV -->
     <div class="blocco">
-      <div class="blocco-header" style="display:flex;justify-content:space-between;align-items:center">
+      <div class="blocco-header blocco-header-row">
         <span>📥 Carica statistiche portali</span>
-        <span id="mercato_mese_label" style="font-size:0.75rem;color:var(--text-muted)"></span>
+        <span id="mercato_mese_label" class="blocco-mese-label"></span>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
         <div>
@@ -140,9 +167,24 @@
           <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:4px">File CSV dall'amministrazione</label>
           <input type="file" id="csv_file" accept=".csv" style="font-size:0.8rem" />
         </div>
-        <button type="button" class="btn-small" style="margin-top:18px" onclick="importaCSV()">Importa</button>
+        <button type="button" class="btn-small btn-small-top" onclick="importaCSV()">Importa</button>
       </div>
       <div id="csv_status" style="font-size:0.8rem;color:var(--text-muted);min-height:18px"></div>
+    </div>
+
+    <!-- PORTAFOGLIO ATTIVO -->
+    <div class="blocco">
+      <div class="blocco-header blocco-header-row">
+        <span>🏡 Portafoglio attivo</span>
+        <span id="pf_mese_label" class="blocco-mese-label"></span>
+      </div>
+      <div class="pf-strip" id="pf_strip"></div>
+      <div class="pf-filtri" id="pf_filtri"></div>
+      <div class="pf-lista" id="pf_lista"><div class="pf-loading">Caricamento…</div></div>
+      <div class="mara-insight pf-mara-hidden" id="pf_mara">
+        <div class="mara-insight-label">📊 Lettura Mara — Portafoglio</div>
+        <div class="mara-insight-text" id="pf_mara_text"></div>
+      </div>
     </div>
   </main>
 
@@ -174,6 +216,167 @@
       return obj;
     });
   }
+
+  // ── PORTAFOGLIO ATTIVO ──────────────────────────────────────────────
+  const MESE_CORRENTE = new Date().toISOString().slice(0, 7); // "2026-06"
+  const MESI_IT = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+  function fmtMeseLabel(m) {
+    if (!m) return '';
+    const [y, mo] = m.split('-');
+    return MESI_IT[parseInt(mo)] + ' ' + y;
+  }
+  function fmtEur(n) {
+    if (!n) return '—';
+    return '€ ' + Math.round(parseFloat(n)).toLocaleString('it-IT');
+  }
+  function cleanTitolo(t) {
+    if (!t) return '—';
+    return t.replace(/ /g, ' ').replace(/\s+/g, ' ').replace(/\n/g, ' · ').trim();
+  }
+  function extractRef(ref) {
+    if (!ref) return null;
+    // "016-33541050-XXX" | "016 - 33541050-XXX" | "016- 33541050 - XXX"
+    return ref.replace(/^016[\s\-]+/i, '').replace(/\s+/g, '').trim();
+  }
+  function gapClass(pct) {
+    if (pct == null) return '';
+    if (pct <= 10) return 'pf-gap-ok';
+    if (pct <= 40) return 'pf-gap-warn';
+    return 'pf-gap-bad';
+  }
+
+  let pfProps = [];
+  let pfPortale = {};
+  let pfFiltroComune = 'Tutti';
+
+  async function caricaPortafoglio() {
+    const [props, portale] = await Promise.all([
+      sbGet('proprieta?select=id,ref,titolo,comune,prezzo,mq,scarto_pct,benchmark_mq&stato=eq.Attivo&order=comune.asc'),
+      sbGet(`analisi_portale?mese=eq.${MESE_CORRENTE}`)
+    ]);
+
+    pfProps = props;
+    pfPortale = {};
+    portale.forEach(r => { pfPortale[r.ref] = r; });
+
+    document.getElementById('pf_mese_label').textContent = fmtMeseLabel(MESE_CORRENTE);
+
+    // comuni unici
+    const comuni = ['Tutti', ...new Set(props.map(p => p.comune).filter(Boolean).sort())];
+    const filtriEl = document.getElementById('pf_filtri');
+    filtriEl.innerHTML = comuni.map(c =>
+      `<button class="pf-filtro${c === 'Tutti' ? ' active' : ''}" onclick="setPfFiltro('${c}', this)">${c}</button>`
+    ).join('');
+
+    renderPortafoglio();
+  }
+
+  function setPfFiltro(comune, el) {
+    pfFiltroComune = comune;
+    document.querySelectorAll('.pf-filtro').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderPortafoglio();
+  }
+
+  function renderPortafoglio() {
+    const lista = pfFiltroComune === 'Tutti' ? pfProps : pfProps.filter(p => p.comune === pfFiltroComune);
+    const listaEl = document.getElementById('pf_lista');
+
+    if (!lista.length) {
+      listaEl.innerHTML = '<div class="pf-loading">Nessuna proprietà attiva.</div>';
+      return;
+    }
+
+    // strip KPI
+    const conDati = lista.filter(p => pfPortale[extractRef(p.ref)]);
+    const totVisite = conDati.reduce((s, p) => {
+      const r = pfPortale[extractRef(p.ref)];
+      return s + (r.idealista_visite_dettaglio || 0) + (r.imm_visite_dettaglio || 0);
+    }, 0);
+    const totContatti = conDati.reduce((s, p) => {
+      const r = pfPortale[extractRef(p.ref)];
+      return s + (r.idealista_contatti || 0) + (r.imm_messaggi || 0);
+    }, 0);
+    const sopra = lista.filter(p => (p.scarto_pct || 0) > 20).length;
+
+    document.getElementById('pf_strip').innerHTML = `
+      <div class="pf-stat">Immobili attivi: <strong>${lista.length}</strong></div>
+      <div class="pf-stat">Visite giugno: <strong>${Math.round(totVisite).toLocaleString('it-IT')}</strong></div>
+      <div class="pf-stat">Contatti giugno: <strong>${totContatti}</strong></div>
+      <div class="pf-stat">Sopra benchmark >20%: <strong class="pf-gap-warn">${sopra}</strong></div>
+    `;
+
+    listaEl.innerHTML = lista.map(p => {
+      const refCorto = extractRef(p.ref);
+      const port = pfPortale[refCorto] || null;
+      const prezzoMq = p.prezzo && p.mq ? Math.round(parseFloat(p.prezzo) / p.mq) : null;
+      const visite = port ? Math.round((port.idealista_visite_dettaglio || 0) + (port.imm_visite_dettaglio || 0)) : null;
+      const contatti = port ? (port.idealista_contatti || 0) + (port.imm_messaggi || 0) : null;
+      const salvati = port ? (port.idealista_preferiti || 0) + (port.imm_salvati || 0) : null;
+      const gap = p.scarto_pct != null ? p.scarto_pct : null;
+      const refReport = p.ref || '';
+
+      return `<a class="pf-row" href="report-proprieta.html?ref=${encodeURIComponent(refReport)}&mese=${MESE_CORRENTE}" target="_blank">
+        <div class="pf-main">
+          <div class="pf-titolo">${cleanTitolo(p.titolo)}</div>
+          <div class="pf-meta">${p.comune || '—'} · ${fmtEur(p.prezzo)} · ${p.mq ? p.mq + ' mq' : '—'}${prezzoMq ? ' · ' + prezzoMq.toLocaleString('it-IT') + ' €/mq' : ''}</div>
+          ${!port ? '<div class="pf-no-dati">Dati portale non disponibili per questo mese</div>' : ''}
+        </div>
+        <div class="pf-kpi">
+          ${visite !== null ? `<div class="pf-kpi-item"><div class="pf-kpi-val">${visite.toLocaleString('it-IT')}</div><div class="pf-kpi-lbl">Visite</div></div>` : ''}
+          ${contatti !== null ? `<div class="pf-kpi-item"><div class="pf-kpi-val">${contatti}</div><div class="pf-kpi-lbl">Contatti</div></div>` : ''}
+          ${salvati !== null ? `<div class="pf-kpi-item"><div class="pf-kpi-val">${salvati}</div><div class="pf-kpi-lbl">Salvati</div></div>` : ''}
+          ${gap !== null ? `<div class="pf-kpi-item"><div class="pf-kpi-val ${gapClass(gap)}">${gap > 0 ? '+' : ''}${gap}%</div><div class="pf-kpi-lbl">vs OMI</div></div>` : ''}
+        </div>
+      </a>`;
+    }).join('');
+
+    // Lettura Mara
+    renderMaraPortafoglio(lista);
+  }
+
+  function renderMaraPortafoglio(lista) {
+    const maraEl = document.getElementById('pf_mara');
+    const maraText = document.getElementById('pf_mara_text');
+
+    const conDati = lista.filter(p => pfPortale[extractRef(p.ref)]);
+    if (!conDati.length) { maraEl.classList.add('pf-mara-hidden'); return; }
+
+    // peggiore performance: più visite, zero contatti
+    const allarme = conDati
+      .map(p => {
+        const r = pfPortale[extractRef(p.ref)];
+        const v = (r.idealista_visite_dettaglio || 0) + (r.imm_visite_dettaglio || 0);
+        const c = (r.idealista_contatti || 0) + (r.imm_messaggi || 0);
+        return { p, visite: v, contatti: c, ratio: v > 0 ? c / v : 0 };
+      })
+      .sort((a, b) => b.visite - a.visite);
+
+    const altaVisitaZeroContatto = allarme.filter(x => x.visite > 100 && x.contatti === 0);
+    const sopraOMI = lista.filter(p => (p.scarto_pct || 0) > 40);
+    const topVisite = allarme[0];
+
+    let testo = '';
+    if (topVisite) {
+      testo += `L'immobile con più visite a giugno è <strong>${cleanTitolo(topVisite.p.titolo)}</strong> (${Math.round(topVisite.visite).toLocaleString('it-IT')} visite, ${topVisite.contatti} contatti). `;
+    }
+    if (altaVisitaZeroContatto.length) {
+      testo += `${altaVisitaZeroContatto.length} immobil${altaVisitaZeroContatto.length > 1 ? 'i hanno' : 'e ha'} visite alte ma zero contatti — probabile problema di prezzo o foto. `;
+    }
+    if (sopraOMI.length) {
+      testo += `${sopraOMI.length} proprità ${sopraOMI.length > 1 ? 'sono' : 'è'} oltre il +40% rispetto al benchmark OMI — difficile vendita rapida senza ribasso. `;
+    }
+    if (!testo) {
+      testo = 'Dati portale presenti. Nessuna criticità evidente su visite e posizionamento.';
+    }
+
+    maraText.innerHTML = testo;
+    maraEl.classList.remove('pf-mara-hidden');
+  }
+
+  caricaPortafoglio();
+  // ── fine portafoglio ──────────────────────────────────────────────────
 
   async function importaCSV() {
     const file = document.getElementById('csv_file').files[0];
