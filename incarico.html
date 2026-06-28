@@ -1148,6 +1148,21 @@
       // Scroll al form
       document.querySelector('.scheda-intro').scrollIntoView({ behavior: 'smooth' });
       caricaListaSchede();
+      // Carica pannello valutazione se la scheda è collegata a ricerca_schede
+      fetch(`${SB_URL}/rest/v1/ricerca_schede?id_incarico=eq.${id}&select=*&limit=1`, { headers: SB_H })
+        .then(r => r.json()).then(rows => {
+          if (!rows.length) return;
+          const r = rows[0];
+          let d = {};
+          try { if (r.dati) d = JSON.parse(r.dati); } catch(e) {}
+          _valutazioneDaRicerca = {
+            totMin: parseFloat(d.totMin || r.tot_min) || null,
+            totMax: parseFloat(d.totMax || r.tot_max) || null,
+            score: d.score || r.score || 0,
+            prezzoRich: parseFloat(d.prezzoRichiesto || r.prezzo_richiesto) || null
+          };
+          if (_valutazioneDaRicerca.totMin || _valutazioneDaRicerca.score) mostraPannelloValutazione();
+        });
     }
 
     function nuovaScheda() {
