@@ -826,7 +826,7 @@
       return el ? el.value.trim() : '';
     }
 
-    async function salva() {
+    async function salvaCore() {
       const nome = leggiCampo('h_nome');
       if (!nome) { alert('Inserisci almeno il nome / descrizione dell\'immobile.'); return; }
 
@@ -923,7 +923,7 @@
     }
 
     // Autosave ogni 60 secondi se c'è un nome
-    setInterval(() => { if (leggiCampo('h_nome')) salva(); }, 60000);
+    setInterval(() => { if (leggiCampo('h_nome')) salvaCore(); }, 60000);
 
     aggiornaPunteggio();
 
@@ -1079,9 +1079,8 @@
     }
 
     // Abilita bottone converti dopo ogni salvataggio
-    const _salvaorig = salva;
     async function salva() {
-      await _salvaorig.apply(this, arguments);
+      await salvaCore();
       aggiornaBottoneConverti();
     }
 
