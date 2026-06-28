@@ -81,6 +81,19 @@
     .ac-selected { font-size: 0.75rem; color: var(--accent); margin-top: 4px; font-style: italic; }
 
     @media (max-width: 760px) { .scheda-body { grid-template-columns: 1fr; } .analisi-grid { grid-template-columns: 1fr 1fr; } }
+
+    .btn-analisi-mara {
+      background: #1a5276; color: #7eb8f7; border: 1px solid #2e6da4;
+      border-radius: 7px; padding: 6px 13px; font-size: 0.78rem; cursor: pointer;
+      font-weight: 600; transition: background 0.15s;
+    }
+    .btn-analisi-mara:hover { background: #1f638e; }
+    .btn-analisi-link {
+      background: transparent; color: #7eb8f7; border: 1px solid #2e6da4;
+      border-radius: 7px; padding: 6px 13px; font-size: 0.78rem; cursor: pointer;
+      font-weight: 600; text-decoration: none; transition: background 0.15s;
+    }
+    .btn-analisi-link:hover { background: #1a2e42; }
   </style>
 </head>
 <body>
@@ -307,7 +320,13 @@
         </div>
 
         <div class="info-card full" style="margin-bottom:18px">
-          <div class="info-card-title">Analisi di mercato</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="info-card-title" style="margin:0">Analisi di mercato</div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn-analisi-mara" onclick="generaAnalisiMara()">📊 Analisi Mara</button>
+              <a href="valutazione.html?comune=${encodeURIComponent(p.comune||p.zona||'')}&prezzo=${p.prezzo||''}&mq=${p.mq||''}" class="btn-analisi-link">🧮 Valutazione OMI</a>
+            </div>
+          </div>
           <div class="analisi-grid">
             <div class="analisi-item">
               <div class="analisi-label">Benchmark €/mq</div>
@@ -325,6 +344,10 @@
               <div class="analisi-label">Ettari terreno</div>
               <div class="analisi-val">${p.ettari_terreno ? p.ettari_terreno + ' ha' : '—'}</div>
             </div>
+          </div>
+          <div id="maraAnalisiBox" style="display:none;margin-top:14px;background:#1a2e42;border-radius:10px;padding:14px 16px">
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#7eb8f7;margin-bottom:8px">📊 Mara — Lettura mercato</div>
+            <div id="maraAnalisiText" style="font-size:0.83rem;line-height:1.65;color:#c8ddf0"></div>
           </div>
         </div>
       `;
@@ -444,6 +467,48 @@
     }
 
     document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) chiudiModal(); });
+
+    function generaAnalisiMara() {
+      const p = _prop;
+      if (!p) return;
+      const box = document.getElementById('maraAnalisiBox');
+      const txt = document.getElementById('maraAnalisiText');
+      box.style.display = 'block';
+
+      const prezzoMq = p.mq && p.prezzo ? Math.round(p.prezzo / p.mq) : null;
+      const bench = p.benchmark_mq;
+      const scarto = p.scarto_pct !== undefined && p.scarto_pct !== null ? p.scarto_pct : (prezzoMq && bench ? Math.round(((prezzoMq - bench) / bench) * 100) : null);
+
+      let righe = [];
+
+      if (prezzoMq && bench) {
+        righe.push(`Prezzo richiesto: <strong>${fmtEuro(prezzoMq)}/mq</strong> · Benchmark OMI zona: <strong>${fmtEuro(bench)}/mq</strong>.`);
+      }
+
+      if (scarto !== null) {
+        if (scarto > 40) {
+          righe.push(`⚠️ Lo scarto del <strong>${scarto}%</strong> sopra mercato è elevato. La proprietà rischia di restare ferma a lungo. Valuta con il proprietario una revisione del prezzo.`);
+        } else if (scarto > 15) {
+          righe.push(`⚡ Scarto del <strong>${scarto}%</strong>: posizionamento leggermente alto. Monitorare le visite e i feedback acquirenti. Una trattativa è probabile.`);
+        } else if (scarto >= -10) {
+          righe.push(`✅ Scarto del <strong>${scarto}%</strong>: prezzo allineato al mercato. Buona competitività, profilo acquirente coerente.`);
+        } else {
+          righe.push(`🟢 Prezzo inferiore al mercato (<strong>${scarto}%</strong>). Opportunità di vendita rapida, potenziale interesse da parte di più acquirenti.`);
+        }
+      }
+
+      if (p.prezzo_terreno_stimato && p.prezzo) {
+        const pct_terreno = Math.round((p.prezzo_terreno_stimato / p.prezzo) * 100);
+        righe.push(`Il terreno incide per circa il <strong>${pct_terreno}%</strong> del prezzo totale${p.ettari_terreno ? ` (${p.ettari_terreno} ha)` : ''}.`);
+      }
+
+      if (!righe.length) {
+        righe.push('Dati insufficienti per generare un\'analisi. Verifica che la proprietà abbia prezzo, mq e benchmark compilati.');
+      }
+
+      txt.innerHTML = righe.join('<br><br>');
+    }
+
     render();
   </script>
 
