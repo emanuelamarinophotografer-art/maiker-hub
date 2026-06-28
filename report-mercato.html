@@ -40,6 +40,9 @@
     .pf-gap-ok { color: #27ae60; }
     .pf-gap-warn { color: #e67e22; }
     .pf-gap-bad { color: #c0392b; }
+    .pf-bg-ok { border-left: 3px solid #27ae60; }
+    .pf-bg-warn { border-left: 3px solid #e67e22; }
+    .pf-bg-bad { border-left: 3px solid #c0392b; }
     .pf-loading { color: var(--text-muted); font-size: 0.82rem; padding: 20px 0; text-align: center; }
     .pf-strip { display: flex; gap: 20px; margin-bottom: 14px; flex-wrap: wrap; }
     .pf-stat { font-size: 0.8rem; color: var(--text-muted); }
@@ -241,9 +244,17 @@
   }
   function gapClass(pct) {
     if (pct == null) return '';
-    if (pct <= 10) return 'pf-gap-ok';
+    if (pct < 0) return 'pf-gap-warn';
+    if (pct <= 15) return 'pf-gap-ok';
     if (pct <= 40) return 'pf-gap-warn';
     return 'pf-gap-bad';
+  }
+  function gapBg(pct) {
+    if (pct == null) return '';
+    if (pct < 0) return 'pf-bg-warn';
+    if (pct <= 15) return 'pf-bg-ok';
+    if (pct <= 40) return 'pf-bg-warn';
+    return 'pf-bg-bad';
   }
 
   let pfProps = [];
@@ -317,7 +328,7 @@
       const gap = p.scarto_pct != null ? p.scarto_pct : null;
       const refReport = p.ref || '';
 
-      return `<a class="pf-row" href="report-proprieta.html?ref=${encodeURIComponent(refReport)}&mese=${MESE_CORRENTE}" target="_blank">
+      return `<a class="pf-row ${gapBg(gap)}" href="report-proprieta.html?ref=${encodeURIComponent(refReport)}&mese=${MESE_CORRENTE}" target="_blank">
         <div class="pf-main">
           <div class="pf-titolo">${cleanTitolo(p.titolo)}</div>
           <div class="pf-meta">${p.comune || '—'} · ${fmtEur(p.prezzo)} · ${p.mq ? p.mq + ' mq' : '—'}${prezzoMq ? ' · ' + prezzoMq.toLocaleString('it-IT') + ' €/mq' : ''}</div>

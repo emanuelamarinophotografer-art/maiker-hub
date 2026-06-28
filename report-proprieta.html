@@ -122,8 +122,8 @@ async function init() {
   const mese = params.get('mese') || '';
   if (!ref) { document.getElementById('contenuto').innerHTML = '<div style="color:#c00;padding:40px">Parametro ref mancante.</div>'; return; }
 
-  // Il ref in analisi_portale è senza prefisso "016 - " (viene dal CSV)
-  const refCorto = ref.replace(/^[\d\s\-]+/, '').trim();
+  // analisi_portale usa "33541050-XXX", proprieta usa "016-33541050-XXX"
+  const refCorto = ref.replace(/^016[\s\-]+/i, '').replace(/\s+/g, '').trim();
 
   const [props, portaleRows, richiesteRows, proposteRows] = await Promise.all([
     get(`proprieta?ref=eq.${encodeURIComponent(ref)}&limit=1`),
@@ -149,7 +149,7 @@ async function init() {
   // Scarto benchmark
   const scarto = p.scarto_pct != null ? p.scarto_pct : null;
   let scartoClass = '';
-  if (scarto !== null) { scartoClass = scarto <= 0 ? 'ok' : scarto <= 15 ? 'warn' : 'bad'; }
+  if (scarto !== null) { scartoClass = scarto < 0 ? 'warn' : scarto <= 15 ? 'ok' : scarto <= 40 ? 'warn' : 'bad'; }
 
   // Totali portale
   const visteListeTot = (m?.idealista_visite_liste||0) + 0; // immobiliare non ha liste separate
