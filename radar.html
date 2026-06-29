@@ -3,89 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ework — Radar Lunedì</title>
+  <title>Ework — Radar Incarichi</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ---- LAYOUT ---- */
-    .radar-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+    .radar-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
 
-    /* ---- PARAMS CARD ---- */
-    .params-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-    .params-card-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 16px; }
-    .param-group { margin-bottom: 14px; }
-    .param-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-    .param-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 8px 11px; font-size: 0.85rem; font-family: inherit; color: var(--text); outline: none; box-sizing: border-box; }
-    .param-input:focus { border-color: var(--accent); }
-    .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    /* ---- ANALISI BOX ---- */
+    .analisi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .analisi-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 16px; }
+    .url-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .url-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; }
+    .url-input:focus { border-color: var(--accent); }
+    .url-input::placeholder { color: var(--text-faint); }
+    .btn-genera { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.85rem; font-family: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-genera:hover { opacity: 0.88; }
 
-    .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 4px 12px; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; user-select: none; }
-    .chip.on { background: var(--accent); border-color: var(--accent); color: white; }
+    .prompt-box { display: none; margin-top: 12px; }
+    .prompt-box.visible { display: block; }
+    .prompt-text { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .prompt-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-copia { background: var(--accent); color: white; border: none; border-radius: 7px; padding: 8px 16px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .btn-copia:hover { opacity: 0.88; }
+    .btn-aggiungi-log { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-family: inherit; cursor: pointer; }
+    .btn-aggiungi-log:hover { border-color: var(--accent); color: var(--text); }
 
-    .btn-salva-params { width: 100%; margin-top: 16px; background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; font-weight: 600; cursor: pointer; }
-    .btn-salva-params:hover { opacity: 0.88; }
-
-    /* ---- RIGHT COLUMN ---- */
-    .right-col { display: flex; flex-direction: column; gap: 16px; }
-
-    /* ---- PORTALI ---- */
-    .portali-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .portali-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
-    .btn-apri-tutto { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.85rem; font-family: inherit; font-weight: 600; cursor: pointer; }
-    .btn-apri-tutto:hover { opacity: 0.88; }
-
-    .portali-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .portale-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 9px; padding: 14px 16px; }
-    .portale-nome { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .portale-desc { font-size: 0.72rem; color: var(--text-faint); margin-bottom: 10px; }
-    .portale-url-row { display: flex; gap: 6px; }
-    .portale-url-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; font-size: 0.72rem; font-family: inherit; color: var(--text-muted); outline: none; min-width: 0; }
-    .portale-url-input:focus { border-color: var(--accent); }
-    .btn-apri { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 6px 10px; font-size: 0.72rem; font-family: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .btn-apri:hover { background: var(--accent); color: white; }
-    .portale-note-input { width: 100%; margin-top: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; font-size: 0.72rem; font-family: inherit; color: var(--text-muted); outline: none; resize: none; box-sizing: border-box; }
-
-    /* ---- LOG ANNUNCI ---- */
-    .log-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    /* ---- LOG ---- */
+    .log-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-top: 0; }
+    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .log-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+    .log-count { font-size: 0.75rem; color: var(--text-faint); }
 
-    .add-annuncio-form { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 8px; margin-bottom: 16px; }
+    /* form aggiungi manuale */
+    .add-form { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .add-form-row2 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: -8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
     .log-input { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 8px 11px; font-size: 0.82rem; font-family: inherit; color: var(--text); outline: none; }
     .log-input:focus { border-color: var(--accent); }
-    .btn-add-ann { background: var(--accent); color: white; border: none; border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-add { background: var(--accent); color: white; border: none; border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
 
+    /* tabella */
     .log-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .log-table th { text-align: left; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 0 8px 8px; font-weight: 600; border-bottom: 1px solid var(--border); }
-    .log-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    .log-table th { text-align: left; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 0 8px 10px; font-weight: 600; border-bottom: 1px solid var(--border); }
+    .log-table td { padding: 11px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
     .log-table tr:last-child td { border-bottom: none; }
-    .td-link a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
-    .td-link a:hover { text-decoration: underline; }
-    .td-prezzo { font-weight: 600; }
-    .td-note { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
 
-    .ann-stato { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
-    .ann-nuovo { background: #e8f4fd; color: #2980b9; }
-    .ann-visto { background: #f0f0f0; color: #888; }
-    .ann-interessante { background: #eafaf1; color: #27ae60; }
-    .ann-scartato { background: #fdedec; color: #c0392b; }
+    .td-titolo a { color: var(--text); text-decoration: none; font-weight: 500; font-size: 0.85rem; }
+    .td-titolo a:hover { color: var(--accent); }
+    .td-comune { font-size: 0.78rem; color: var(--text-muted); }
+    .td-prezzo { font-weight: 600; font-size: 0.85rem; }
+    .td-note { font-size: 0.75rem; color: var(--text-muted); font-style: italic; max-width: 220px; }
 
-    .btn-valuta { background: var(--accent); color: white; border: none; border-radius: 5px; padding: 4px 10px; font-size: 0.72rem; font-family: inherit; font-weight: 600; cursor: pointer; }
-    .btn-valuta:hover { opacity: 0.88; }
-    .btn-sm { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 5px; padding: 4px 8px; font-size: 0.72rem; font-family: inherit; cursor: pointer; }
-    .btn-sm:hover { border-color: var(--danger); color: var(--danger); }
+    .semaforo { font-size: 1.1rem; cursor: pointer; -webkit-user-select: none; user-select: none; }
+    .semaforo-select { background: none; border: none; font-size: 1.0rem; cursor: pointer; padding: 2px; }
 
-    /* ---- SESSIONI ---- */
-    .sessioni-strip { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; gap: 20px; }
-    .sess-item { display: flex; flex-direction: column; gap: 2px; }
-    .sess-label { font-size: 0.68rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; }
-    .sess-val { font-size: 0.92rem; font-weight: 600; color: var(--text); }
-    .sep { width: 1px; height: 30px; background: var(--border); }
-    .btn-nuova-sess { margin-left: auto; background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.82rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .note-inline { width: 100%; background: transparent; border: none; border-bottom: 1px dashed var(--border); font-size: 0.75rem; font-family: inherit; color: var(--text-muted); font-style: italic; outline: none; padding: 2px 0; }
+    .note-inline:focus { border-bottom-color: var(--accent); }
 
-    @media (max-width: 1100px) { .radar-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 800px) { .portali-grid { grid-template-columns: 1fr 1fr; } .add-annuncio-form { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 500px) { .portali-grid { grid-template-columns: 1fr; } }
+    .btn-del { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.9rem; padding: 2px 4px; }
+    .btn-del:hover { color: var(--danger); }
+
+    /* ---- SIDEBAR DESTRA ---- */
+    .sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    .stat-card-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--text-muted); }
+    .stat-val { font-weight: 700; color: var(--text); }
+
+    .portali-mini { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    .portali-mini-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+    .portale-link { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+    .portale-link:last-child { border-bottom: none; }
+    .portale-link a { color: var(--text); text-decoration: none; }
+    .portale-link a:hover { color: var(--accent); }
+    .portale-badge { font-size: 0.68rem; color: var(--text-faint); }
+
+    .benchmark-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    .benchmark-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+    .bm-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+    .bm-row:last-child { border-bottom: none; }
+    .bm-zona { color: var(--text-muted); }
+    .bm-val { font-weight: 600; color: var(--text); }
+    .bm-trend { font-size: 0.7rem; color: #27ae60; margin-left: 4px; }
+
+    @media (max-width: 1100px) { .radar-layout { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -112,7 +113,7 @@
       <a class="nav-item" href="proprieta.html"><span class="icon">🏡</span> Proprietà</a>
       <a class="nav-item" href="valutazione.html"><span class="icon">🧮</span> Valutazione</a>
       <a class="nav-item" href="ricerca.html"><span class="icon">🔍</span> Ricerca Immobili</a>
-      <a class="nav-item active" href="radar.html"><span class="icon">📡</span> Radar Lunedì</a>
+      <a class="nav-item active" href="radar.html"><span class="icon">📡</span> Radar Incarichi</a>
       <a class="nav-item" href="incarico.html"><span class="icon">📋</span> Scheda Incarico</a>
     </nav>
     <nav class="nav-section c-contenuti">
@@ -129,340 +130,212 @@
 
   <main class="main">
     <div class="topbar">
-      <h2>📡 Radar Lunedì</h2>
+      <h2>📡 Radar Incarichi</h2>
       <div class="date" id="dataEstesa"></div>
     </div>
 
     <div class="content">
+      <div class="radar-layout">
 
-      <!-- STRIP SESSIONI -->
-      <div class="sessioni-strip" id="sessioniStrip" style="margin-bottom:20px">
-        <div class="sess-item"><div class="sess-label">Ultima sessione</div><div class="sess-val" id="ultimaSess">—</div></div>
-        <div class="sep"></div>
-        <div class="sess-item"><div class="sess-label">Annunci trovati</div><div class="sess-val" id="totAnnunci">0</div></div>
-        <div class="sep"></div>
-        <div class="sess-item"><div class="sess-label">Interessanti</div><div class="sess-val" id="totInteressanti">0</div></div>
-        <div class="sep"></div>
-        <div class="sess-item"><div class="sess-label">Prossimo lunedì</div><div class="sess-val" id="prossoLunedi">—</div></div>
-        <button class="btn-nuova-sess" onclick="avviaSessione()">▶ Avvia sessione</button>
-      </div>
+        <!-- LEFT: ANALISI + LOG -->
+        <div style="display:flex;flex-direction:column;gap:16px">
 
-      <div class="radar-grid">
-
-        <!-- LEFT: PARAMETRI -->
-        <div class="params-card">
-          <div class="params-card-title">Parametri acquisizione</div>
-
-          <div class="param-group">
-            <div class="param-label">Tipologie cercate</div>
-            <div class="chip-group" id="chips-tipologie">
-              <span class="chip on" data-val="rustico">Rustico/Casale</span>
-              <span class="chip on" data-val="villa">Villa indipendente</span>
-              <span class="chip on" data-val="casa">Casa indipendente</span>
-              <span class="chip" data-val="appartamento">Appartamento</span>
-              <span class="chip" data-val="terreno">Terreno edificabile</span>
-              <span class="chip" data-val="agriturismo">Agriturismo</span>
+          <!-- ANALISI LINK -->
+          <div class="analisi-card">
+            <div class="analisi-title">Analizza un annuncio con Claude</div>
+            <div class="url-row">
+              <input class="url-input" type="text" id="urlInput" placeholder="Incolla il link dell'annuncio dal portale…" />
+              <button type="button" class="btn-genera" onclick="generaPrompt()">Genera prompt →</button>
             </div>
-          </div>
 
-          <div class="param-group">
-            <div class="param-label">Zone prioritarie</div>
-            <div class="chip-group" id="chips-zone">
-              <span class="chip on" data-val="manciano">Manciano</span>
-              <span class="chip on" data-val="scansano">Scansano</span>
-              <span class="chip on" data-val="magliano">Magliano in T.</span>
-              <span class="chip on" data-val="campagnatico">Campagnatico</span>
-              <span class="chip on" data-val="civitella">Civitella P.</span>
-              <span class="chip" data-val="grosseto">Grosseto</span>
-              <span class="chip on" data-val="orbetello">Orbetello</span>
-              <span class="chip" data-val="capalbio">Capalbio</span>
-              <span class="chip" data-val="pitigliano">Pitigliano</span>
-              <span class="chip" data-val="sorano">Sorano</span>
+            <div class="prompt-box" id="promptBox">
+              <div class="prompt-text" id="promptText"></div>
+              <div class="prompt-actions">
+                <button type="button" class="btn-copia" onclick="copiaPrompt()">📋 Copia per Claude</button>
+                <button type="button" class="btn-aggiungi-log" onclick="aggiungiDaUrl()">+ Aggiungi al log</button>
+              </div>
             </div>
-          </div>
-
-          <div class="param-group">
-            <div class="param-label">Caratteristiche richieste</div>
-            <div class="chip-group" id="chips-caratteristiche">
-              <span class="chip on" data-val="giardino">Giardino</span>
-              <span class="chip on" data-val="terreno">Terreno</span>
-              <span class="chip" data-val="piscina">Piscina</span>
-              <span class="chip" data-val="annesso">Annesso</span>
-              <span class="chip" data-val="vista">Vista panoramica</span>
-              <span class="chip on" data-val="pronto_uso">Pronto uso</span>
-            </div>
-          </div>
-
-          <div class="param-group">
-            <div class="param-label">Superficie minima (mq)</div>
-            <input class="param-input" type="number" id="p_mq_min" value="120" />
-          </div>
-
-          <div class="param-group">
-            <div class="param-label">Budget max acquirenti (€)</div>
-            <div class="param-row">
-              <input class="param-input" type="number" id="p_budget_min" placeholder="Min" />
-              <input class="param-input" type="number" id="p_budget_max" placeholder="Max" />
-            </div>
-          </div>
-
-          <div class="param-group">
-            <div class="param-label">Parole chiave ricerca (separate da virgola)</div>
-            <input class="param-input" type="text" id="p_keywords" placeholder="rustico, casale, campagna, vista mare…" />
-          </div>
-
-          <button class="btn-salva-params" onclick="salvaParams()">💾 Salva parametri</button>
-        </div>
-
-        <!-- RIGHT -->
-        <div class="right-col">
-
-          <!-- PORTALI -->
-          <div class="params-card">
-            <div class="portali-header">
-              <div class="portali-title">Portali da esplorare</div>
-              <button class="btn-apri-tutto" onclick="apriTutti()">🔗 Apri tutto</button>
-            </div>
-            <div class="portali-grid" id="portaliGrid"></div>
           </div>
 
           <!-- LOG ANNUNCI -->
           <div class="log-card">
             <div class="log-header">
-              <div class="log-title">Log annunci trovati</div>
-              <span style="font-size:0.75rem;color:var(--text-faint)" id="logCount"></span>
+              <div class="log-title">Log annunci valutati</div>
+              <span class="log-count" id="logCount"></span>
             </div>
 
-            <div class="add-annuncio-form">
-              <input class="log-input" type="text" id="ann_titolo" placeholder="Titolo o descrizione breve" />
+            <!-- Aggiungi manuale -->
+            <div class="add-form">
+              <input class="log-input" type="text" id="ann_titolo" placeholder="Titolo / descrizione" />
               <input class="log-input" type="text" id="ann_comune" placeholder="Comune" />
               <input class="log-input" type="text" id="ann_prezzo" placeholder="Prezzo €" />
+            </div>
+            <div class="add-form-row2">
               <input class="log-input" type="text" id="ann_url" placeholder="Link annuncio" />
-              <button class="btn-add-ann" onclick="aggiungiAnnuncio()">+ Aggiungi</button>
+              <input class="log-input" type="text" id="ann_note" placeholder="Note Claude (semaforo, motivazione…)" />
+              <button class="btn-add" onclick="aggiungiAnnuncio()">+ Aggiungi</button>
             </div>
 
             <div id="logAnnunci">
-              <div class="placeholder">Nessun annuncio ancora. Avvia una sessione e incolla i trovati qui.</div>
+              <div class="placeholder">Nessun annuncio ancora. Incolla un link qui sopra, genera il prompt, chiedi a Claude, poi aggiungi qui il risultato.</div>
             </div>
           </div>
 
         </div>
-      </div>
 
+        <!-- RIGHT: STATS + PORTALI + BENCHMARK -->
+        <div class="sidebar-right">
+
+          <!-- STATISTICHE -->
+          <div class="stat-card">
+            <div class="stat-card-title">Riepilogo</div>
+            <div class="stat-row"><span class="stat-label">Tot. annunci analizzati</span><span class="stat-val" id="s_tot">0</span></div>
+            <div class="stat-row"><span class="stat-label">🟢 Da contattare</span><span class="stat-val" id="s_verde">0</span></div>
+            <div class="stat-row"><span class="stat-label">🟡 Da approfondire</span><span class="stat-val" id="s_giallo">0</span></div>
+            <div class="stat-row"><span class="stat-label">🔴 Scartati</span><span class="stat-val" id="s_rosso">0</span></div>
+            <div class="stat-row"><span class="stat-label">⬜ Non valutati</span><span class="stat-val" id="s_nessuno">0</span></div>
+          </div>
+
+          <!-- PORTALI -->
+          <div class="portali-mini">
+            <div class="portali-mini-title">Portali da esplorare</div>
+            <div class="portale-link">
+              <a href="https://www.idealista.it/vendita-case/grosseto-provincia/?tipoAnuncio=particular&ordenado-por=actualizado-desc" target="_blank" rel="noopener noreferrer">Idealista</a>
+              <span class="portale-badge">Solo privati</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.immobiliare.it/vendita-case/provincia-grosseto/?soloPrivati=1" target="_blank" rel="noopener noreferrer">Immobiliare.it</a>
+              <span class="portale-badge">Solo privati</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.subito.it/annunci-toscana/vendita/immobili/grosseto/" target="_blank" rel="noopener noreferrer">Subito.it</a>
+              <span class="portale-badge">Privati puri</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.bakeca.it/annunci/vendita-case/grosseto/" target="_blank" rel="noopener noreferrer">Bakeca.it</a>
+              <span class="portale-badge">Privati</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.casa.it/vendita/residenziale/grosseto/provincia/" target="_blank" rel="noopener noreferrer">Casa.it</a>
+              <span class="portale-badge">Maremma</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.gate-away.com/it/ricerca.html?regione=9&prov=GR" target="_blank" rel="noopener noreferrer">Gate-Away</a>
+              <span class="portale-badge">Stranieri</span>
+            </div>
+            <div class="portale-link">
+              <a href="https://www.facebook.com/marketplace/grosseto/propertyforsale" target="_blank" rel="noopener noreferrer">Facebook Mkt</a>
+              <span class="portale-badge">Privati locali</span>
+            </div>
+          </div>
+
+          <!-- BENCHMARK OMI -->
+          <div class="benchmark-card">
+            <div class="benchmark-title">Benchmark prezzi H1 2026</div>
+            <div class="bm-row"><span class="bm-zona">Manciano</span><span class="bm-val">€1.961/mq</span></div>
+            <div class="bm-row"><span class="bm-zona">Roccastrada</span><span class="bm-val">€1.705/mq <span class="bm-trend">+18%</span></span></div>
+            <div class="bm-row"><span class="bm-zona">Scansano</span><span class="bm-val">€1.652/mq</span></div>
+            <div class="bm-row"><span class="bm-zona">Massa Marittima</span><span class="bm-val">€1.605/mq</span></div>
+            <div class="bm-row"><span class="bm-zona">Cinigiano</span><span class="bm-val">€1.315/mq <span class="bm-trend">+6%</span></span></div>
+          </div>
+
+        </div>
+      </div>
     </div>
   </main>
 
   <script>
-    /* ---- UTIL DATE ---- */
+    /* ---- DATE ---- */
     const d = new Date();
     const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
     const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
     document.getElementById('dataOggi').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()];
     document.getElementById('dataEstesa').textContent = giorni[d.getDay()] + ' ' + d.getDate() + ' ' + mesi[d.getMonth()] + ' ' + d.getFullYear();
 
-    function prossimoLunedi() {
-      const n = new Date(); const g = n.getDay();
-      const diff = g === 1 ? 7 : (8 - g) % 7 || 7;
-      const l = new Date(n); l.setDate(n.getDate() + diff);
-      return l.toLocaleDateString('it-IT',{day:'2-digit',month:'long'});
-    }
-    document.getElementById('prossoLunedi').textContent = prossimoLunedi();
+    /* ---- STORAGE ---- */
+    function loadAnnunci() { return JSON.parse(localStorage.getItem('radar_annunci_v2') || '[]'); }
+    function saveAnnunci(a) { localStorage.setItem('radar_annunci_v2', JSON.stringify(a)); }
 
-    /* ---- STORAGE (Supabase radar_sessione) ---- */
-    const SB_URL = 'https://lbizlnuzlesrkvsobzqz.supabase.co';
-    const SB_KEY = 'sb_publishable_2Rd36YkPvlsQI1BkdY0PrQ_od0d115R';
-    const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' };
+    /* ---- GENERA PROMPT ---- */
+    let _urlCorrente = '';
 
-    async function sbRadarGet(chiave) {
-      const r = await fetch(`${SB_URL}/rest/v1/radar_sessione?chiave=eq.${chiave}&limit=1`, { headers: SB_H });
-      const rows = await r.json();
-      return rows[0]?.valore ?? null;
-    }
-    async function sbRadarSet(chiave, valore) {
-      await fetch(`${SB_URL}/rest/v1/radar_sessione`, { method:'POST', headers: SB_H, body: JSON.stringify({ chiave, valore }) });
-    }
+    function generaPrompt() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) return;
+      _urlCorrente = url;
 
-    function loadParams() { return JSON.parse(localStorage.getItem('radar_params') || 'null'); }
-    function saveParams(p) { localStorage.setItem('radar_params', JSON.stringify(p)); sbRadarSet('params', p); }
-    function loadAnnunci() { return JSON.parse(localStorage.getItem('radar_annunci') || '[]'); }
-    function saveAnnunci(a) { localStorage.setItem('radar_annunci', JSON.stringify(a)); sbRadarSet('annunci', a); }
-    function loadPortali() { return JSON.parse(localStorage.getItem('radar_portali') || 'null'); }
-    function savePortali(p) { localStorage.setItem('radar_portali', JSON.stringify(p)); sbRadarSet('portali', p); }
+      const prompt = `Analizza questo annuncio immobiliare per me:
+${url}
 
-    async function syncRadarFromCloud() {
-      const [params, annunci, portali] = await Promise.all([
-        sbRadarGet('params'), sbRadarGet('annunci'), sbRadarGet('portali')
-      ]);
-      if (params) localStorage.setItem('radar_params', JSON.stringify(params));
-      if (annunci) localStorage.setItem('radar_annunci', JSON.stringify(annunci));
-      if (portali) localStorage.setItem('radar_portali', JSON.stringify(portali));
+Cerca di aprire la pagina e dimmi:
+- Tipologia, comune, mq, terreno, prezzo
+- Prezzo al mq vs benchmark OMI della zona (Manciano €1.961, Roccastrada €1.705, Scansano €1.652, Massa Marittima €1.605, Cinigiano €1.315)
+- Privato o agenzia?
+- Annuncio fermo da quanto?
+- Fit con acquirente target: cash, ≥120mq, terreno, pronto uso, max €600k
+
+Concludi con:
+🟢 Contatta subito / 🟡 Approfondisci prima / 🔴 Salta
++ motivazione in 2 righe.`;
+
+      document.getElementById('promptText').textContent = prompt;
+      document.getElementById('promptBox').classList.add('visible');
     }
 
-    /* ---- CHIPS ---- */
-    document.querySelectorAll('.chip').forEach(c => {
-      c.addEventListener('click', () => c.classList.toggle('on'));
-    });
-
-    function getChips(groupId) {
-      return [...document.querySelectorAll(`#${groupId} .chip.on`)].map(c => c.dataset.val);
-    }
-    function setChips(groupId, vals) {
-      document.querySelectorAll(`#${groupId} .chip`).forEach(c => {
-        c.classList.toggle('on', vals.includes(c.dataset.val));
-      });
-    }
-
-    /* ---- PARAMS ---- */
-    function salvaParams() {
-      const p = {
-        tipologie: getChips('chips-tipologie'),
-        zone: getChips('chips-zone'),
-        caratteristiche: getChips('chips-caratteristiche'),
-        mq_min: document.getElementById('p_mq_min').value,
-        budget_min: document.getElementById('p_budget_min').value,
-        budget_max: document.getElementById('p_budget_max').value,
-        keywords: document.getElementById('p_keywords').value
-      };
-      saveParams(p);
-      renderPortali(p);
-      const btn = document.querySelector('.btn-salva-params');
-      btn.textContent = '✅ Salvato!'; btn.style.background = '#27ae60';
-      setTimeout(() => { btn.textContent = '💾 Salva parametri'; btn.style.background = ''; }, 1500);
-    }
-
-    function caricaParams() {
-      const p = loadParams();
-      if (!p) return;
-      if (p.tipologie) setChips('chips-tipologie', p.tipologie);
-      if (p.zone) setChips('chips-zone', p.zone);
-      if (p.caratteristiche) setChips('chips-caratteristiche', p.caratteristiche);
-      if (p.mq_min) document.getElementById('p_mq_min').value = p.mq_min;
-      if (p.budget_min) document.getElementById('p_budget_min').value = p.budget_min;
-      if (p.budget_max) document.getElementById('p_budget_max').value = p.budget_max;
-      if (p.keywords) document.getElementById('p_keywords').value = p.keywords;
-    }
-
-    /* ---- PORTALI ---- */
-    const PORTALI_DEFAULT = [
-      {
-        id: 'idealista', nome: 'Idealista', desc: '🧑 Solo privati · aggiornati per primi',
-        urlBase: 'https://www.idealista.it/vendita-case/grosseto-provincia/?tipoAnuncio=particular&ordenado-por=actualizado-desc'
-      },
-      {
-        id: 'immobiliare', nome: 'Immobiliare.it', desc: '🧑 Solo privati · alto volume',
-        urlBase: 'https://www.immobiliare.it/vendita-case/provincia-grosseto/?soloPrivati=1'
-      },
-      {
-        id: 'subito', nome: 'Subito.it', desc: '🧑 Privati puri · occasioni',
-        urlBase: 'https://www.subito.it/annunci-toscana/vendita/immobili/grosseto/'
-      },
-      {
-        id: 'bakeca', nome: 'Bakeca.it', desc: '🧑 Privati · spesso senza agenzia',
-        urlBase: 'https://www.bakeca.it/annunci/vendita-case/grosseto/'
-      },
-      {
-        id: 'casa', nome: 'Casa.it', desc: 'Buona copertura Maremma',
-        urlBase: 'https://www.casa.it/vendita/residenziale/grosseto/provincia/'
-      },
-      {
-        id: 'wikicasa', nome: 'Wikicasa', desc: 'Prezzi e confronto',
-        urlBase: 'https://www.wikicasa.it/case-in-vendita?regione=9&provincia=GR'
-      },
-      {
-        id: 'gate_away', nome: 'Gate-Away', desc: 'Acquirenti stranieri',
-        urlBase: 'https://www.gate-away.com/it/ricerca.html?regione=9&prov=GR'
-      },
-      {
-        id: 'tecnocasa', nome: 'Tecnocasa', desc: 'Case rurali Maremma',
-        urlBase: 'https://www.tecnocasa.it/vendita/immobili/toscana/grosseto.html'
-      },
-      {
-        id: 'facebook', nome: 'Facebook Marketplace', desc: 'Privati locali',
-        urlBase: 'https://www.facebook.com/marketplace/grosseto/propertyforsale'
+    async function copiaPrompt() {
+      const testo = document.getElementById('promptText').textContent;
+      try {
+        await navigator.clipboard.writeText(testo);
+        const btn = document.querySelector('.btn-copia');
+        btn.textContent = '✅ Copiato!';
+        setTimeout(() => btn.textContent = '📋 Copia per Claude', 1800);
+      } catch(e) {
+        alert('Copia manuale: seleziona il testo nel riquadro grigio');
       }
-    ];
-
-    function renderPortali(params) {
-      const saved = loadPortali() || {};
-      const grid = document.getElementById('portaliGrid');
-      grid.innerHTML = PORTALI_DEFAULT.map(p => {
-        const savedUrl = saved[p.id]?.url || p.urlBase;
-        const savedNote = saved[p.id]?.nota || '';
-        return `
-          <div class="portale-card">
-            <div class="portale-nome">${p.nome}</div>
-            <div class="portale-desc">${p.desc}</div>
-            <div class="portale-url-row">
-              <input class="portale-url-input" id="url_${p.id}" value="${savedUrl}" title="${savedUrl}" onchange="salvaPortaleUrl('${p.id}', this.value)" />
-              <button class="btn-apri" onclick="apriPortale('${p.id}')">↗ Apri</button>
-            </div>
-            <input class="portale-note-input" id="nota_${p.id}" placeholder="Note filtri…" value="${savedNote}" onchange="salvaPortaleNota('${p.id}', this.value)" />
-          </div>
-        `;
-      }).join('');
     }
 
-    function salvaPortaleUrl(id, url) {
-      const saved = loadPortali() || {};
-      if (!saved[id]) saved[id] = {};
-      saved[id].url = url;
-      savePortali(saved);
-    }
-    function salvaPortaleNota(id, nota) {
-      const saved = loadPortali() || {};
-      if (!saved[id]) saved[id] = {};
-      saved[id].nota = nota;
-      savePortali(saved);
+    function aggiungiDaUrl() {
+      const url = _urlCorrente;
+      if (!url) return;
+      document.getElementById('ann_url').value = url;
+      document.getElementById('ann_titolo').focus();
+      document.getElementById('promptBox').classList.remove('visible');
+      document.getElementById('urlInput').value = '';
     }
 
-    function apriPortale(id) {
-      const url = document.getElementById('url_' + id).value;
-      if (url) window.open(url, '_blank');
-    }
-
-    function apriTutti() {
-      PORTALI_DEFAULT.forEach(p => {
-        const el = document.getElementById('url_' + p.id);
-        if (el && el.value) window.open(el.value, '_blank');
-      });
-      avviaSessione();
-    }
-
-    /* ---- SESSIONE ---- */
-    function avviaSessione() {
-      const oggi = new Date().toLocaleDateString('it-IT');
-      localStorage.setItem('radar_ultima_sessione', oggi);
-      document.getElementById('ultimaSess').textContent = oggi;
-    }
-
-    /* ---- LOG ANNUNCI ---- */
-    const STATI_ANN = ['nuovo', 'interessante', 'visto', 'scartato'];
-    const LABEL_ANN = { nuovo:'Nuovo', interessante:'Interessante 🟢', visto:'Visto', scartato:'Scartato' };
-    const CLS_ANN = { nuovo:'ann-nuovo', interessante:'ann-interessante', visto:'ann-visto', scartato:'ann-scartato' };
-
+    /* ---- LOG ---- */
     function aggiungiAnnuncio() {
       const titolo = document.getElementById('ann_titolo').value.trim();
-      if (!titolo) return;
+      const url = document.getElementById('ann_url').value.trim();
+      if (!titolo && !url) return;
+
       const ann = {
         id: Date.now(),
-        titolo,
+        titolo: titolo || url,
         comune: document.getElementById('ann_comune').value.trim(),
         prezzo: document.getElementById('ann_prezzo').value.trim(),
-        url: document.getElementById('ann_url').value.trim(),
-        stato: 'nuovo',
+        url: url,
+        note: document.getElementById('ann_note').value.trim(),
+        semaforo: '',
         data: new Date().toLocaleDateString('it-IT')
       };
       const lista = loadAnnunci();
       lista.unshift(ann);
       saveAnnunci(lista);
-      ['ann_titolo','ann_comune','ann_prezzo','ann_url'].forEach(id => document.getElementById(id).value = '');
+      ['ann_titolo','ann_comune','ann_prezzo','ann_url','ann_note'].forEach(id => document.getElementById(id).value = '');
       renderLog();
     }
 
-    function cambiaStatoAnn(id, stato) {
+    function aggiornaSemaforo(id, val) {
       const lista = loadAnnunci();
       const i = lista.findIndex(a => a.id === id);
-      if (i >= 0) { lista[i].stato = stato; saveAnnunci(lista); renderLog(); }
+      if (i >= 0) { lista[i].semaforo = val; saveAnnunci(lista); aggiornaStats(lista); }
+    }
+
+    function aggiornaNota(id, nota) {
+      const lista = loadAnnunci();
+      const i = lista.findIndex(a => a.id === id);
+      if (i >= 0) { lista[i].note = nota; saveAnnunci(lista); }
     }
 
     function eliminaAnnuncio(id) {
@@ -470,30 +343,29 @@
       renderLog();
     }
 
-    function valutaAnnuncio(id) {
-      const a = loadAnnunci().find(x => x.id === id);
-      if (!a) return;
-      // Passa i dati a valutazione.html via sessionStorage
-      sessionStorage.setItem('prefill_valutazione', JSON.stringify({
-        nome: a.titolo,
-        comune: a.comune,
-        prezzo: a.prezzo,
-        url: a.url
-      }));
-      window.location.href = 'valutazione.html';
+    function aggiornaStats(lista) {
+      document.getElementById('s_tot').textContent = lista.length;
+      document.getElementById('s_verde').textContent = lista.filter(a => a.semaforo === 'verde').length;
+      document.getElementById('s_giallo').textContent = lista.filter(a => a.semaforo === 'giallo').length;
+      document.getElementById('s_rosso').textContent = lista.filter(a => a.semaforo === 'rosso').length;
+      document.getElementById('s_nessuno').textContent = lista.filter(a => !a.semaforo).length;
     }
+
+    const SEMAFORI = [
+      { val: '', label: '⬜' },
+      { val: 'verde', label: '🟢' },
+      { val: 'giallo', label: '🟡' },
+      { val: 'rosso', label: '🔴' }
+    ];
 
     function renderLog() {
       const lista = loadAnnunci();
       const el = document.getElementById('logAnnunci');
-      const tot = lista.length;
-      const inter = lista.filter(a => a.stato === 'interessante').length;
-      document.getElementById('totAnnunci').textContent = tot;
-      document.getElementById('totInteressanti').textContent = inter;
-      document.getElementById('logCount').textContent = tot + ' annunci';
+      document.getElementById('logCount').textContent = lista.length + ' annunci';
+      aggiornaStats(lista);
 
-      if (tot === 0) {
-        el.innerHTML = '<div class="placeholder">Nessun annuncio ancora. Avvia una sessione e incolla i trovati qui.</div>';
+      if (lista.length === 0) {
+        el.innerHTML = '<div class="placeholder">Nessun annuncio ancora. Incolla un link qui sopra, genera il prompt, chiedi a Claude, poi aggiungi qui il risultato.</div>';
         return;
       }
 
@@ -501,51 +373,50 @@
         <table class="log-table">
           <thead>
             <tr>
+              <th style="width:28px"></th>
               <th>Annuncio</th>
               <th>Comune</th>
               <th>Prezzo</th>
-              <th>Stato</th>
+              <th>Note Claude</th>
               <th>Data</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            ${lista.map(a => `
+            ${lista.map(a => {
+              const semLabel = SEMAFORI.find(s => s.val === (a.semaforo||''))?.label || '⬜';
+              return `
               <tr>
-                <td class="td-link">
-                  ${a.url ? `<a href="${a.url}" target="_blank">${a.titolo}</a>` : a.titolo}
-                </td>
-                <td>${a.comune || '—'}</td>
-                <td class="td-prezzo">${a.prezzo || '—'}</td>
                 <td>
-                  <select class="ann-stato ${CLS_ANN[a.stato]}" onchange="cambiaStatoAnn(${a.id}, this.value)" style="background:none;border:none;font-size:0.7rem;font-weight:600;cursor:pointer;padding:2px 6px;border-radius:12px">
-                    ${STATI_ANN.map(s => `<option value="${s}" ${a.stato===s?'selected':''}>${LABEL_ANN[s]}</option>`).join('')}
+                  <select class="semaforo-select" onchange="aggiornaSemaforo(${a.id}, this.value)" title="Semaforo incarico">
+                    ${SEMAFORI.map(s => `<option value="${s.val}" ${(a.semaforo||'')=== s.val?'selected':''}>${s.label}</option>`).join('')}
                   </select>
                 </td>
-                <td style="font-size:0.72rem;color:var(--text-faint)">${a.data}</td>
-                <td style="display:flex;gap:4px;align-items:center">
-                  <button class="btn-valuta" onclick="valutaAnnuncio(${a.id})" title="Apri in valutazione">🧮</button>
-                  <button class="btn-sm" onclick="eliminaAnnuncio(${a.id})">✕</button>
+                <td class="td-titolo">
+                  ${a.url ? `<a href="${a.url}" target="_blank" rel="noopener noreferrer">${a.titolo}</a>` : a.titolo}
                 </td>
+                <td class="td-comune">${a.comune || '—'}</td>
+                <td class="td-prezzo">${a.prezzo || '—'}</td>
+                <td class="td-note">
+                  <input class="note-inline" type="text" value="${(a.note||'').replace(/"/g,'&quot;')}" placeholder="Incolla nota Claude…" onchange="aggiornaNota(${a.id}, this.value)" />
+                </td>
+                <td style="font-size:0.72rem;color:var(--text-faint);white-space:nowrap">${a.data}</td>
+                <td><button class="btn-del" onclick="eliminaAnnuncio(${a.id})" title="Elimina">✕</button></td>
               </tr>
-            `).join('')}
+              `;
+            }).join('')}
           </tbody>
         </table>
       `;
     }
 
     /* ---- INIT ---- */
-    syncRadarFromCloud().then(() => {
-      caricaParams();
-      renderPortali();
-      renderLog();
+    renderLog();
+
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generaPrompt();
     });
-
-    const ultima = localStorage.getItem('radar_ultima_sessione');
-    if (ultima) document.getElementById('ultimaSess').textContent = ultima;
-
-    // Enter su form log
-    ['ann_titolo','ann_comune','ann_prezzo','ann_url'].forEach(id => {
+    ['ann_titolo','ann_comune','ann_prezzo','ann_url','ann_note'].forEach(id => {
       document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') aggiungiAnnuncio(); });
     });
   </script>
