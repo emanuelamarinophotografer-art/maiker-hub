@@ -506,26 +506,31 @@
         }
 
         // Geggi — ultimo briefing (messaggi mittente='segretario')
-        const rGeggi = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.segretario&order=created_at.desc&limit=1`, { headers: SB_H });
-        const geggiMsg = await rGeggi.json();
-        const geggiEl = document.getElementById('geggiBriefing');
-        const geggiDataEl = document.getElementById('geggiData');
-        if (Array.isArray(geggiMsg) && geggiMsg.length > 0) {
-          geggiEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${geggiMsg[0].testo}</div>`;
-          const dtG = new Date(geggiMsg[0].created_at);
-          geggiDataEl.textContent = dtG.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dtG.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-        }
+        // NOTA: fetch separato per non dipendere da errori precedenti
+        try {
+          const rGeggi = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.segretario&order=created_at.desc&limit=1`, { headers: SB_H });
+          const geggiMsg = await rGeggi.json();
+          const geggiEl = document.getElementById('geggiBriefing');
+          const geggiDataEl = document.getElementById('geggiData');
+          if (Array.isArray(geggiMsg) && geggiMsg.length > 0) {
+            geggiEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${geggiMsg[0].testo}</div>`;
+            const dtG = new Date(geggiMsg[0].created_at);
+            geggiDataEl.textContent = dtG.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dtG.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          }
+        } catch(eGeggi) { console.error('Briefing Geggi:', eGeggi); }
 
         // Newspepper — ultimo briefing (messaggi mittente='newspepper')
-        const rNews = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.newspepper&order=created_at.desc&limit=1`, { headers: SB_H });
-        const news = await rNews.json();
-        const newsEl = document.getElementById('newspepperBriefing');
-        const newsDataEl = document.getElementById('newspepperData');
-        if (Array.isArray(news) && news.length > 0) {
-          newsEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${news[0].testo}</div>`;
-          const dtN = new Date(news[0].created_at);
-          newsDataEl.textContent = 'Ultimo aggiornamento: ' + dtN.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dtN.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-        }
+        try {
+          const rNews = await fetch(`${SB_URL}/rest/v1/messaggi?mittente=eq.newspepper&order=created_at.desc&limit=1`, { headers: SB_H });
+          const news = await rNews.json();
+          const newsEl = document.getElementById('newspepperBriefing');
+          const newsDataEl = document.getElementById('newspepperData');
+          if (Array.isArray(news) && news.length > 0) {
+            newsEl.innerHTML = `<div style="font-size:0.82rem;color:var(--text);line-height:1.7;white-space:pre-wrap">${news[0].testo}</div>`;
+            const dtN = new Date(news[0].created_at);
+            newsDataEl.textContent = 'Ultimo aggiornamento: ' + dtN.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + ' ore ' + dtN.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          }
+        } catch(eNews) { console.error('Briefing Newspepper:', eNews); }
 
         // Priorità da Supabase
         const rPr = await fetch(`${SB_URL}/rest/v1/attivita?completata=eq.false&categoria=eq.priorita&order=created_at.desc&limit=6`, { headers: SB_H, cache: 'no-store' });
