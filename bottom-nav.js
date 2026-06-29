@@ -14,7 +14,6 @@
     { href: 'valutazione.html',     icon: '💶', label: 'OMI' },
     { href: 'incarico.html',        icon: '📋', label: 'Incarico' },
     { href: 'agenti.html',          icon: '🤖', label: 'Agenti' },
-    { href: 'chat.html',            icon: '💬', label: 'Chat' },
     { href: 'fonti.html',           icon: '🗞', label: 'Fonti' },
     { href: 'storico-metriche.html',icon: '📈', label: 'Storico' },
   ];
